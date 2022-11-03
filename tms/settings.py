@@ -10,20 +10,26 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
+import os
+from dotenv import dotenv_values
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
+# Config file
+CONFIG = dotenv_values(os.path.join(BASE_DIR, '.env'))
+
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-)z-*w!p&0qulv-xz^+rwh^)&d#9++66r4n)-%!8yi=1zcpib1s'
+SECRET_KEY = CONFIG['SECRET_KEY']
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = CONFIG['DBUG']
 
 ALLOWED_HOSTS = []
 
@@ -37,6 +43,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # 3rd Party apps
+
+    # Local apps
+    'authentication.apps.AuthenticationConfig',
 ]
 
 MIDDLEWARE = [
@@ -75,8 +85,12 @@ WSGI_APPLICATION = 'tms.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': CONFIG['DB_NAME'],
+        'USER': CONFIG['DB_USER'],
+        'PASSWORD': CONFIG['DB_PASS'],
+        'HOST': CONFIG['DB_HOST'],
+        'PORT': CONFIG['DB_PORT']
     }
 }
 
@@ -121,3 +135,12 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# Custom settings
+
+AUTH_USER_MODEL = 'authentication.CustomUser'
+
+
+
+
