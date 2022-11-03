@@ -1,0 +1,18 @@
+
+
+#configuration file
+*/config.env
+.*
+!.gitignore
+
+#cache files
+*/__pycache__/
+*/*/__pycache__/
+*/*/*/__pycache__/
+
+#sqlite db file
+/db.sqlite3
+
+#media/files
+/media/submissions/*
+.env
