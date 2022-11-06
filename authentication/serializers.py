@@ -1,4 +1,5 @@
 
+from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, TokenRefreshSerializer
 from rest_framework_simplejwt.exceptions import InvalidToken
 
@@ -24,5 +25,19 @@ class MyTokenRefreshSerializer(TokenRefreshSerializer):
         if attrs['refresh']:
             return super().validate(attrs)
         raise InvalidToken("No valid Token found in cookie 'refresh_token'")
+
+
+class MessageSerializer(serializers.Serializer):
+    """
+    Only used for documentations
+    """
+    message = serializers.CharField(max_length = 500)
+
+
+
+
+
+
+
 
 
