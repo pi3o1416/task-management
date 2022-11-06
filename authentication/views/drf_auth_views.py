@@ -22,7 +22,6 @@ def _set_cookie(response=None, cookie_name=None, cookie_value=None, max_age=3600
                         httponly=True, samesite=None, secure=True)
     return response
 
-
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
     permission_classes = [AllowAny]
@@ -64,5 +63,5 @@ class LogoutView(APIView):
         Logout view. Remove refresh token from cookie
         """
         response = Response({'message': 'Logout Successful'}, status=status.HTTP_200_OK)
-        response.delete_cookie("refresh_tokne")
+        response.delete_cookie("refresh_token")
         return response
