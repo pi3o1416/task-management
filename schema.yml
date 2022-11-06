@@ -1,0 +1,112 @@
+openapi: 3.0.3
+info:
+  title: Task Management Project
+  version: 2.0.0
+  description: A task management project to maintain tasks efficiently
+paths:
+  /auth/get-token/:
+    post:
+      operationId: get_token_create
+      description: |-
+        Takes a set of user credentials and returns an access and refresh JSON web
+        token pair to prove the authentication of those credentials.
+      tags:
+      - get-token
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MyTokenObtainPair'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MyTokenObtainPair'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MyTokenObtainPair'
+        required: true
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MyTokenObtainPair'
+          description: ''
+  /auth/logout/:
+    post:
+      operationId: logout_create
+      description: Logout view. Remove refresh token from cookie
+      tags:
+      - logout
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+          description: ''
+  /auth/refresh-token/:
+    post:
+      operationId: refresh_token_create
+      description: |-
+        Takes a refresh type JSON web token and returns an access type JSON web
+        token if the refresh token is valid.
+      tags:
+      - refresh-token
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MyTokenRefresh'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MyTokenRefresh'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MyTokenRefresh'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MyTokenRefresh'
+          description: ''
+components:
+  schemas:
+    Message:
+      type: object
+      description: Only used for documentations
+      properties:
+        message:
+          type: string
+          maxLength: 500
+      required:
+      - message
+    MyTokenObtainPair:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+          writeOnly: true
+      required:
+      - password
+      - username
+    MyTokenRefresh:
+      type: object
+      properties:
+        access:
+          type: string
+          readOnly: true
+      required:
+      - access
+  securitySchemes:
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
