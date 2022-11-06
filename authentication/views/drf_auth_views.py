@@ -1,11 +1,12 @@
 
+from drf_spectacular.utils import extend_schema
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from ..serializers import MyTokenObtainPairSerializer, MyTokenRefreshSerializer
+from ..serializers import MyTokenObtainPairSerializer, MyTokenRefreshSerializer, MessageSerializer
 
 
 def _set_cookie(response=None, cookie_name=None, cookie_value=None, max_age=3600*24*15):
@@ -57,6 +58,7 @@ class MyTokenRefreshView(TokenRefreshView):
 class LogoutView(APIView):
     permission_classes = [AllowAny,]
 
+    @extend_schema(request=None, responses=MessageSerializer)
     def post(self, request):
         """
         Logout view. Remove refresh token from cookie
