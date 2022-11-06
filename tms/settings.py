@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
+    'drf_spectacular',
 
     # Local apps
     'authentication.apps.AuthenticationConfig',
@@ -153,7 +154,8 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny',
-    ]
+    ],
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
 
@@ -186,7 +188,11 @@ SIMPLE_JWT = {
 }
 
 
-
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Task Management Project",
+    "DESCRIPTION": "A task management project to maintain tasks efficiently",
+    "VERSION": "2.0.0",
+}
 
 
 
