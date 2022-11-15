@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
     'drf_spectacular',
+    'django_extensions',
 
     # Local apps
     'authentication.apps.AuthenticationConfig',
@@ -193,6 +194,15 @@ SPECTACULAR_SETTINGS = {
     "DESCRIPTION": "A task management project to maintain tasks efficiently",
     "VERSION": "2.0.0",
 }
+
+# Shell plus configuration
+import pygments.formatters
+SHELL_PLUS = "ipython"
+SHELL_PLUS_PRINT_SQL = True
+SHELL_PLUS_PYGMENTS_FORMATTER = pygments.formatters.TerminalFormatter
+SHELL_PLUS_PYGMENTS_FORMATTER_KWARGS = {}
+
+
 
 
 
