@@ -47,22 +47,31 @@ class UserViewSet(viewsets.ViewSet):
         except UserGetException as exception:
             return Response(data={"detail": exception.args}, status=status.HTTP_400_BAD_REQUEST)
 
-#    def destroy(self, request):
-#        pass
-#
+    def destroy(self, request, pk):
+        """
+        Destroy a object from database
+        parameter: (int)pk
+        """
+        try:
+            user = self.get_user_object(pk)
+            user.delete()
+            return Response(data={"detail": ("User Delete Successful",)}, status=status.HTTP_200_OK)
+        except UserGetException as exception:
+            return Response(data={"detail": exception.args}, status=status.HTTP_400_BAD_REQUEST)
+
 #    def update(self, request):
 #        pass
 
     def get_user_object(self, pk):
         try:
-            user = CustomUser.objects.get(pk=pk)
+            user = self.queryset.get(pk=pk)
             return user
         except CustomUser.DoesNotExist:
             raise UserGetException("User with does not found")
         except ValueError:
             raise UserGetException("User pk whold be an Integer")
-        except Exception:
-            raise UserGetException("User object retrieve failed due to unknown causes")
+        except Exception as exception:
+            raise UserGetException(*exception.args)
 
 
 
