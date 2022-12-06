@@ -39,6 +39,13 @@ class MessageSerializer(serializers.Serializer):
     detail = serializers.ListField()
 
 
+class FieldErrorSerializer(serializers.Serializer):
+    """
+    Only for documentations
+    """
+    field_name = serializers.ListField()
+
+
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(
         write_only=True,
@@ -50,9 +57,23 @@ class UserSerializer(serializers.ModelSerializer):
         required=True,
     )
 
-    def validate_password2(self):
-        if self.password != self.password2:
-            raise ValidationError(_('Password and retpye password did not match'))
+    def validate_email(self, email):
+        return email
+
+    def validate_first_name(self, first_name):
+        if not first_name:
+            raise ValidationError(_("First name can not be empty"), code='empty-not-allowed')
+        return first_name
+
+    def validate_last_name(self, last_name):
+        if not last_name:
+            raise ValidationError(_("Last name can not be empty"), code="empty-not-allowed")
+        return last_name
+
+    def validate(self, data):
+        if data["password"] != data["password2"]:
+            raise ValidationError(detail=_("Password and Retype Password did not match"), code='mismatch')
+        return data
 
     class Meta:
         model=CustomUser
