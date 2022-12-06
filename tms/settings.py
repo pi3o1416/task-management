@@ -203,6 +203,12 @@ SHELL_PLUS_PYGMENTS_FORMATTER = pygments.formatters.TerminalFormatter
 SHELL_PLUS_PYGMENTS_FORMATTER_KWARGS = {}
 
 
+#Email Backend
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_HOST_USER = CONFIG['EMAIL_HOST_USER']
+
+#Domain
+DOMAIN = "127.0.0.1"
 
 
 
