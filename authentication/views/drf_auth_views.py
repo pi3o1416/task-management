@@ -1,12 +1,14 @@
 
-from drf_spectacular.utils import extend_schema
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from django.utils.translation import gettext_lazy as _
+from drf_spectacular.utils import extend_schema, OpenApiResponse
+from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from ..serializers import MyTokenObtainPairSerializer, MyTokenRefreshSerializer, MessageSerializer
+from ..serializers import MyTokenObtainPairSerializer, MyTokenRefreshSerializer, MessageSerializer, PasswordForgetSerializer, PasswordResetSerializer
+from ..models import CustomUser
 
 
 def _set_cookie(response=None, cookie_name=None, cookie_value=None, max_age=3600*24*15):
@@ -40,7 +42,7 @@ class MyTokenObtainPairView(TokenObtainPairView):
 
 class MyTokenRefreshView(TokenRefreshView):
     serializer_class = MyTokenRefreshSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def finalize_response(self, request, response, *args, **kwargs):
         if response.data.get('refresh'):
@@ -65,3 +67,43 @@ class LogoutView(APIView):
         response = Response({'message': 'Logout Successful'}, status=status.HTTP_200_OK)
         response.delete_cookie("refresh_token")
         return response
+
+
+class ForgetPasswordView(APIView):
+    permission_classes = [AllowAny,]
+    serializer_class = PasswordForgetSerializer
+
+    @extend_schema(responses={200: OpenApiResponse(MessageSerializer,
+                                                   "On Success"),
+                              400: OpenApiResponse(MessageSerializer,
+                                                   "Unknown Emaill")})
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            user = serializer.instance
+            user.send_password_reset_email(request)
+            return Response(data={"detail": "A Password Reset Link is send to your email."}, status=status.HTTP_200_OK)
+        return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class PasswordResetView(APIView):
+    serializer_class = PasswordResetSerializer
+
+    @extend_schema(responses={202: OpenApiResponse(MessageSerializer,
+                                                   "On Success"),
+                              404: OpenApiResponse(MessageSerializer,
+                                                   "URL validity expire/Wrong uidb64"),
+                              400: OpenApiResponse(MessageSerializer,
+                                                   "Invalid Json, 'field_name':['errors']")})
+    def post(self, request, uidb64, token):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            user = CustomUser.objects.get_user_by_encoded_pk(uidb64)
+            if user and user.validate_token(token):
+                serializer.get_password()
+                user.set_password(serializer.get_password())
+                user.save()
+                return Response(data={"detail": _("Password Reset Successful")}, status=status.HTTP_202_ACCEPTED)
+            return Response(data={"detail": _("Invalid URL")}, status=status.HTTP_404_NOT_FOUND)
+        return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
