@@ -1,13 +1,15 @@
 
 from django.utils.translation import gettext_lazy as _
 from drf_spectacular.utils import extend_schema, OpenApiResponse
+from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
-from rest_framework import status
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from ..serializers import MyTokenObtainPairSerializer, MyTokenRefreshSerializer, MessageSerializer, PasswordForgetSerializer, PasswordResetSerializer
+from ..serializers import (MyTokenObtainPairSerializer, MyTokenRefreshSerializer,
+                           MessageSerializer, PasswordForgetSerializer,
+                           PasswordResetSerializer, FieldErrorSerializer)
 from ..models import CustomUser
 
 
@@ -73,10 +75,8 @@ class ForgetPasswordView(APIView):
     permission_classes = [AllowAny,]
     serializer_class = PasswordForgetSerializer
 
-    @extend_schema(responses={200: OpenApiResponse(MessageSerializer,
-                                                   "On Success"),
-                              400: OpenApiResponse(MessageSerializer,
-                                                   "Unknown Emaill")})
+    @extend_schema(responses={200: MessageSerializer,
+                              400: FieldErrorSerializer})
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
@@ -88,12 +88,9 @@ class ForgetPasswordView(APIView):
 class PasswordResetView(APIView):
     serializer_class = PasswordResetSerializer
 
-    @extend_schema(responses={202: OpenApiResponse(MessageSerializer,
-                                                   "On Success"),
-                              404: OpenApiResponse(MessageSerializer,
-                                                   "URL validity expire/Wrong uidb64"),
-                              400: OpenApiResponse(MessageSerializer,
-                                                   "Invalid Json, 'field_name':['errors']")})
+    @extend_schema(responses={202: MessageSerializer,
+                              404: MessageSerializer,
+                              400: FieldErrorSerializer})
     def post(self, request, uidb64, token):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
