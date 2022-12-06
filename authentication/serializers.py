@@ -1,4 +1,5 @@
 
+from django.utils.translation import gettext_lazy
 from django.contrib.auth.password_validation import validate_password
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
@@ -57,6 +58,48 @@ class UserSerializer(serializers.ModelSerializer):
         model=CustomUser
         fields = ['pk', 'username', 'email', 'first_name', 'last_name', 'is_active', 'is_staff', 'password', 'password2']
         read_only_fields = ['pk']
+
+
+class PasswordForgetSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+    def validate_email(self, email):
+        user = CustomUser.objects.get_user(email=email)
+        if user:
+            self.instance = user
+            return email
+        raise ValidationError(detail=_("No Active Account found under this email"), code='does-not-exist')
+
+
+class PasswordResetSerializer(serializers.Serializer):
+    password = serializers.CharField(
+        write_only=True,
+        required=True,
+        validators=[validate_password]
+    )
+    retype_password = serializers.CharField(
+        write_only=True,
+        required=True
+    )
+
+    def get_password(self):
+        """
+        Only call if serializer valid
+        """
+        return self.validated_data.get('password')
+
+    def validate(self, data):
+        """
+        Custom Validtor to ensure password and retype password same.
+        """
+        if data['password'] != data['retype_password']:
+            raise ValidationError(
+                detail=_("Password and Retype password didnot match"),
+                code="data-mismatch"
+            )
+        return data
+
+
 
 
 
