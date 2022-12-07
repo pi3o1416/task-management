@@ -4,6 +4,7 @@ from django.conf import settings
 from django.template.loader import render_to_string
 from django.urls import reverse_lazy
 from django.db import models
+from django.db.models import F
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
@@ -80,9 +81,10 @@ class CustomUser(AbstractUser):
         self.send_email(subject, email_from, email_to, message=html_message)
 
 
-    def send_account_active_email(self):
+    def send_account_active_email(self, request):
         token = self.generate_token()
         uidb64 = self.generate_urlsafe_b64_encoded_pk()
+        absolute_uri = get_absolute_uri(request, 'authentication:active-account', uidb64=uidb64, token=token)
         url = reverse_lazy()
 
     def send_email(self, subject, email_from, email_to, message=""):
@@ -93,6 +95,25 @@ class CustomUser(AbstractUser):
             to=email_to
         )
         email.send()
+
+    def activate_account(self):
+        self.is_active = True
+        self.save()
+
+    def inactivate_account(self):
+        self.is_active = False
+        self.save()
+
+    def give_staff_permissions(self):
+        self.is_staff = True
+        self.save()
+
+    def remove_staff_permissions(self):
+        self.is_staff = False
+        self.save()
+
+
+
 
 
 
