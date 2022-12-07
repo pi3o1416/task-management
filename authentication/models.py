@@ -8,12 +8,10 @@ from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.utils.translation import gettext_lazy as _
-from django.contrib.auth.models import UserManager
 
-from .querysets import CustomUserQuerySet
+from .querysets import CustomUserManager
 from .services import get_absolute_uri
 
-CustomUserManager = UserManager.from_queryset(CustomUserQuerySet)
 
 
 class CustomUser(AbstractUser):
@@ -21,13 +19,13 @@ class CustomUser(AbstractUser):
         _("email address"),
         blank=False,
         unique=True,
-        null=False)
+        null=False,
+    )
 
     objects = CustomUserManager()
 
     class Meta:
         ordering = ['username']
-        pass
 
     @property
     def full_name(self):
