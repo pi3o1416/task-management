@@ -20,11 +20,11 @@ class UserViewSet(viewsets.ViewSet):
         """
         Create a new User
         """
-        serializer = UserSerializer(data=request.POST.data)
+        serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(data=serializer.validated_data, status=status.HTTP_201_CREATED)
-        return Response(serializer.error_messages, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @extend_schema(request=None, responses={201: UserSerializer})
     def list(self, request):
