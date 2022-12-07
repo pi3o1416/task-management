@@ -57,28 +57,43 @@ class UserSerializer(serializers.ModelSerializer):
         required=True,
     )
 
-    def validate_email(self, email):
-        return email
-
-    def validate_first_name(self, first_name):
-        if not first_name:
-            raise ValidationError(_("First name can not be empty"), code='empty-not-allowed')
-        return first_name
-
-    def validate_last_name(self, last_name):
-        if not last_name:
-            raise ValidationError(_("Last name can not be empty"), code="empty-not-allowed")
-        return last_name
+    class Meta:
+        model=CustomUser
+        fields = ['pk', 'username', 'email', 'first_name', 'last_name', 'is_active', 'is_staff', 'password', 'password2']
+        read_only_fields = ['pk', 'is_active', 'is_staff']
 
     def validate(self, data):
         if data["password"] != data["password2"]:
             raise ValidationError(detail=_("Password and Retype Password did not match"), code='mismatch')
         return data
 
+    def create(self):
+        assert self.validated_data, "call is_valid method before create new user"
+        user = CustomUser.objects.create(
+            username=self.validated_data.get('username'),
+            email = self.validated_data.get('email'),
+            first_name = self.validated_data.get('first_name'),
+            last_name = self.validated_data.get('last_name'),
+        )
+        user.set_password(self.validated_data.get('password'))
+        return user
+
+
+class UserUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model=CustomUser
-        fields = ['pk', 'username', 'email', 'first_name', 'last_name', 'is_active', 'is_staff', 'password', 'password2']
-        read_only_fields = ['pk']
+        fields = ['pk', 'username', 'email', 'first_name', 'last_name', 'is_active', 'is_staff']
+        read_only_fields = ['pk', 'is_active', 'is_staff']
+
+    def update(self):
+        assert self.validated_data, "call is_valid method before update an user"
+        assert self.instance, "initialize serializer with user instance before update"
+        self.instance.username = self.validated_data.get('username')
+        self.instance.email = self.validated_data.get('email')
+        self.instance.first_name = self.validated_data.get('first_name')
+        self.instance.last_name = self.validated_data.get('last_name')
+        self.instance.save()
+        return self.instance
 
 
 class PasswordForgetSerializer(serializers.Serializer):
