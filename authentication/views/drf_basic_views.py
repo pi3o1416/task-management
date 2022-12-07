@@ -1,15 +1,15 @@
 
 from rest_framework import viewsets
+from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from drf_spectacular.utils import extend_schema
 from ..models import CustomUser
-from ..serializers import MessageSerializer, UserSerializer
+from ..serializers import FieldErrorSerializer, MessageSerializer, UserSerializer, UserUpdateSerializer
 from ..exceptions import UserGetException
 
 
 class UserViewSet(viewsets.ViewSet):
-    serializer_class = UserSerializer
     queryset = CustomUser.objects.all()
 
 
@@ -20,7 +20,8 @@ class UserViewSet(viewsets.ViewSet):
         """
         Create a new User
         """
-        serializer = UserSerializer(data=request.data)
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(data=serializer.validated_data, status=status.HTTP_201_CREATED)
@@ -31,7 +32,8 @@ class UserViewSet(viewsets.ViewSet):
         """
         Get List of User objects
         """
-        serializer = UserSerializer(instance=self.queryset, many=True)
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(instance=self.queryset, many=True)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
 
     @extend_schema(request=None, responses={200: UserSerializer,
@@ -42,12 +44,15 @@ class UserViewSet(viewsets.ViewSet):
         parameter: (int)pk
         """
         try:
+            serializer_class = self.get_serializer_class()
             user = self.get_user_object(pk)
-            serializer =  UserSerializer(instance=user)
+            serializer =  serializer_class(instance=user)
             return Response(data=serializer.data, status=status.HTTP_200_OK)
         except UserGetException as exception:
             return Response(data={"detail": exception.args}, status=status.HTTP_400_BAD_REQUEST)
 
+    @extend_schema(responses={200: MessageSerializer,
+                              400: MessageSerializer})
     def destroy(self, request, pk):
         """
         Destroy a object from database
@@ -60,19 +65,52 @@ class UserViewSet(viewsets.ViewSet):
         except UserGetException as exception:
             return Response(data={"detail": exception.args}, status=status.HTTP_400_BAD_REQUEST)
 
-#    def update(self, request):
-#        pass
+    @extend_schema(request=UserUpdateSerializer, responses={200: UserUpdateSerializer,
+                                                            400: FieldErrorSerializer,
+                                                            422: MessageSerializer})
+    def update(self, request, pk):
+        """
+        Update a user profile
+        parameter: (int)pk
+        """
+        try:
+            serializer_class = self.get_serializer_class()
+            user = self.get_user_object(pk)
+            serializer = serializer_class(instance=user, data=request.data)
+            if serializer.is_valid():
+                serializer.update()
+                return Response(data=serializer.data, status=status.HTTP_200_OK)
+            return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except UserGetException as exception:
+            return Response(data={"detail": exception.args}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+
+
+    def get_serializer_class(self):
+        if self.action == 'update':
+            return UserUpdateSerializer
+        else:
+            return UserSerializer
 
     def get_user_object(self, pk):
         try:
             user = self.queryset.get(pk=pk)
             return user
         except CustomUser.DoesNotExist:
-            raise UserGetException("User with does not found")
+            raise UserGetException("User with pk={} does not found".format(pk))
         except ValueError:
             raise UserGetException("User pk whold be an Integer")
         except Exception as exception:
             raise UserGetException(*exception.args)
+
+
+class ActiveAccount(APIView):
+    def get(self, request, uidb64, token):
+        user = CustomUser.objects.get_user_by_encoded_pk(uidb64)
+        if user and user.validate_token(token):
+            user.activate_account()
+            return Response(data={"detail": "Account Acivation Successful"}, status=status.HTTP_202_ACCEPTED)
+        return Response(data={"detail": "Invalid Token or uid"}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+
 
 
 
