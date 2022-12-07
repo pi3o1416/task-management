@@ -14,6 +14,7 @@ urlpatterns = [
     path('logout/', LogoutView.as_view(), name='logout'),
     path('forget-password/', ForgetPasswordView.as_view(), name='forget-password'),
     path('reset-password/<str:uidb64>/<str:token>', PasswordResetView.as_view(), name='reset-password'),
+    path('active-account/<str:uidb64>/<str:token>', )
     path('users/', include(user_router.urls)),
 ]
 
