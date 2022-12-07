@@ -9,7 +9,9 @@ from ..exceptions import UserGetException
 
 
 class UserViewSet(viewsets.ViewSet):
+    serializer_class = UserSerializer
     queryset = CustomUser.objects.all()
+
 
     @extend_schema(request=UserSerializer, responses={201: UserSerializer,
                                                       400: MessageSerializer,
@@ -18,11 +20,10 @@ class UserViewSet(viewsets.ViewSet):
         """
         Create a new User
         """
-        breakpoint()
         serializer = UserSerializer(data=request.POST.data)
         if serializer.is_valid():
             serializer.save()
-            return Response(data=serializer.data, status=status.HTTP_201_CREATED)
+            return Response(data=serializer.validated_data, status=status.HTTP_201_CREATED)
         return Response(serializer.error_messages, status=status.HTTP_400_BAD_REQUEST)
 
     @extend_schema(request=None, responses={201: UserSerializer})
