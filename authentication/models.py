@@ -23,7 +23,26 @@ class CustomUser(AbstractUser):
         null=False,
         validators=[validate_aamarpay_email]
     )
-
+    first_name = models.CharField(
+        _("first name"),
+        max_length=150,
+        blank=False,
+        null=False,
+    )
+    last_name = models.CharField(
+        _("last name"),
+        max_length=150,
+        blank=False,
+        null=False,
+    )
+    is_active = models.BooleanField(
+        _("active"),
+        default=False,
+        help_text=_(
+            "Designates whether this user should be treated as active. "
+            "Unselect this instead of deleting accounts."
+        ),
+    )
     objects = CustomUserManager()
 
     class Meta:
