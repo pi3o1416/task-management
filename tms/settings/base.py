@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # 3rd Party apps
+    'django_celery_results',
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
@@ -34,6 +35,7 @@ INSTALLED_APPS = [
 
     # Local apps
     'authentication.apps.AuthenticationConfig',
+    'emailservice.apps.EmailserviceConfig',
 ]
 
 MIDDLEWARE = [
@@ -184,12 +186,6 @@ SHELL_PLUS_PYGMENTS_FORMATTER = pygments.formatters.TerminalFormatter
 SHELL_PLUS_PYGMENTS_FORMATTER_KWARGS = {}
 
 
-#Email Backend
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-EMAIL_HOST_USER = CONFIG['EMAIL_HOST_USER']
-
-#Domain
-DOMAIN = "127.0.0.1"
 
 
 
