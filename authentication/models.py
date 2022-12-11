@@ -14,7 +14,7 @@ from emailservice.emailclient import send_async_email
 
 from .validators import validate_aamarpay_email
 from .querysets import CustomUserManager
-from .services import get_absolute_uri
+from .services import get_absolute_uri, ACTIVE_ACCOUNT_EMAIL_SUBJECT, PASSWORD_RESET_EMIAL_SUBJECT
 
 
 
@@ -72,7 +72,7 @@ class CustomUser(AbstractUser):
         token = self.generate_token()
         uidb64 = self.generate_urlsafe_b64_encoded_pk()
         absolute_uri = get_absolute_uri('authentication:reset-password', uidb64=uidb64, token=token)
-        subject = 'Reset Password'
+        subject = PASSWORD_RESET_EMIAL_SUBJECT
         email_to = [self.email]
         context = {
             'full_name': self.full_name,
@@ -87,7 +87,7 @@ class CustomUser(AbstractUser):
         token = self.generate_token()
         uidb64 = self.generate_urlsafe_b64_encoded_pk()
         absolute_uri = get_absolute_uri('authentication:active-account', uidb64=uidb64, token=token)
-        subject = 'Account Activation URL'
+        subject = ACTIVE_ACCOUNT_EMAIL_SUBJECT
         email_to = [self.email]
         context = {
             'full_name': self.full_name,
