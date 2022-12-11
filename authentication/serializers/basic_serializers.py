@@ -1,35 +1,10 @@
 
-from django.utils.translation import gettext_lazy
 from django.contrib.auth.password_validation import validate_password
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, TokenRefreshSerializer
-from rest_framework_simplejwt.exceptions import InvalidToken
 from rest_framework.exceptions import ValidationError
 
-from .models import CustomUser
-
-
-class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
-    @classmethod
-    def get_token(cls, user):
-        token = super().get_token(user)
-        token['email'] = user.email
-        token['first_name'] = user.first_name
-        token['last_name'] = user.last_name
-        token['is_staff'] = user.is_staff
-        token['is_active'] = user.is_active
-        return token
-
-
-class MyTokenRefreshSerializer(TokenRefreshSerializer):
-    refresh = None
-
-    def validate(self, attrs):
-        attrs['refresh'] = self.context['request'].COOKIES.get('refresh_token')
-        if attrs['refresh']:
-            return super().validate(attrs)
-        raise InvalidToken("No valid Token found in cookie 'refresh_token'")
+from ..models import CustomUser
 
 
 class MessageSerializer(serializers.Serializer):
@@ -67,15 +42,11 @@ class UserSerializer(serializers.ModelSerializer):
             raise ValidationError(detail=_("Password and Retype Password did not match"), code='mismatch')
         return data
 
-    def create(self):
-        assert self.validated_data, "call is_valid method before create new user"
-        user = CustomUser.objects.create(
-            username=self.validated_data.get('username'),
-            email = self.validated_data.get('email'),
-            first_name = self.validated_data.get('first_name'),
-            last_name = self.validated_data.get('last_name'),
-        )
-        user.set_password(self.validated_data.get('password'))
+    def create(self, validated_data):
+        assert validated_data, "call is_valid method before create new user"
+        _ = validated_data.pop('password2')
+        user = CustomUser.objects.create(**validated_data)
+        user.set_password(validated_data.get('password'))
         return user
 
 
