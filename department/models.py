@@ -15,6 +15,11 @@ class Department(models.Model):
         unique=True,
         blank=False,
     )
+    slug = models.SlugField(
+        verbose_name=_("Department Name SLug"),
+        unique=True,
+        null=False,
+    )
     description = models.TextField(
         verbose_name=_("Department Description"),
         null=False,
