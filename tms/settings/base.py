@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     # Local apps
     'authentication.apps.AuthenticationConfig',
     'emailservice.apps.EmailserviceConfig',
+    'department.apps.DepartmentConfig',
 ]
 
 MIDDLEWARE = [
