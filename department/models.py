@@ -32,6 +32,19 @@ class Department(models.Model):
         self.slug = slugify(self.name)
         return super().save(*args, **kwargs)
 
+    def update(self, **kwargs):
+        self._validate_field_names(kwargs.keys())
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+        self.save()
+
+    def _validate_field_names(self, names):
+        fields = [field.attname for field in self._meta.fields if field.attname not in ['pk', 'slug']]
+        for name in names:
+            if name not in fields:
+                raise KeyError("{} is not an valid field".format(name))
+        return True
+
 
 class Designations(models.Model):
     department = models.ForeignKey(
