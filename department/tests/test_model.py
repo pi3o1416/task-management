@@ -79,14 +79,12 @@ class DepartmentMemberTest(TestCase):
             last_name='user',
             email='test@aamarpay.com'
         )
-        self.designaiton = Designations.objects.create(
+        self.designation = Designations.objects.create(
             department = self.department,
             title = "test designation"
         )
         self.member = DepartmentMember.objects.create(
             member = self.user,
             designation = self.designation,
-
+            department = self.department
         )
-        pass
-    pass
