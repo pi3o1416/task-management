@@ -1,6 +1,7 @@
 
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from django.template.defaultfilters import slugify
 from django.contrib.auth import get_user_model
 from .querysets import DepartmentMemberQuerySet, DepartmentQuerySet, DesignationQuerySet
 
@@ -26,6 +27,10 @@ class Department(models.Model):
         blank=False,
     )
     objects = DepartmentQuerySet.as_manager()
+
+    def save(self, *args, **kwargs):
+        self.slug = slugify(self.name)
+        return super().save(*args, **kwargs)
 
 
 class Designations(models.Model):
