@@ -1,13 +1,9 @@
 
-from django.core.mail import EmailMessage
-from django.conf import settings
 from django.template.loader import render_to_string
-from django.urls import reverse_lazy
 from django.db import models
-from django.db.models import F
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.tokens import default_token_generator
-from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
+from django.utils.http import urlsafe_base64_encode
 from django.utils.translation import gettext_lazy as _
 
 from emailservice.emailclient import send_async_email
