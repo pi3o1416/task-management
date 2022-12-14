@@ -9,3 +9,11 @@ class FieldErrorsSerializer(serializers.Serializer):
     Only use for documentation
     """
     field_name = serializers.ListField()
+
+
+class MessageSerializer(serializers.Serializer):
+    """
+    Only use for documentation
+    """
+    detail = serializers.ListField()
+
