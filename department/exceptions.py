@@ -1,0 +1,3 @@
+
+class DepartmentGetException(Exception):
+    pass
