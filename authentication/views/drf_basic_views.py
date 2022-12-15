@@ -105,6 +105,10 @@ class UserViewSet(viewsets.ViewSet):
 
 class ActiveAccount(APIView):
     def get(self, request, uidb64, token):
+        """
+        Activate Account from unique uidb64 and token generated for user.
+        URL Parameter: uidb64, token
+        """
         user = CustomUser.objects.get_user_by_encoded_pk(uidb64)
         if user and user.validate_token(token):
             user.activate_account()
