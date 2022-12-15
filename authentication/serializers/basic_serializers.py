@@ -46,7 +46,7 @@ class UserSerializer(serializers.ModelSerializer):
         assert validated_data, "call is_valid method before create new user"
         _ = validated_data.pop('password2')
         password = validated_data.pop('password')
-        user = CustomUser.objects.create(**validated_data)
+        user = CustomUser(**validated_data)
         user.set_password(password)
         user.save()
         return user
