@@ -4,7 +4,7 @@ from .base import *
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['https://tmsv2.aamarpay.com']
 
 #Email Backend
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
