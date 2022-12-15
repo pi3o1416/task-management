@@ -13,6 +13,9 @@ class DepartmentViewSet(ViewSet):
     @extend_schema(request=DepartmentSerializer, responses={201: DepartmentSerializer,
                                                             400: FieldErrorsSerializer})
     def create(self, request):
+        """
+        Create New Department
+        """
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(data=request.data)
         if serializer.is_valid():
@@ -22,6 +25,9 @@ class DepartmentViewSet(ViewSet):
 
     @extend_schema(responses={200: DepartmentSerializer})
     def list(self, request):
+        """
+        List of all Department
+        """
         print(request.data)
         serializer_class = self.get_serializer_class()
         departments = Department.objects.all()
@@ -32,6 +38,10 @@ class DepartmentViewSet(ViewSet):
                                                             400: FieldErrorsSerializer,
                                                             404: MessageSerializer})
     def update(self, request, pk):
+        """
+        Update department
+        URL parameter: Department Primary key(pk)
+        """
         try:
             department = Department.objects.get(pk=pk)
             serializer_class = self.get_serializer_class()
@@ -46,6 +56,10 @@ class DepartmentViewSet(ViewSet):
     @extend_schema(responses={200: MessageSerializer,
                               404: MessageSerializer})
     def destroy(self, request, pk):
+        """
+        Destroy Department
+        URL Parameter: Department Primary Key(pk)
+        """
         try:
             department = Department.objects.get_department(pk=pk)
             department.delete()
@@ -56,6 +70,10 @@ class DepartmentViewSet(ViewSet):
     @extend_schema(responses={200: DepartmentSerializer,
                               404: MessageSerializer})
     def retrieve(self, request, pk):
+        """
+        Retrieve Department
+        URL Parameter: Department Primary Key(Pk)
+        """
         try:
             serializer_class = self.get_serializer_class()
             department = Department.objects.get_department(pk=pk)
