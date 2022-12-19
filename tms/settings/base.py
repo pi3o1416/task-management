@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'drf_spectacular',
     'django_extensions',
+    'corsheaders',
 
     # Local apps
     'authentication.apps.AuthenticationConfig',
@@ -41,6 +42,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -193,6 +195,32 @@ SHELL_PLUS = "ipython"
 SHELL_PLUS_PRINT_SQL = True
 SHELL_PLUS_PYGMENTS_FORMATTER = pygments.formatters.TerminalFormatter
 SHELL_PLUS_PYGMENTS_FORMATTER_KWARGS = {}
+
+
+#CORS Settings.
+CORS_ALLOW_ALL_ORIGINS = True
+
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+
 
 
 
