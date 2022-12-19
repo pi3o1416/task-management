@@ -28,6 +28,9 @@ class Department(models.Model):
     )
     objects = DepartmentQuerySet.as_manager()
 
+    def __str__(self):
+        return self.name
+
     def save(self, *args, **kwargs):
         self.slug = slugify(self.name)
         return super().save(*args, **kwargs)
@@ -64,6 +67,10 @@ class Designations(models.Model):
 
     class Meta:
         unique_together = [['department', 'title']]
+
+
+    def __str__(self):
+        return '{}-{}'.format(self.department, self.title)
 
 
 class DepartmentMember(models.Model):
