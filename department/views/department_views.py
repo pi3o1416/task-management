@@ -2,14 +2,14 @@
 from rest_framework.viewsets import ViewSet
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.pagination import PageNumberPagination
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, OpenApiParameter
+from ..pagination import CustomPageNumberPagination
 from ..models import Department
-from ..serializers import DepartmentSerializer, FieldErrorsSerializer, MessageSerializer
+from ..serializers import DepartmentSerializer, FieldErrorsSerializer, MessageSerializer, DepartmentPaginatedSerializer
 from ..exceptions import DepartmentGetException
 
 
-class DepartmentViewSet(ViewSet):
+class DepartmentViewSet(ViewSet, CustomPageNumberPagination):
     @extend_schema(request=DepartmentSerializer, responses={201: DepartmentSerializer,
                                                             400: FieldErrorsSerializer})
     def create(self, request):
@@ -23,16 +23,18 @@ class DepartmentViewSet(ViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    @extend_schema(responses={200: DepartmentSerializer})
+    @extend_schema(responses={200: DepartmentPaginatedSerializer},
+                   parameters=[OpenApiParameter(name='page', type=int),
+                               OpenApiParameter(name='page_size', type=int)])
     def list(self, request):
         """
         List of all Department
         """
-        print(request.data)
         serializer_class = self.get_serializer_class()
         departments = Department.objects.all()
-        serializer = serializer_class(instance=departments, many=True)
-        return Response(data=serializer.data, status=status.HTTP_200_OK)
+        page = self.paginate_queryset(queryset=departments, request=request)
+        serializer = serializer_class(instance=page, many=True)
+        return self.get_paginated_response(data=serializer.data)
 
     @extend_schema(request=DepartmentSerializer, responses={202: DepartmentSerializer,
                                                             400: FieldErrorsSerializer,

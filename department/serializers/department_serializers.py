@@ -23,6 +23,15 @@ class DepartmentSerializer(serializers.ModelSerializer):
         self.instance.update(**self.validated_data)
 
 
+class DepartmentPaginatedSerializer(serializers.Serializer):
+    count = serializers.IntegerField()
+    next = serializers.URLField()
+    previous = serializers.URLField()
+    results = DepartmentSerializer(many=True)
+
+
+
+
 
 
 
