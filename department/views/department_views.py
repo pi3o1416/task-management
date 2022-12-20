@@ -43,7 +43,7 @@ class DepartmentViewSet(ViewSet):
         URL parameter: Department Primary key(pk)
         """
         try:
-            department = Department.objects.get(pk=pk)
+            department = Department.objects.get_department(pk=pk)
             serializer_class = self.get_serializer_class()
             serializer = serializer_class(instance=department, data=request.data)
             if serializer.is_valid():
