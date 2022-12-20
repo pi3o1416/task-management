@@ -25,7 +25,7 @@ CELERY_TASK_TIME_LIMIT = 30 * 60
 CELERY_RESULT_BACKEND = 'django-db'
 CELERY_CACHE_BACKEND = 'django-cache'
 CELERY_RESULT_EXTENDED = True
-CELERY_BROKER_URL = 'redis://system_redis:6379/'
+CELERY_BROKER_URL = 'redis://dev1.aamarpay.xyz:6379/'
 
 # Configuration for sentry
 sentry_sdk.init(
