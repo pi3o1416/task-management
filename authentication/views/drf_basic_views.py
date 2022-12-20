@@ -3,15 +3,17 @@ from rest_framework import viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, OpenApiParameter
+
+from authentication.serializers.basic_serializers import UserPaginatedSerializer
 from ..models import CustomUser
 from ..serializers import FieldErrorSerializer, MessageSerializer, UserSerializer, UserUpdateSerializer
 from ..exceptions import UserGetException
+from ..pagination import CustomPageNumberPagination
 
 
-class UserViewSet(viewsets.ViewSet):
+class UserViewSet(viewsets.ViewSet, CustomPageNumberPagination):
     queryset = CustomUser.objects.all()
-
 
     @extend_schema(request=UserSerializer, responses={201: UserSerializer,
                                                       400: MessageSerializer,
@@ -27,14 +29,17 @@ class UserViewSet(viewsets.ViewSet):
             return Response(data=serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    @extend_schema(request=None, responses={201: UserSerializer})
+    @extend_schema(responses={200: UserPaginatedSerializer},
+                   parameters=[OpenApiParameter(name='page', type=int),
+                               OpenApiParameter(name='page_size', type=int)])
     def list(self, request):
         """
         Get List of User objects
         """
         serializer_class = self.get_serializer_class()
-        serializer = serializer_class(instance=self.queryset, many=True)
-        return Response(data=serializer.data, status=status.HTTP_200_OK)
+        page = self.paginate_queryset(queryset=self.queryset, request=request)
+        serializer = serializer_class(instance=page, many=True)
+        return self.get_paginated_response(data=serializer.data)
 
     @extend_schema(request=None, responses={200: UserSerializer,
                                             400: MessageSerializer})

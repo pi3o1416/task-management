@@ -109,6 +109,16 @@ class PasswordResetSerializer(serializers.Serializer):
         return data
 
 
+class UserPaginatedSerializer(serializers.Serializer):
+    count = serializers.IntegerField()
+    next = serializers.URLField()
+    previous = serializers.URLField()
+    results = UserSerializer(many=True)
+
+
+
+
+
 
 
 
