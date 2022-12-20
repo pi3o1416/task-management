@@ -9,7 +9,7 @@ DEBUG = False
 ALLOWED_HOSTS = ['tmsv2.aamarpay.com']
 
 #CSRF trusted origin
-CSRF_TRUSTED_ORIGINS = ['tmsv2.aamarpay.com']
+CSRF_TRUSTED_ORIGINS = ['tmsv2.aamarpay.com', 'https://tmsv2.aamarpay.com']
 
 # Email Backend
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
