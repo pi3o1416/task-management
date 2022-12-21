@@ -1,7 +1,8 @@
 
 from django.utils.translation import gettext_lazy as _
 from django.db.models import QuerySet, Q
-from .exceptions import DepartmentGetException, DesignationGetException
+from rest_framework.exceptions import NotFound
+from .exceptions import DepartmentGetException, DesignationGetException, DepartmentMemberGetException
 
 
 class DepartmentQuerySet(QuerySet):
@@ -34,4 +35,21 @@ class DesignationQuerySet(QuerySet):
 
 
 class DepartmentMemberQuerySet(QuerySet):
-    pass
+    not_found_error_message = "Department member with pk={} not found"
+    value_error_message = "pk should be an int"
+    def get_department_member(self, pk):
+        try:
+            department_member = self.get(pk=pk)
+            return department_member
+        except self.model.DoesNotExist:
+            message = self.not_found_error_message.format(pk)
+            raise NotFound({"detail": [message]})
+        except ValueError:
+            raise NotFound({"detail": [self.value_error_message]})
+        except Exception as exception:
+            raise NotFound({"detail": exception.args})
+
+
+
+
+
