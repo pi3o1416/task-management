@@ -111,6 +111,27 @@ class DepartmentMember(models.Model):
         blank=False,
         verbose_name="designated_member"
     )
+    member_full_name = models.CharField(
+        verbose_name=_("Department Member Full name"),
+        max_length=200,
+        null=True,
+        blank=True,
+        default=None
+    )
+    department_name = models.CharField(
+        verbose_name=_("Department Name"),
+        max_length=200,
+        null=True,
+        blank=True,
+        default=None
+    )
+    designation_title = models.CharField(
+        verbose_name=_("Designation Title"),
+        max_length=100,
+        null=True,
+        blank=True,
+        default=None
+    )
     objects = DepartmentMemberQuerySet.as_manager()
 
     def __str__(self):
