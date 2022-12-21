@@ -23,7 +23,7 @@ class DesignationQuerySet(QuerySet):
             designation = self.get(pk=pk)
             return designation
         except self.model.DoesNotExist:
-            raise DepartmentGetException(_("Designation with pk={} does not exist".format(pk)))
+            raise DesignationGetException(_("Designation with pk={} does not exist".format(pk)))
         except ValueError:
             raise DesignationGetException(_("Designation pk should be an integer"))
         except Exception as exception:
