@@ -42,8 +42,8 @@ class Department(models.Model):
         self.save()
 
     def _validate_field_names(self, names):
-        read_only_fields = ['pk', 'slug']
-        fields = [field.attname for field in self._meta.fields if field.attname not in read_only_fields]
+        read_only_fields = ['pk', 'slug', 'id']
+        fields = [field.name for field in self._meta.fields if field.name not in read_only_fields]
         for name in names:
             if name not in fields:
                 raise KeyError("{} is not an valid field".format(name))
@@ -98,6 +98,7 @@ class DepartmentMember(models.Model):
         verbose_name="designated_member"
     )
     objects = DepartmentMemberQuerySet.as_manager()
+
 
 
 
