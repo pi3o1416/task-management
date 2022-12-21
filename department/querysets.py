@@ -37,7 +37,7 @@ class DesignationQuerySet(QuerySet):
 class DepartmentMemberQuerySet(QuerySet):
     not_found_error_message = "Department member with pk={} not found"
     value_error_message = "pk should be an int"
-    def get_department_member(self, pk):
+    def get_member(self, pk):
         try:
             department_member = self.get(pk=pk)
             return department_member
@@ -48,6 +48,8 @@ class DepartmentMemberQuerySet(QuerySet):
             raise NotFound({"detail": [self.value_error_message]})
         except Exception as exception:
             raise NotFound({"detail": exception.args})
+
+
 
 
 

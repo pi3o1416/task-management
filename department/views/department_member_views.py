@@ -1,6 +1,7 @@
 
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework.viewsets import ViewSet
+from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from ..models import DepartmentMember
@@ -34,14 +35,14 @@ class DepartmentMemberViewSet(ViewSet, CustomPageNumberPagination):
                               404: MessageSerializer})
     def retrieve(self, request, pk):
         serializer_class = self.get_serializer_class()
-        member = DepartmentMember.objects.get_department_member(pk=pk)
+        member = DepartmentMember.objects.get_member(pk=pk)
         serializer = serializer_class(instance=member)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
 
     @extend_schema(responses={202: MessageSerializer,
                               404: MessageSerializer})
     def destroy(self, request, pk):
-        member = DepartmentMember.objects.get_department_member(pk=pk)
+        member = DepartmentMember.objects.get_member(pk=pk)
         member.delete()
         return Response(data={"detail": ["Department Member Delete Successful"]}, status=status.HTTP_202_ACCEPTED)
 
@@ -49,7 +50,7 @@ class DepartmentMemberViewSet(ViewSet, CustomPageNumberPagination):
                               400: FieldErrorsSerializer,
                               404: MessageSerializer})
     def update(self, request, pk):
-        member = DepartmentMember.objects.get_department_member(pk=pk)
+        member = DepartmentMember.objects.get_member(pk=pk)
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(instance=member, data=request.data)
         if serializer.is_valid():
@@ -61,5 +62,14 @@ class DepartmentMemberViewSet(ViewSet, CustomPageNumberPagination):
         if self.action == 'update':
             return DepartmentMemberUpdateSerializer
         return DepartmentMemberSerializer
+
+
+
+
+
+
+
+
+
 
 
