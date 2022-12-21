@@ -7,6 +7,10 @@ class DesignationGetException(Exception):
     pass
 
 
+class DepartmentMemberGetException(Exception):
+    pass
+
+
 
 
 
