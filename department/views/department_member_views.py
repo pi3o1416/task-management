@@ -64,6 +64,19 @@ class DepartmentMemberViewSet(ViewSet, CustomPageNumberPagination):
         return DepartmentMemberSerializer
 
 
+class MembersOfDepartmentView(APIView, CustomPageNumberPagination):
+
+    @extend_schema(responses={200: DepartmentMemberPaginatedSerializer},
+                   parameters=[OpenApiParameter(name='page', type=int),
+                               OpenApiParameter(name='page_size', type=int)])
+    def get(self, request, department_pk):
+        department_members = DepartmentMember.objects.get_members_of_department(department_pk=department_pk)
+        page = self.paginate_queryset(queryset=department_members, request=request)
+        serializer = DepartmentMemberSerializer(instance=page, many=True)
+        return self.get_paginated_response(data=serializer.data)
+
+
+
 
 
 
