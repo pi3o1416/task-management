@@ -113,6 +113,10 @@ class DepartmentMember(models.Model):
     )
     objects = DepartmentMemberQuerySet.as_manager()
 
+    def __str__(self):
+        return "{}".format(self.member.first_name)
+
+
 
 
 
