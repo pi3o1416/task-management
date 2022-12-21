@@ -49,6 +49,21 @@ class DepartmentMemberQuerySet(QuerySet):
         except Exception as exception:
             raise NotFound({"detail": exception.args})
 
+    def get_members_of_department(self, department_pk):
+        return self.filter(Q(department=department_pk))
+
+    def filter_fron_query(self, request):
+        pass
+
+    def _get_department_from_request_query(self, request):
+        pass
+
+    def _get_designation_from_request_query(self, request):
+        pass
+
+
+
+
 
 
 
