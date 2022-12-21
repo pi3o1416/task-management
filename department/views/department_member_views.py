@@ -1,0 +1,65 @@
+
+from drf_spectacular.utils import extend_schema, OpenApiParameter
+from rest_framework.viewsets import ViewSet
+from rest_framework.response import Response
+from rest_framework import status
+from ..models import DepartmentMember
+from ..serializers import DepartmentMemberSerializer, FieldErrorsSerializer, MessageSerializer, DepartmentMemberPaginatedSerializer, DepartmentMemberUpdateSerializer
+from ..pagination import CustomPageNumberPagination
+
+
+class DepartmentMemberViewSet(ViewSet, CustomPageNumberPagination):
+
+    @extend_schema(responses={201: DepartmentMemberSerializer,
+                              400: MessageSerializer})
+    def create(self, request):
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(data=serializer.data, status=status.HTTP_201_CREATED)
+        return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @extend_schema(responses={200: DepartmentMemberPaginatedSerializer},
+                   parameters=[OpenApiParameter(name='page', type=int),
+                               OpenApiParameter(name='page_size', type=int)])
+    def list(self, request):
+        serializer_class = self.get_serializer_class()
+        members = DepartmentMember.objects.all()
+        page = self.paginate_queryset(queryset=members, request=request)
+        serializer = serializer_class(instance=page, many=True)
+        return self.get_paginated_response(data=serializer.data)
+
+    @extend_schema(responses={200: DepartmentMemberSerializer,
+                              404: MessageSerializer})
+    def retrieve(self, request, pk):
+        serializer_class = self.get_serializer_class()
+        member = DepartmentMember.objects.get_department_member(pk=pk)
+        serializer = serializer_class(instance=member)
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
+
+    @extend_schema(responses={202: MessageSerializer,
+                              404: MessageSerializer})
+    def destroy(self, request, pk):
+        member = DepartmentMember.objects.get_department_member(pk=pk)
+        member.delete()
+        return Response(data={"detail": ["Department Member Delete Successful"]}, status=status.HTTP_202_ACCEPTED)
+
+    @extend_schema(responses={202: DepartmentMemberSerializer,
+                              400: FieldErrorsSerializer,
+                              404: MessageSerializer})
+    def update(self, request, pk):
+        member = DepartmentMember.objects.get_department_member(pk=pk)
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(instance=member, data=request.data)
+        if serializer.is_valid():
+            serializer.update(instance=member, validated_data=serializer.validated_data)
+            return Response(data=serializer.data, status=status.HTTP_202_ACCEPTED)
+        return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def get_serializer_class(self):
+        if self.action == 'update':
+            return DepartmentMemberUpdateSerializer
+        return DepartmentMemberSerializer
+
+
