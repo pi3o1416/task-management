@@ -1,6 +1,6 @@
 
 from django.utils.translation import gettext_lazy as _
-from django.db.models import QuerySet
+from django.db.models import QuerySet, Q
 from .exceptions import DepartmentGetException, DesignationGetException
 
 
@@ -28,6 +28,9 @@ class DesignationQuerySet(QuerySet):
             raise DesignationGetException(_("Designation pk should be an integer"))
         except Exception as exception:
             raise DesignationGetException(*exception.args)
+
+    def get_department_designations(self, department_pk=None):
+        return self.filter(Q(department=department_pk))
 
 
 class DepartmentMemberQuerySet(QuerySet):
