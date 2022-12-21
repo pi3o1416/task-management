@@ -1,6 +1,8 @@
 
 from rest_framework.viewsets import ViewSet
+from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.decorators import action
 from rest_framework import status
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from ..exceptions import DesignationGetException
@@ -83,10 +85,20 @@ class DesignationViewSet(ViewSet, CustomPageNumberPagination):
         except DesignationGetException as exception:
             return Response(data={"detail": exception.args}, status=status.HTTP_404_NOT_FOUND)
 
-
     def get_serializer_class(self):
         return DesignationSerializer
 
+
+class DepartmentDesignationsView(APIView, CustomPageNumberPagination):
+
+    @extend_schema(responses={200: DesignationPaginatedSerializer},
+                   parameters=[OpenApiParameter(name='page', type=int),
+                               OpenApiParameter(name='page_size', type=int)])
+    def get(self, request, department_pk):
+        designations = Designations.objects.get_department_designations(department_pk=department_pk)
+        page = self.paginate_queryset(queryset=designations, request=request)
+        serializer = DesignationSerializer(instance=page, many=True)
+        return self.get_paginated_response(serializer.data)
 
 
 
