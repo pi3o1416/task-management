@@ -6,10 +6,12 @@ from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework_simplejwt.exceptions import TokenError, InvalidToken
 
 from ..serializers import (MyTokenObtainPairSerializer, MyTokenRefreshSerializer,
                            MessageSerializer, PasswordForgetSerializer,
-                           PasswordResetSerializer, FieldErrorSerializer)
+                           PasswordResetSerializer, FieldErrorSerializer,
+                           AccessTokenSerializer)
 from ..models import CustomUser
 
 
@@ -26,6 +28,8 @@ def _set_cookie(response=None, cookie_name=None, cookie_value=None, max_age=3600
                         httponly=True, samesite=None, secure=True)
     return response
 
+@extend_schema(responses={200: AccessTokenSerializer,
+                          401: MessageSerializer})
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
     permission_classes = [AllowAny]
@@ -39,6 +43,10 @@ class MyTokenObtainPairView(TokenObtainPairView):
                 cookie_value=refresh_token
             )
             del response.data['refresh']
+        #Formatting Error message with desired response form
+        if response.data.get('detail'):
+            error_detail = response.data.get('detail')
+            response.data['detail'] = [error_detail]
         return super().finalize_response(request, response, *args, **kwargs)
 
 
@@ -55,6 +63,10 @@ class MyTokenRefreshView(TokenRefreshView):
                 cookie_value=refresh_token
             )
             del response.data['refresh']
+        #Formatting Error message with desired response form
+        if response.data.get('detail'):
+            error_detail = response.data.get('detail')
+            response.data['detail'] = [error_detail]
         return super().finalize_response(request, response, *args, **kwargs)
 
 
