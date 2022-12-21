@@ -1,7 +1,8 @@
 
 from django.utils.translation import gettext_lazy as _
+from django.core.paginator import InvalidPage
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.pagination import InvalidPage, NotFound
+from rest_framework.exceptions import NotFound
 
 class CustomPageNumberPagination(PageNumberPagination):
     page_size = 10
