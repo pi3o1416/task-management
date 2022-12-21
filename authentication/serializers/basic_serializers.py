@@ -7,13 +7,6 @@ from rest_framework.exceptions import ValidationError
 from ..models import CustomUser
 
 
-class MessageSerializer(serializers.Serializer):
-    """
-    Only used for documentations
-    """
-    detail = serializers.ListField()
-
-
 class FieldErrorSerializer(serializers.Serializer):
     """
     Only for documentations
