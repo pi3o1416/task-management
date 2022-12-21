@@ -104,7 +104,7 @@ class DepartmentMember(models.Model):
         blank=False,
         verbose_name="Department"
     )
-    Designation = models.ForeignKey(
+    designation = models.ForeignKey(
         to=Designations,
         on_delete=models.RESTRICT,
         null=False,
