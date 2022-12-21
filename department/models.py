@@ -72,6 +72,20 @@ class Designations(models.Model):
     def __str__(self):
         return '{}-{}'.format(self.department, self.title)
 
+    def update(self, **kwargs):
+        self._validate_field_names(kwargs.keys())
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+        self.save()
+
+    def _validate_field_names(self, names):
+        read_only_fields = ['id', 'pk']
+        fields = [field.name for field in self._meta.fields if field.name not in read_only_fields]
+        for name in names:
+            if name not in fields:
+                raise KeyError("{} is not an valid field".format(name))
+        return True
+
 
 class DepartmentMember(models.Model):
     Member = models.OneToOneField(
