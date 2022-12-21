@@ -5,17 +5,18 @@ from .models import Designations, Department, DepartmentMember
 
 @admin.register(Designations)
 class DesignationsAdmin(admin.ModelAdmin):
+    list_display = ["pk", "department", "title"]
     pass
 
 
 @admin.register(Department)
 class DepartmentAdmin(admin.ModelAdmin):
-    pass
+    list_display = ["pk", "name", "slug", "description"]
 
 
 @admin.register(DepartmentMember)
 class DepartmentMemberAdmin(admin.ModelAdmin):
-    pass
+    list_display = ["pk", "member", "department", "designation"]
 
 
 
