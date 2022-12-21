@@ -88,7 +88,7 @@ class Designations(models.Model):
 
 
 class DepartmentMember(models.Model):
-    Member = models.OneToOneField(
+    member = models.OneToOneField(
         to=User,
         on_delete=models.CASCADE,
         related_name="user_departments",
