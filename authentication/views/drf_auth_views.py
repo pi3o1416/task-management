@@ -50,6 +50,8 @@ class MyTokenObtainPairView(TokenObtainPairView):
         return super().finalize_response(request, response, *args, **kwargs)
 
 
+@extend_schema(responses={200: AccessTokenSerializer,
+                          401: MessageSerializer})
 class MyTokenRefreshView(TokenRefreshView):
     serializer_class = MyTokenRefreshSerializer
     permission_classes = [AllowAny]
