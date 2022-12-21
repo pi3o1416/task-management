@@ -2,7 +2,7 @@
 from django.urls import path, include
 from rest_framework import routers
 from .views import DepartmentViewSet
-from .views import DesignationViewSet
+from .views import DesignationViewSet, DepartmentDesignationsView
 
 department_router = routers.DefaultRouter()
 department_router.register('', DepartmentViewSet, 'department')
@@ -13,5 +13,6 @@ designation_router.register('', DesignationViewSet, 'designation')
 app_name="department"
 urlpatterns = [
     path('designations/', include(designation_router.urls)),
+    path('<int:department_pk>/designations/', DepartmentDesignationsView.as_view(), name="department-designations"),
     path('', include(department_router.urls)),
 ]
