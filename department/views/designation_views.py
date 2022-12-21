@@ -62,7 +62,7 @@ class DesignationViewSet(ViewSet, CustomPageNumberPagination):
             serializer = serializer_class(instance=designation)
             return Response(data=serializer.data, status=status.HTTP_200_OK)
         except DesignationGetException as exception:
-            return Response(data=exception.args, status=status.HTTP_404_NOT_FOUND)
+            return Response(data={"detail": exception.args}, status=status.HTTP_404_NOT_FOUND)
 
     @extend_schema(request=DesignationSerializer, responses={202: DesignationSerializer,
                                                              400: FieldErrorsSerializer,
@@ -81,7 +81,7 @@ class DesignationViewSet(ViewSet, CustomPageNumberPagination):
                 return Response(data=serializer.data, status=status.HTTP_202_ACCEPTED)
             return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except DesignationGetException as exception:
-            return Response(data=exception.args, status=status.HTTP_404_NOT_FOUND)
+            return Response(data={"detail": exception.args}, status=status.HTTP_404_NOT_FOUND)
 
 
     def get_serializer_class(self):
