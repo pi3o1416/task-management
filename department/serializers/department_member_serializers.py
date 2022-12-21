@@ -6,15 +6,15 @@ from ..models import DepartmentMember
 class DepartmentMemberSerializer(serializers.ModelSerializer):
     class Meta:
         model = DepartmentMember
-        fields = ['pk', 'member', 'department', 'designation']
-        read_only_fields = ['pk']
+        fields = ['pk', 'member', 'department', 'designation', 'department_name', 'designation_title', 'member_full_name']
+        read_only_fields = ['pk', 'department_name', 'designation_title', 'member_full_name']
 
 
 class DepartmentMemberUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = DepartmentMember
-        fields = ['pk', 'member', 'department', 'designation']
-        read_only_fields = ['pk', 'member']
+        fields = ['pk', 'member', 'department', 'designation', 'department_name', 'designation_title', 'member_full_name']
+        read_only_fields = ['pk', 'member', 'department_name', 'designation_title', 'member_full_name']
 
 
 class DepartmentMemberPaginatedSerializer(serializers.Serializer):
