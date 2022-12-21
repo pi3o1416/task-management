@@ -11,7 +11,6 @@ def send_async_email(subject, email_to, message):
     }
     app.send_task("send_email", kwargs=temp)
     return True
-#    return send_email.delay(subject, email_to, message)
 
 
 
