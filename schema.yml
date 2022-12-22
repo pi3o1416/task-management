@@ -4,6 +4,74 @@ info:
   version: 2.0.0
   description: A task management project to maintain tasks efficiently
 paths:
+  /auth/active-account/{uidb64}/{token}:
+    get:
+      operationId: auth_active_account_retrieve
+      description: |-
+        Activate Account from unique uidb64 and token generated for user.
+        URL Parameter: uidb64, token
+      parameters:
+      - in: path
+        name: token
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: uidb64
+        schema:
+          type: string
+        required: true
+      tags:
+      - auth
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+          description: ''
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+          description: ''
+  /auth/forget-password/:
+    post:
+      operationId: auth_forget_password_create
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordForget'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PasswordForget'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PasswordForget'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FieldError'
+          description: ''
   /auth/get-token/:
     post:
       operationId: auth_get_token_create
@@ -31,7 +99,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MyTokenObtainPair'
+                $ref: '#/components/schemas/AccessToken'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
           description: ''
   /auth/logout/:
     post:
@@ -68,12 +142,830 @@ paths:
           multipart/form-data:
             schema:
               $ref: '#/components/schemas/MyTokenRefresh'
+      security:
+      - {}
       responses:
         '200':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MyTokenRefresh'
+                $ref: '#/components/schemas/AccessToken'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+          description: ''
+  /auth/reset-password/{uidb64}/{token}:
+    post:
+      operationId: auth_reset_password_create
+      parameters:
+      - in: path
+        name: token
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: uidb64
+        schema:
+          type: string
+        required: true
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordReset'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PasswordReset'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PasswordReset'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FieldError'
+          description: ''
+  /auth/users/:
+    get:
+      operationId: auth_users_list
+      description: Get List of User objects
+      parameters:
+      - in: query
+        name: page
+        schema:
+          type: integer
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+      tags:
+      - auth
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserPaginated'
+          description: ''
+    post:
+      operationId: auth_users_create
+      description: Create a new User
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/User'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/User'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+          description: ''
+  /auth/users/{id}/:
+    get:
+      operationId: auth_users_retrieve
+      description: |-
+        Retrieve a object detail from database
+        parameter: (int)pk
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this custom user.
+        required: true
+      tags:
+      - auth
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+          description: ''
+    put:
+      operationId: auth_users_update
+      description: |-
+        Update a user profile
+        parameter: (int)pk
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this custom user.
+        required: true
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserUpdate'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserUpdate'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FieldError'
+          description: ''
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+          description: ''
+    delete:
+      operationId: auth_users_destroy
+      description: |-
+        Destroy a object from database
+        parameter: (int)pk
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this custom user.
+        required: true
+      tags:
+      - auth
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+          description: ''
+  /department/:
+    get:
+      operationId: department_list
+      description: List of all Department
+      parameters:
+      - in: query
+        name: page
+        schema:
+          type: integer
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+      tags:
+      - department
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DepartmentPaginated'
+          description: ''
+    post:
+      operationId: department_create
+      description: Create New Department
+      tags:
+      - department
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Department'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Department'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Department'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Department'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FieldErrors'
+          description: ''
+  /department/{department_pk}/department-members/:
+    get:
+      operationId: department_department_members_retrieve
+      parameters:
+      - in: path
+        name: department_pk
+        schema:
+          type: integer
+        required: true
+      - in: query
+        name: designation
+        schema:
+          type: integer
+      - in: query
+        name: designation_title
+        schema:
+          type: string
+      - in: query
+        name: member
+        schema:
+          type: integer
+      - in: query
+        name: member_full_name
+        schema:
+          type: string
+      - in: query
+        name: page
+        schema:
+          type: integer
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+      tags:
+      - department
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DepartmentMemberPaginated'
+          description: ''
+  /department/{department_pk}/designations/:
+    get:
+      operationId: department_designations_retrieve_2
+      parameters:
+      - in: path
+        name: department_pk
+        schema:
+          type: integer
+        required: true
+      - in: query
+        name: page
+        schema:
+          type: integer
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+      tags:
+      - department
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DesignationPaginated'
+          description: ''
+  /department/{id}/:
+    get:
+      operationId: department_retrieve
+      description: |-
+        Retrieve Department
+        URL Parameter: Department Primary Key(Pk)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - department
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Department'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+          description: ''
+    put:
+      operationId: department_update
+      description: |-
+        Update department
+        URL parameter: Department Primary key(pk)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - department
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Department'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Department'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Department'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Department'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FieldErrors'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+          description: ''
+    delete:
+      operationId: department_destroy
+      description: |-
+        Destroy Department
+        URL Parameter: Department Primary Key(pk)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - department
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+          description: ''
+  /department/designations/:
+    get:
+      operationId: department_designations_list
+      description: List of All Designation.
+      parameters:
+      - in: query
+        name: page
+        schema:
+          type: integer
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+      tags:
+      - department
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DesignationPaginated'
+          description: ''
+    post:
+      operationId: department_designations_create
+      description: Create New Department Designations
+      tags:
+      - department
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Designation'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Designation'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Designation'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Designation'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FieldErrors'
+          description: ''
+  /department/designations/{id}/:
+    get:
+      operationId: department_designations_retrieve
+      description: |-
+        Retrieve Designation Object
+        URL Parameter: Designation Primary Key(int)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - department
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Designation'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+          description: ''
+    put:
+      operationId: department_designations_update
+      description: |-
+        Update Designation Object
+        URL Parameter: Designation Primary Key(int)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - department
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Designation'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Designation'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Designation'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Designation'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FieldErrors'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+          description: ''
+    delete:
+      operationId: department_designations_destroy
+      description: |-
+        Destroy Department
+        URL Parameter: Designation Primary Key(int)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - department
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+          description: ''
+  /department/members/:
+    get:
+      operationId: department_members_list
+      parameters:
+      - in: query
+        name: department
+        schema:
+          type: integer
+      - in: query
+        name: department_name
+        schema:
+          type: string
+      - in: query
+        name: designation
+        schema:
+          type: integer
+      - in: query
+        name: designation_title
+        schema:
+          type: string
+      - in: query
+        name: member
+        schema:
+          type: integer
+      - in: query
+        name: member_full_name
+        schema:
+          type: string
+      - in: query
+        name: page
+        schema:
+          type: integer
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+      tags:
+      - department
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DepartmentMemberPaginated'
+          description: ''
+    post:
+      operationId: department_members_create
+      tags:
+      - department
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DepartmentMember'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/DepartmentMember'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/DepartmentMember'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DepartmentMember'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+          description: ''
+  /department/members/{id}/:
+    get:
+      operationId: department_members_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - department
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DepartmentMember'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+          description: ''
+    put:
+      operationId: department_members_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - department
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DepartmentMemberUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/DepartmentMemberUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/DepartmentMemberUpdate'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DepartmentMember'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FieldErrors'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+          description: ''
+    delete:
+      operationId: department_members_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - department
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
           description: ''
   /schema/:
     get:
@@ -220,15 +1112,215 @@ paths:
           description: ''
 components:
   schemas:
+    AccessToken:
+      type: object
+      description: Only for documentations
+      properties:
+        access:
+          type: string
+      required:
+      - access
+    Department:
+      type: object
+      properties:
+        pk:
+          type: integer
+          readOnly: true
+          title: ID
+        name:
+          type: string
+          title: Department Name
+          maxLength: 200
+        slug:
+          type: string
+          readOnly: true
+          title: Department Name SLug
+          pattern: ^[-a-zA-Z0-9_]+$
+        description:
+          type: string
+          title: Department Description
+      required:
+      - description
+      - name
+      - pk
+      - slug
+    DepartmentMember:
+      type: object
+      properties:
+        pk:
+          type: integer
+          readOnly: true
+          title: ID
+        member:
+          type: integer
+        department:
+          type: integer
+        designation:
+          type: integer
+          title: Designated_member
+        department_name:
+          type: string
+          readOnly: true
+          nullable: true
+        designation_title:
+          type: string
+          readOnly: true
+          nullable: true
+        member_full_name:
+          type: string
+          readOnly: true
+          nullable: true
+          title: Department Member Full name
+      required:
+      - department
+      - department_name
+      - designation
+      - designation_title
+      - member
+      - member_full_name
+      - pk
+    DepartmentMemberPaginated:
+      type: object
+      description: Only for documentation
+      properties:
+        count:
+          type: integer
+        next:
+          type: string
+          format: uri
+        previous:
+          type: string
+          format: uri
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/DepartmentMember'
+      required:
+      - count
+      - next
+      - previous
+      - results
+    DepartmentMemberUpdate:
+      type: object
+      properties:
+        pk:
+          type: integer
+          readOnly: true
+          title: ID
+        member:
+          type: integer
+          readOnly: true
+        department:
+          type: integer
+        designation:
+          type: integer
+          title: Designated_member
+        department_name:
+          type: string
+          readOnly: true
+          nullable: true
+        designation_title:
+          type: string
+          readOnly: true
+          nullable: true
+        member_full_name:
+          type: string
+          readOnly: true
+          nullable: true
+          title: Department Member Full name
+      required:
+      - department
+      - department_name
+      - designation
+      - designation_title
+      - member
+      - member_full_name
+      - pk
+    DepartmentPaginated:
+      type: object
+      properties:
+        count:
+          type: integer
+        next:
+          type: string
+          format: uri
+        previous:
+          type: string
+          format: uri
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Department'
+      required:
+      - count
+      - next
+      - previous
+      - results
+    Designation:
+      type: object
+      properties:
+        pk:
+          type: integer
+          readOnly: true
+          title: ID
+        department:
+          type: integer
+          title: Department Designations
+        title:
+          type: string
+          title: Designation Title
+          maxLength: 100
+      required:
+      - department
+      - pk
+      - title
+    DesignationPaginated:
+      type: object
+      properties:
+        count:
+          type: integer
+        next:
+          type: string
+          format: uri
+        previous:
+          type: string
+          format: uri
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Designation'
+      required:
+      - count
+      - next
+      - previous
+      - results
+    FieldError:
+      type: object
+      description: Only for documentations
+      properties:
+        field_name:
+          type: array
+          items: {}
+      required:
+      - field_name
+    FieldErrors:
+      type: object
+      description: Only use for documentation
+      properties:
+        field_name:
+          type: array
+          items: {}
+      required:
+      - field_name
     Message:
       type: object
       description: Only used for documentations
       properties:
-        message:
-          type: string
-          maxLength: 500
+        detail:
+          type: array
+          items: {}
       required:
-      - message
+      - detail
     MyTokenObtainPair:
       type: object
       properties:
@@ -248,6 +1340,140 @@ components:
           readOnly: true
       required:
       - access
+    PasswordForget:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+      required:
+      - email
+    PasswordReset:
+      type: object
+      properties:
+        password:
+          type: string
+          writeOnly: true
+        retype_password:
+          type: string
+          writeOnly: true
+      required:
+      - password
+      - retype_password
+    User:
+      type: object
+      properties:
+        pk:
+          type: integer
+          readOnly: true
+          title: ID
+        username:
+          type: string
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          title: Email address
+          maxLength: 254
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        is_active:
+          type: boolean
+          readOnly: true
+          title: Active
+          description: Designates whether this user should be treated as active. Unselect
+            this instead of deleting accounts.
+        is_staff:
+          type: boolean
+          readOnly: true
+          title: Staff status
+          description: Designates whether the user can log into this admin site.
+        password:
+          type: string
+          writeOnly: true
+        password2:
+          type: string
+          writeOnly: true
+      required:
+      - email
+      - first_name
+      - is_active
+      - is_staff
+      - last_name
+      - password
+      - password2
+      - pk
+      - username
+    UserPaginated:
+      type: object
+      properties:
+        count:
+          type: integer
+        next:
+          type: string
+          format: uri
+        previous:
+          type: string
+          format: uri
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+      required:
+      - count
+      - next
+      - previous
+      - results
+    UserUpdate:
+      type: object
+      properties:
+        pk:
+          type: integer
+          readOnly: true
+          title: ID
+        username:
+          type: string
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          title: Email address
+          maxLength: 254
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        is_active:
+          type: boolean
+          readOnly: true
+          title: Active
+          description: Designates whether this user should be treated as active. Unselect
+            this instead of deleting accounts.
+        is_staff:
+          type: boolean
+          readOnly: true
+          title: Staff status
+          description: Designates whether the user can log into this admin site.
+      required:
+      - email
+      - first_name
+      - is_active
+      - is_staff
+      - last_name
+      - pk
+      - username
   securitySchemes:
     jwtAuth:
       type: http
