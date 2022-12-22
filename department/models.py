@@ -1,9 +1,11 @@
 
 from django.db import models
+from django.db.models.deletion import RestrictedError
 from django.utils.translation import gettext_lazy as _
 from django.template.defaultfilters import slugify
 from django.contrib.auth import get_user_model
 from .querysets import DepartmentMemberQuerySet, DepartmentQuerySet, DesignationQuerySet
+from .exceptions import RestrictedDeletionError
 
 User = get_user_model()
 
@@ -85,6 +87,12 @@ class Designations(models.Model):
             if name not in fields:
                 raise KeyError("{} is not an valid field".format(name))
         return True
+
+    def delete(self):
+        try:
+            super().delete()
+        except RestrictedError as exception:
+            raise RestrictedDeletionError({"detail": (_("Designation Delete failed due to database foreign key restriction"),)})
 
 
 class DepartmentMember(models.Model):
