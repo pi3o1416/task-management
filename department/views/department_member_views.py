@@ -23,10 +23,16 @@ class DepartmentMemberViewSet(ViewSet, CustomPageNumberPagination):
 
     @extend_schema(responses={200: DepartmentMemberPaginatedSerializer},
                    parameters=[OpenApiParameter(name='page', type=int),
-                               OpenApiParameter(name='page_size', type=int)])
+                               OpenApiParameter(name='page_size', type=int),
+                               OpenApiParameter(name='department_name', type=str),
+                               OpenApiParameter(name='designation_title', type=str),
+                               OpenApiParameter(name='member_full_name', type=str),
+                               OpenApiParameter(name='department', type=int),
+                               OpenApiParameter(name='member', type=int),
+                               OpenApiParameter(name='designation', type=int)])
     def list(self, request):
         serializer_class = self.get_serializer_class()
-        members = DepartmentMember.objects.all()
+        members = DepartmentMember.objects.filter_from_query_prams(request)
         page = self.paginate_queryset(queryset=members, request=request)
         serializer = serializer_class(instance=page, many=True)
         return self.get_paginated_response(data=serializer.data)
@@ -68,9 +74,15 @@ class MembersOfDepartmentView(APIView, CustomPageNumberPagination):
 
     @extend_schema(responses={200: DepartmentMemberPaginatedSerializer},
                    parameters=[OpenApiParameter(name='page', type=int),
-                               OpenApiParameter(name='page_size', type=int)])
+                               OpenApiParameter(name='page_size', type=int),
+                               OpenApiParameter(name='designation_title', type=str),
+                               OpenApiParameter(name='member_full_name', type=str),
+                               OpenApiParameter(name='member', type=int),
+                               OpenApiParameter(name='designation', type=int)])
     def get(self, request, department_pk):
-        department_members = DepartmentMember.objects.get_members_of_department(department_pk=department_pk)
+        department_members = DepartmentMember.objects.\
+            get_members_of_department(department_pk=department_pk).\
+            filter_from_query_prams(request=request)
         page = self.paginate_queryset(queryset=department_members, request=request)
         serializer = DepartmentMemberSerializer(instance=page, many=True)
         return self.get_paginated_response(data=serializer.data)
