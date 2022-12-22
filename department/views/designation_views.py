@@ -3,10 +3,10 @@ from rest_framework.viewsets import ViewSet
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from drf_spectacular.utils import extend_schema, OpenApiParameter
+from drf_spectacular.utils import extend_schema
 from ..exceptions import DesignationGetException
 from ..pagination import CustomPageNumberPagination
-from ..serializers import DesignationSerializer, MessageSerializer, FieldErrorsSerializer, DesignationPaginatedSerializer
+from ..serializers import DesignationSerializer
 from ..models import Designations
 from ..documentations import designation_docs as docs
 
