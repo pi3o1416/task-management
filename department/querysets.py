@@ -5,7 +5,6 @@ from django.utils.translation import gettext_lazy as _
 from django.db.models import QuerySet, Q, CharField
 from rest_framework.exceptions import NotFound
 from rest_framework.request import Request
-from .exceptions import DepartmentGetException, DesignationGetException
 
 
 class DepartmentQuerySet(QuerySet):
@@ -14,11 +13,11 @@ class DepartmentQuerySet(QuerySet):
             department = self.get(pk=pk)
             return department
         except self.model.DoesNotExist:
-            raise DepartmentGetException(_("Department with pk={} does not exist".format(pk)))
+            raise NotFound({"detail": [_("Department with pk={} does not exist".format(pk))]})
         except ValueError:
-            raise DepartmentGetException(_("Department pk should be an integer"))
+            raise NotFound({"detail": [_("Department pk should be an integer")]})
         except Exception as exception:
-            raise DepartmentGetException(*exception.args)
+            raise NotFound({"detail": exception.args})
 
 
 class DesignationQuerySet(QuerySet):
@@ -27,11 +26,11 @@ class DesignationQuerySet(QuerySet):
             designation = self.get(pk=pk)
             return designation
         except self.model.DoesNotExist:
-            raise DesignationGetException(_("Designation with pk={} does not exist".format(pk)))
+            raise NotFound({"detail": [_("Designation with pk={} does not exist".format(pk))]})
         except ValueError:
-            raise DesignationGetException(_("Designation pk should be an integer"))
+            raise NotFound({"detail": [_("Designation pk should be an integer")]})
         except Exception as exception:
-            raise DesignationGetException(*exception.args)
+            raise NotFound({"detail": exception.args})
 
     def get_department_designations(self, department_pk=None):
         return self.filter(Q(department=department_pk))
