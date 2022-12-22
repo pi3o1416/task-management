@@ -1,4 +1,8 @@
 
-from .department_docs import *
-from .department_member_docs import *
-from .designation_docs import *
+from collections import namedtuple
+
+Documentation = namedtuple(
+    "Documentation",
+    ["request", "responses", "parameters"],
+    defaults=[None, None, None]
+)
