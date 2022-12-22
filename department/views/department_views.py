@@ -49,16 +49,13 @@ class DepartmentViewSet(ViewSet, CustomPageNumberPagination):
         Update department
         URL parameter: Department Primary key(pk)
         """
-        try:
-            department = Department.objects.get_department(pk=pk)
-            serializer_class = self.get_serializer_class()
-            serializer = serializer_class(instance=department, data=request.data)
-            if serializer.is_valid():
-                serializer.update()
-                return Response(data=serializer.data, status=status.HTTP_202_ACCEPTED)
-            return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        except DepartmentGetException as exception:
-            return Response(data={"detail": exception.args}, status=status.HTTP_404_NOT_FOUND)
+        department = Department.objects.get_department(pk=pk)
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(instance=department, data=request.data)
+        if serializer.is_valid():
+            serializer.update()
+            return Response(data=serializer.data, status=status.HTTP_202_ACCEPTED)
+        return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @extend_schema(
         responses=docs.DepartmentViewSetDestroyDoc.responses,
@@ -69,12 +66,9 @@ class DepartmentViewSet(ViewSet, CustomPageNumberPagination):
         Destroy Department
         URL Parameter: Department Primary Key(pk)
         """
-        try:
-            department = Department.objects.get_department(pk=pk)
-            department.delete()
-            return Response(data={"detail": ("Department delete successful",)}, status=status.HTTP_200_OK)
-        except DepartmentGetException as exception:
-            return Response(data={"detail": exception.args}, status=status.HTTP_404_NOT_FOUND)
+        department = Department.objects.get_department(pk=pk)
+        department.delete()
+        return Response(data={"detail": ("Department delete successful",)}, status=status.HTTP_200_OK)
 
     @extend_schema(
         responses=docs.DepartmentViewSetRetrieveDoc.responses,
@@ -85,13 +79,10 @@ class DepartmentViewSet(ViewSet, CustomPageNumberPagination):
         Retrieve Department
         URL Parameter: Department Primary Key(Pk)
         """
-        try:
-            serializer_class = self.get_serializer_class()
-            department = Department.objects.get_department(pk=pk)
-            serializer = serializer_class(instance=department)
-            return Response(data=serializer.data, status=status.HTTP_200_OK)
-        except DepartmentGetException as exception:
-            return Response(data={"detail": exception.args}, status=status.HTTP_404_NOT_FOUND)
+        serializer_class = self.get_serializer_class()
+        department = Department.objects.get_department(pk=pk)
+        serializer = serializer_class(instance=department)
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
 
     def get_serializer_class(self):
         return DepartmentSerializer
