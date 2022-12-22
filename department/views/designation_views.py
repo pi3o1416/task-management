@@ -2,17 +2,21 @@
 from rest_framework.viewsets import ViewSet
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.decorators import action
 from rest_framework import status
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from ..exceptions import DesignationGetException
 from ..pagination import CustomPageNumberPagination
 from ..serializers import DesignationSerializer, MessageSerializer, FieldErrorsSerializer, DesignationPaginatedSerializer
 from ..models import Designations
+from ..documentations import designation_docs as docs
 
 
 class DesignationViewSet(ViewSet, CustomPageNumberPagination):
-    @extend_schema(request=DesignationSerializer, responses={})
+
+    @extend_schema(
+        responses=docs.DesignationViewSetCreateDoc.responses,
+        parameters=docs.DesignationViewSetCreateDoc.parameters
+    )
     def create(self, request):
         """
         Create New Department Designations
@@ -24,9 +28,10 @@ class DesignationViewSet(ViewSet, CustomPageNumberPagination):
             return Response(data=serializer.data, status=status.HTTP_201_CREATED)
         return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    @extend_schema(responses={200: DesignationPaginatedSerializer},
-                   parameters=[OpenApiParameter(name='page', type=int),
-                               OpenApiParameter(name='page_size', type=int)])
+    @extend_schema(
+        responses=docs.DesignationViewSetListDoc.responses,
+        parameters=docs.DesignationViewSetListDoc.parameters
+    )
     def list(self, request):
         """
         List of All Designation.
@@ -37,8 +42,10 @@ class DesignationViewSet(ViewSet, CustomPageNumberPagination):
         serializer = serializer_class(instance=page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @extend_schema(responses={200: DesignationSerializer,
-                              404: MessageSerializer})
+    @extend_schema(
+        responses=docs.DesignationViewSetDestroyDoc.responses,
+        parameters=docs.DesignationViewSetDestroyDoc.parameters
+    )
     def destroy(self, request, pk):
         """
         Destroy Department
@@ -51,8 +58,10 @@ class DesignationViewSet(ViewSet, CustomPageNumberPagination):
         except DesignationGetException as exception:
             return Response(data={"detail": exception.args}, status=status.HTTP_404_NOT_FOUND)
 
-    @extend_schema(responses={200: DesignationSerializer,
-                              404: MessageSerializer})
+    @extend_schema(
+        responses=docs.DesignationViewSetRetrieveDoc.responses,
+        parameters=docs.DesignationViewSetRetrieveDoc.parameters
+    )
     def retrieve(self, request, pk):
         """
         Retrieve Designation Object
@@ -66,9 +75,10 @@ class DesignationViewSet(ViewSet, CustomPageNumberPagination):
         except DesignationGetException as exception:
             return Response(data={"detail": exception.args}, status=status.HTTP_404_NOT_FOUND)
 
-    @extend_schema(request=DesignationSerializer, responses={202: DesignationSerializer,
-                                                             400: FieldErrorsSerializer,
-                                                             404: MessageSerializer})
+    @extend_schema(
+        responses=docs.DesignationViewSetUpdateDoc.responses,
+        parameters=docs.DesignationViewSetUpdateDoc.parameters
+    )
     def update(self, request, pk):
         """
         Update Designation Object
@@ -91,9 +101,10 @@ class DesignationViewSet(ViewSet, CustomPageNumberPagination):
 
 class DepartmentDesignationsView(APIView, CustomPageNumberPagination):
 
-    @extend_schema(responses={200: DesignationPaginatedSerializer},
-                   parameters=[OpenApiParameter(name='page', type=int),
-                               OpenApiParameter(name='page_size', type=int)])
+    @extend_schema(
+        responses=docs.DepartmentDesignationsDoc.responses,
+        parameters=docs.DepartmentDesignationsDoc.parameters
+    )
     def get(self, request, department_pk):
         designations = Designations.objects.get_department_designations(department_pk=department_pk)
         page = self.paginate_queryset(queryset=designations, request=request)
