@@ -66,7 +66,7 @@ class UserViewSet(viewsets.ViewSet, CustomPageNumberPagination):
         try:
             user = self.get_user_object(pk)
             user.delete()
-            return Response(data={"detail": ("User Delete Successful",)}, status=status.HTTP_200_OK)
+            return Response(data={"detail": ["User Delete Successful"]}, status=status.HTTP_200_OK)
         except UserGetException as exception:
             return Response(data={"detail": exception.args}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -117,8 +117,8 @@ class ActiveAccount(APIView):
         user = CustomUser.objects.get_user_by_encoded_pk(uidb64)
         if user and user.validate_token(token):
             user.activate_account()
-            return Response(data={"detail": "Account Acivation Successful"}, status=status.HTTP_202_ACCEPTED)
-        return Response(data={"detail": "Invalid Token or uid"}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+            return Response(data={"detail": ["Account Acivation Successful"]}, status=status.HTTP_202_ACCEPTED)
+        return Response(data={"detail": ["Invalid Token or uid"]}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
 
 
