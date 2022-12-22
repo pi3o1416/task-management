@@ -57,7 +57,7 @@ DepartmentMemberRetrieve = Documentation(
     }
 )
 
-MembersOfDepartmentViewDoc = Documentation(
+MembersOfDepartmentDoc = Documentation(
     responses={
         200: DepartmentMemberPaginatedSerializer
     },
@@ -70,3 +70,5 @@ MembersOfDepartmentViewDoc = Documentation(
         OpenApiParameter(name='designation', type=int)
     ]
 )
+
+
