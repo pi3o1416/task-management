@@ -1,16 +1,10 @@
 
 from drf_spectacular.utils import OpenApiParameter
+from . import Documentation
+
 from ..serializers import (
     DepartmentMemberSerializer, FieldErrorsSerializer,
     MessageSerializer, DepartmentMemberPaginatedSerializer,
-)
-
-from collections import namedtuple
-
-Documentation = namedtuple(
-    "Documentation",
-    ["request", "responses", "parameters"],
-    defaults=[None, None, None]
 )
 
 DepartmentMemberCreateDoc = Documentation(
