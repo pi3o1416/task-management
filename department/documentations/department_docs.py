@@ -41,10 +41,10 @@ DepartmentViewSetListDoc = Documentation(
     responses={
         200: DepartmentPaginatedSerializer
     },
-    parameters={
+    parameters=[
         OpenApiParameter(name='page', type=int),
         OpenApiParameter(name='page_size', type=int)
-    }
+    ]
 )
 
 
