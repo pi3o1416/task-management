@@ -1,7 +1,7 @@
 
 from drf_spectacular.utils import OpenApiParameter
-from . import Documentation
 
+from . import Documentation
 from ..serializers import (
     DepartmentMemberSerializer, FieldErrorsSerializer,
     MessageSerializer, DepartmentMemberPaginatedSerializer,
