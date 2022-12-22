@@ -2,16 +2,19 @@
 from rest_framework.viewsets import ViewSet
 from rest_framework.response import Response
 from rest_framework import status
-from drf_spectacular.utils import extend_schema, OpenApiParameter
+from drf_spectacular.utils import extend_schema
 from ..pagination import CustomPageNumberPagination
 from ..models import Department
-from ..serializers import DepartmentSerializer, FieldErrorsSerializer, MessageSerializer, DepartmentPaginatedSerializer
+from ..serializers import DepartmentSerializer
 from ..exceptions import DepartmentGetException
+from ..documentations import department_docs as docs
 
 
 class DepartmentViewSet(ViewSet, CustomPageNumberPagination):
-    @extend_schema(request=DepartmentSerializer, responses={201: DepartmentSerializer,
-                                                            400: FieldErrorsSerializer})
+    @extend_schema(
+        responses=docs.DepartmentViewSetCreateDoc.responses,
+        parameters=docs.DepartmentViewSetCreateDoc.parameters
+    )
     def create(self, request):
         """
         Create New Department
@@ -23,9 +26,10 @@ class DepartmentViewSet(ViewSet, CustomPageNumberPagination):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    @extend_schema(responses={200: DepartmentPaginatedSerializer},
-                   parameters=[OpenApiParameter(name='page', type=int),
-                               OpenApiParameter(name='page_size', type=int)])
+    @extend_schema(
+        responses=docs.DepartmentViewSetListDoc.responses,
+        parameters=docs.DepartmentViewSetListDoc.parameters
+    )
     def list(self, request):
         """
         List of all Department
@@ -36,9 +40,10 @@ class DepartmentViewSet(ViewSet, CustomPageNumberPagination):
         serializer = serializer_class(instance=page, many=True)
         return self.get_paginated_response(data=serializer.data)
 
-    @extend_schema(request=DepartmentSerializer, responses={202: DepartmentSerializer,
-                                                            400: FieldErrorsSerializer,
-                                                            404: MessageSerializer})
+    @extend_schema(
+        responses=docs.DepartmentViewSetUpdateDoc.responses,
+        parameters=docs.DepartmentViewSetUpdateDoc.parameters
+    )
     def update(self, request, pk):
         """
         Update department
@@ -55,8 +60,10 @@ class DepartmentViewSet(ViewSet, CustomPageNumberPagination):
         except DepartmentGetException as exception:
             return Response(data={"detail": exception.args}, status=status.HTTP_404_NOT_FOUND)
 
-    @extend_schema(responses={200: MessageSerializer,
-                              404: MessageSerializer})
+    @extend_schema(
+        responses=docs.DepartmentViewSetDestroyDoc.responses,
+        parameters=docs.DepartmentViewSetDestroyDoc.parameters
+    )
     def destroy(self, request, pk):
         """
         Destroy Department
@@ -69,8 +76,10 @@ class DepartmentViewSet(ViewSet, CustomPageNumberPagination):
         except DepartmentGetException as exception:
             return Response(data={"detail": exception.args}, status=status.HTTP_404_NOT_FOUND)
 
-    @extend_schema(responses={200: DepartmentSerializer,
-                              404: MessageSerializer})
+    @extend_schema(
+        responses=docs.DepartmentViewSetRetrieveDoc.responses,
+        parameters=docs.DepartmentViewSetRetrieveDoc.parameters
+    )
     def retrieve(self, request, pk):
         """
         Retrieve Department
