@@ -109,6 +109,8 @@ class UserViewSet(viewsets.ViewSet, CustomPageNumberPagination):
 
 
 class ActiveAccount(APIView):
+    @extend_schema(request=None, responses={202: MessageSerializer,
+                                            422: MessageSerializer})
     def get(self, request, uidb64, token):
         """
         Activate Account from unique uidb64 and token generated for user.
