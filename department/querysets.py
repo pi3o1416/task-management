@@ -1,8 +1,11 @@
 
+from operator import __and__
+from functools import reduce
 from django.utils.translation import gettext_lazy as _
-from django.db.models import QuerySet, Q
+from django.db.models import QuerySet, Q, CharField
 from rest_framework.exceptions import NotFound
-from .exceptions import DepartmentGetException, DesignationGetException, DepartmentMemberGetException
+from rest_framework.request import Request
+from .exceptions import DepartmentGetException, DesignationGetException
 
 
 class DepartmentQuerySet(QuerySet):
@@ -52,14 +55,27 @@ class DepartmentMemberQuerySet(QuerySet):
     def get_members_of_department(self, department_pk):
         return self.filter(Q(department=department_pk))
 
-    def filter_fron_query(self, request):
-        pass
+    def filter_from_query_prams(self, request: Request):
+        q_objects = _generate_q_objects_from_query_params(self.model, request)
+        if q_objects:
+            return self.filter(reduce(__and__, q_objects))
+        return self.all()
 
-    def _get_department_from_request_query(self, request):
-        pass
+def _generate_q_objects_from_query_params(Model, request: Request) -> list:
+    query_params = request.query_params
+    fields = {field.name: field for field in Model._meta.fields}
+    q_objects = []
+    for param, value in query_params.items():
+        if param in fields.keys():
+            if isinstance(fields[param], CharField):
+                q_objects.append(Q(('{}__icontains'.format(param), value)))
+            else:
+                q_objects.append(Q((param, value)))
+    return q_objects
 
-    def _get_designation_from_request_query(self, request):
-        pass
+
+
+
 
 
 
