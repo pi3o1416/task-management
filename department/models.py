@@ -1,4 +1,5 @@
 
+from django.db.models import Q, UniqueConstraint
 from django.db import models
 from django.db.models.deletion import RestrictedError
 from django.utils.translation import gettext_lazy as _
@@ -147,8 +148,21 @@ class DepartmentMember(models.Model):
     )
     objects = DepartmentMemberQuerySet.as_manager()
 
+    errors = {
+        "DEPARTMENT_MISMATCH": "Member department and department designation did not match.",
+        "MULTIPLE_DEPARTMENT_HEAD": "Department Head of this department already exist"
+    }
+    class Meta:
+        constraints = [
+            UniqueConstraint(
+                fields=["department"],
+                condition=Q(is_head=True),
+                name="one_head_per_department"
+            )
+        ]
     def __str__(self):
         return "{}".format(self.member.first_name)
+
 
 
 
