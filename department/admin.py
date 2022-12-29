@@ -16,7 +16,8 @@ class DepartmentAdmin(admin.ModelAdmin):
 
 @admin.register(DepartmentMember)
 class DepartmentMemberAdmin(admin.ModelAdmin):
-    list_display = ["pk", "member", "department", "designation"]
+    list_display = ["pk", "member", "department", "designation", "is_head"]
+
 
 
 
