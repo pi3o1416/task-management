@@ -4,6 +4,7 @@ from django.db.models.deletion import RestrictedError
 from django.utils.translation import gettext_lazy as _
 from django.template.defaultfilters import slugify
 from django.contrib.auth import get_user_model
+from rest_framework.exceptions import ValidationError
 from .querysets import DepartmentMemberQuerySet, DepartmentQuerySet, DesignationQuerySet
 from .exceptions import RestrictedDeletionError
 
@@ -149,23 +150,6 @@ class DepartmentMember(models.Model):
     def __str__(self):
         return "{}".format(self.member.first_name)
 
-
-class DepartmentHead(models.Model):
-    department = models.OneToOneField(
-        to=Department,
-        on_delete=models.CASCADE,
-        related_name='department_head',
-        verbose_name=_("Department Head")
-    )
-    head = models.ForeignKey(
-        to=DepartmentMember,
-        on_delete=models.RESTRICT,
-        related_name='head_of_department',
-        verbose_name=_("Head Of Department")
-    )
-
-    def __str__(self):
-        return self.department.name
 
 
 
