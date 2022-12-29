@@ -119,6 +119,10 @@ class DepartmentMember(models.Model):
         blank=False,
         verbose_name="designated_member"
     )
+    is_head = models.BooleanField(
+        verbose_name=_("Department Head"),
+        default=False,
+    )
     member_full_name = models.CharField(
         verbose_name=_("Department Member Full name"),
         max_length=200,
@@ -144,6 +148,7 @@ class DepartmentMember(models.Model):
 
     def __str__(self):
         return "{}".format(self.member.first_name)
+
 
 
 
