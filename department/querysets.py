@@ -60,6 +60,9 @@ class DepartmentMemberQuerySet(QuerySet):
             return self.filter(reduce(__and__, q_objects))
         return self.all()
 
+    def is_department_head_exist(self, department):
+        return self.filter(Q(department=department), Q(is_head=True)).exists()
+
 def _generate_q_objects_from_query_params(Model, request: Request) -> list:
     query_params = request.query_params
     fields = {field.name: field for field in Model._meta.fields}
