@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'authentication.apps.AuthenticationConfig',
     'emailservice.apps.EmailserviceConfig',
     'department.apps.DepartmentConfig',
+    'permission_handler.apps.PermissionHandlerConfig',
 ]
 
 MIDDLEWARE = [
