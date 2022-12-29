@@ -163,6 +163,9 @@ class DepartmentMember(models.Model):
     def __str__(self):
         return "{}".format(self.member.first_name)
 
+    def clean(self):
+        if self.department != self.designation.department:
+            raise ValidationError({"detail": [""]})
 
 
 
