@@ -27,7 +27,7 @@ class UserViewSet(viewsets.ViewSet, CustomPageNumberPagination):
         if serializer.is_valid():
             serializer.save()
             return Response(data=serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"field_errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
     @extend_schema(responses={200: UserPaginatedSerializer},
                    parameters=[OpenApiParameter(name='page', type=int),
@@ -85,7 +85,7 @@ class UserViewSet(viewsets.ViewSet, CustomPageNumberPagination):
             if serializer.is_valid():
                 serializer.update()
                 return Response(data=serializer.data, status=status.HTTP_200_OK)
-            return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(data={"field_errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         except UserGetException as exception:
             return Response(data={"detail": exception.args}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
