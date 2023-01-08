@@ -23,8 +23,8 @@ class CustomUserManager(UserManager):
     def staff_users(self):
         return self.get_queryset().staff_users()
 
-    def get_user(self, **kwargs):
-        return self.get_queryset().get_user(**kwargs)
+    def get_user_by_pk(self, pk):
+        return self.get_queryset().get_user_by_pk(pk)
 
     def get_user_by_encoded_pk(self, encoded_pk):
         return self.get_queryset().get_user_by_encoded_pk(encoded_pk=encoded_pk)
@@ -40,12 +40,16 @@ class CustomUserQuerySet(QuerySet):
     def staff_users(self):
         return self.filter(Q(is_staff=True))
 
-    def get_user(self, **kwargs):
+    def get_user_by_pk(self, pk):
         try:
-            q_objects = [Q(**{key: value}) for key, value in kwargs.items()]
-            return self.filter(reduce(__and__, q_objects)).first()
-        except:
-            return None
+            user = self.get(Q(pk=pk))
+            return user
+        except self.model.DoesNotExist:
+            raise NotFound({"detail": [_("User with pk={} does not exist.".format(pk))]})
+        except ValueError:
+            raise NotFound({"detail": [_("User pk should be an integer")]})
+        except Exception as exception:
+            raise NotFound({"detail": exception.args})
 
     def get_user_by_encoded_pk(self, encoded_pk):
         try:
