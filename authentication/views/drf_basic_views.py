@@ -117,10 +117,10 @@ class ActiveAccount(APIView):
         URL Parameter: uidb64, token
         """
         user = CustomUser.objects.get_user_by_encoded_pk(uidb64)
-        if user and user.validate_token(token):
+        if user.validate_token(token):
             user.activate_account()
             return Response(data={"detail": ["Account Acivation Successful"]}, status=status.HTTP_202_ACCEPTED)
-        return Response(data={"detail": ["Invalid Token or uid"]}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+        return Response(data={"detail": ["Invalid Token"]}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
 
 
