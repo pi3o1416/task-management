@@ -15,9 +15,6 @@ class CustomJSONRenderer(JSONRenderer):
             custom_data["error"] = data
         else:
             custom_data["data"] = data
-        print(data.get("data"))
-        print(data.get("status"))
-        print(data.get("message"))
         return super().render(custom_data, accepted_media_type, renderer_context)
 
 
