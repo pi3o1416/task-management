@@ -12,7 +12,18 @@ class CustomJSONRenderer(JSONRenderer):
         response = renderer_context.get("response")
         custom_data["status"] = response.status_code
         if response.status_code >= 400:
-            custom_data["error"] = data
+            custom_data["error"] = {
+                "detail": None,
+                "field_errors": None
+            }
+            detail = data.get("detail")
+            field_errors = data.get("field_errors")
+            if detail:
+                custom_data["error"]["detail"] = detail
+            if field_errors:
+                custom_data["error"]["field_errors"] = field_errors
+            if not detail and not field_errors:
+                custom_data["detail"] = data
         else:
             custom_data["data"] = data
         return super().render(custom_data, accepted_media_type, renderer_context)
