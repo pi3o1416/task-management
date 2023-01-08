@@ -10,14 +10,13 @@ from ..models import CustomUser
 from ..serializers import FieldErrorSerializer, MessageSerializer, UserSerializer, UserUpdateSerializer
 from ..exceptions import UserGetException
 from ..pagination import CustomPageNumberPagination
+from ..documentations.basic_view_docs import UserViewSetCreateDoc
 
 
 class UserViewSet(viewsets.ViewSet, CustomPageNumberPagination):
     queryset = CustomUser.objects.all()
 
-    @extend_schema(request=UserSerializer, responses={201: UserSerializer,
-                                                      400: MessageSerializer,
-                                                      403: MessageSerializer})
+    @extend_schema(responses=UserViewSetCreateDoc.responses)
     def create(self, request):
         """
         Create a new User
@@ -48,13 +47,10 @@ class UserViewSet(viewsets.ViewSet, CustomPageNumberPagination):
         Retrieve a object detail from database
         parameter: (int)pk
         """
-        try:
-            serializer_class = self.get_serializer_class()
-            user = self.get_user_object(pk)
-            serializer =  serializer_class(instance=user)
-            return Response(data=serializer.data, status=status.HTTP_200_OK)
-        except UserGetException as exception:
-            return Response(data={"detail": exception.args}, status=status.HTTP_400_BAD_REQUEST)
+        serializer_class = self.get_serializer_class()
+        user = CustomUser.objects.get_user_by_pk(pk)
+        serializer =  serializer_class(instance=user)
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
 
     @extend_schema(responses={200: MessageSerializer,
                               400: MessageSerializer})
@@ -63,12 +59,9 @@ class UserViewSet(viewsets.ViewSet, CustomPageNumberPagination):
         Destroy a object from database
         parameter: (int)pk
         """
-        try:
-            user = self.get_user_object(pk)
-            user.delete()
-            return Response(data={"detail": ["User Delete Successful"]}, status=status.HTTP_200_OK)
-        except UserGetException as exception:
-            return Response(data={"detail": exception.args}, status=status.HTTP_400_BAD_REQUEST)
+        user = CustomUser.objects.get_user_by_pk(pk)
+        user.delete()
+        return Response(data={"detail": ["User Delete Successful"]}, status=status.HTTP_200_OK)
 
     @extend_schema(request=UserUpdateSerializer, responses={200: UserUpdateSerializer,
                                                             400: FieldErrorSerializer,
@@ -78,16 +71,13 @@ class UserViewSet(viewsets.ViewSet, CustomPageNumberPagination):
         Update a user profile
         parameter: (int)pk
         """
-        try:
-            serializer_class = self.get_serializer_class()
-            user = self.get_user_object(pk)
-            serializer = serializer_class(instance=user, data=request.data)
-            if serializer.is_valid():
-                serializer.update()
-                return Response(data=serializer.data, status=status.HTTP_200_OK)
-            return Response(data={"field_errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-        except UserGetException as exception:
-            return Response(data={"detail": exception.args}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+        serializer_class = self.get_serializer_class()
+        user = CustomUser.objects.get_user_by_pk(pk)
+        serializer = serializer_class(instance=user, data=request.data)
+        if serializer.is_valid():
+            serializer.update()
+            return Response(data=serializer.data, status=status.HTTP_200_OK)
+        return Response(data={"field_errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
     def get_serializer_class(self):
@@ -95,17 +85,6 @@ class UserViewSet(viewsets.ViewSet, CustomPageNumberPagination):
             return UserUpdateSerializer
         else:
             return UserSerializer
-
-    def get_user_object(self, pk):
-        try:
-            user = self.queryset.get(pk=pk)
-            return user
-        except CustomUser.DoesNotExist:
-            raise UserGetException("User with pk={} does not found".format(pk))
-        except ValueError:
-            raise UserGetException("User pk whold be an Integer")
-        except Exception as exception:
-            raise UserGetException(*exception.args)
 
 
 class ActiveAccount(APIView):
