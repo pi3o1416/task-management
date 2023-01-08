@@ -1,11 +1,13 @@
 
 from functools import reduce
 from operator import __and__
+from django.utils.translation import gettext_lazy as _
 from django.utils.http import urlsafe_base64_decode
 from django.db.models import QuerySet
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.models import UserManager
 from django.db.models import Q
+from rest_framework.exceptions import NotFound
 
 
 class CustomUserManager(UserManager):
@@ -52,7 +54,7 @@ class CustomUserQuerySet(QuerySet):
             user = self.get(pk=pk)
             return user
         except ObjectDoesNotExist:
-            return None
+            raise NotFound({"detail": [_("Invalid uid")]})
 
 
 
