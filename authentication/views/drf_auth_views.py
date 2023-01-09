@@ -1,6 +1,5 @@
 
 from django.utils.translation import gettext_lazy as _
-from drf_spectacular.utils import extend_schema, OpenApiResponse
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
@@ -28,8 +27,6 @@ def _set_cookie(response=None, cookie_name=None, cookie_value=None, max_age=3600
                         httponly=True, samesite=None, secure=True)
     return response
 
-@extend_schema(responses={200: AccessTokenSerializer,
-                          401: MessageSerializer})
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
     permission_classes = [AllowAny]
@@ -50,8 +47,6 @@ class MyTokenObtainPairView(TokenObtainPairView):
         return super().finalize_response(request, response, *args, **kwargs)
 
 
-@extend_schema(responses={200: AccessTokenSerializer,
-                          401: MessageSerializer})
 class MyTokenRefreshView(TokenRefreshView):
     serializer_class = MyTokenRefreshSerializer
     permission_classes = [AllowAny]
@@ -75,7 +70,6 @@ class MyTokenRefreshView(TokenRefreshView):
 class LogoutView(APIView):
     permission_classes = [AllowAny,]
 
-    @extend_schema(request=None, responses=MessageSerializer)
     def post(self, request):
         """
         Logout view. Remove refresh token from cookie
@@ -89,8 +83,6 @@ class ForgetPasswordView(APIView):
     permission_classes = [AllowAny,]
     serializer_class = PasswordForgetSerializer
 
-    @extend_schema(responses={200: MessageSerializer,
-                              400: FieldErrorSerializer})
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
@@ -102,9 +94,6 @@ class ForgetPasswordView(APIView):
 class PasswordResetView(APIView):
     serializer_class = PasswordResetSerializer
 
-    @extend_schema(responses={202: MessageSerializer,
-                              404: MessageSerializer,
-                              400: FieldErrorSerializer})
     def post(self, request, uidb64, token):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
