@@ -1,4 +1,5 @@
 
+from drf_spectacular.utils import extend_schema
 from django.utils.translation import gettext_lazy as _
 from rest_framework import status
 from rest_framework.permissions import AllowAny
@@ -23,6 +24,7 @@ def _set_cookie(response=None, cookie_name=None, cookie_value=None, max_age=3600
     response.set_cookie(cookie_name, cookie_value, max_age,
                         httponly=True, samesite=None, secure=True)
     return response
+
 
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
@@ -73,7 +75,7 @@ class LogoutView(APIView):
         """
         Logout view. Remove refresh token from cookie
         """
-        response = Response({'message': 'Logout Successful'}, status=status.HTTP_200_OK)
+        response = Response({'detail': ['Logout Successful']}, status=status.HTTP_200_OK)
         response.delete_cookie("refresh_token")
         return response
 
@@ -87,7 +89,7 @@ class ForgetPasswordView(APIView):
         if serializer.is_valid():
             user = serializer.instance
             user.send_password_reset_email()
-            return Response(data={"detail": "A Password Reset Link is send to your email."}, status=status.HTTP_200_OK)
+            return Response(data={"detail": ["A Password Reset Link is send to your email."]}, status=status.HTTP_200_OK)
         return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class PasswordResetView(APIView):
