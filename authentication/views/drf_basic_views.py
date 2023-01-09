@@ -1,20 +1,24 @@
 
+from drf_spectacular.utils import extend_schema
 from rest_framework import viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 
-from authentication.serializers.basic_serializers import UserPaginatedSerializer
 from ..models import CustomUser
-from ..serializers import FieldErrorSerializer, MessageSerializer, UserSerializer, UserUpdateSerializer
-from ..exceptions import UserGetException
+from ..serializers import UserSerializer, UserUpdateSerializer
 from ..pagination import CustomPageNumberPagination
-from ..documentations.basic_view_docs import UserViewSetCreateDoc
+from ..documentations.basic_view_docs import (
+    UserCreateDoc, UserListDoc, UserRetrieveDoc,
+    UserDestroyDoc, UserUpdateDoc, ActiveAccountDoc
+)
 
 
 class UserViewSet(viewsets.ViewSet, CustomPageNumberPagination):
     queryset = CustomUser.objects.all()
 
+    @extend_schema(responses=UserCreateDoc.responses,
+                   parameters=UserCreateDoc.parameters)
     def create(self, request):
         """
         Create a new User
@@ -26,6 +30,8 @@ class UserViewSet(viewsets.ViewSet, CustomPageNumberPagination):
             return Response(data=serializer.data, status=status.HTTP_201_CREATED)
         return Response({"field_errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
+    @extend_schema(responses=UserListDoc.responses,
+                   parameters=UserListDoc.parameters)
     def list(self, request):
         """
         Get List of User objects
@@ -35,6 +41,8 @@ class UserViewSet(viewsets.ViewSet, CustomPageNumberPagination):
         serializer = serializer_class(instance=page, many=True)
         return self.get_paginated_response(data=serializer.data)
 
+    @extend_schema(responses=UserRetrieveDoc.responses,
+                   parameters=UserRetrieveDoc.parameters)
     def retrieve(self, request, pk):
         """
         Retrieve a object detail from database
@@ -45,6 +53,8 @@ class UserViewSet(viewsets.ViewSet, CustomPageNumberPagination):
         serializer =  serializer_class(instance=user)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
 
+    @extend_schema(responses=UserDestroyDoc.responses,
+                   parameters=UserDestroyDoc.parameters)
     def destroy(self, request, pk):
         """
         Destroy a object from database
@@ -54,6 +64,8 @@ class UserViewSet(viewsets.ViewSet, CustomPageNumberPagination):
         user.delete()
         return Response(data={"detail": ["User Delete Successful"]}, status=status.HTTP_200_OK)
 
+    @extend_schema(responses=UserUpdateDoc.responses,
+                   parameters=UserUpdateDoc.parameters)
     def update(self, request, pk):
         """
         Update a user profile
@@ -64,7 +76,7 @@ class UserViewSet(viewsets.ViewSet, CustomPageNumberPagination):
         serializer = serializer_class(instance=user, data=request.data)
         if serializer.is_valid():
             serializer.update()
-            return Response(data=serializer.data, status=status.HTTP_200_OK)
+            return Response(data=serializer.data, status=status.HTTP_202_ACCEPTED)
         return Response(data={"field_errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -76,6 +88,8 @@ class UserViewSet(viewsets.ViewSet, CustomPageNumberPagination):
 
 
 class ActiveAccount(APIView):
+    @extend_schema(responses=ActiveAccountDoc.responses,
+                   parameters=ActiveAccountDoc.parameters)
     def get(self, request, uidb64, token):
         """
         Activate Account from unique uidb64 and token generated for user.
