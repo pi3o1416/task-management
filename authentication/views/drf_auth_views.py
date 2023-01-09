@@ -90,7 +90,7 @@ class ForgetPasswordView(APIView):
             user = serializer.instance
             user.send_password_reset_email()
             return Response(data={"detail": ["A Password Reset Link is send to your email."]}, status=status.HTTP_200_OK)
-        return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(data={"field_errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 class PasswordResetView(APIView):
     serializer_class = PasswordResetSerializer
@@ -103,8 +103,8 @@ class PasswordResetView(APIView):
                 serializer.get_password()
                 user.set_password(serializer.get_password())
                 user.save()
-                return Response(data={"detail": _("Password Reset Successful")}, status=status.HTTP_202_ACCEPTED)
-            return Response(data={"detail": _("Invalid URL")}, status=status.HTTP_404_NOT_FOUND)
-        return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                return Response(data={"detail": (_("Password Reset Successful"),)}, status=status.HTTP_202_ACCEPTED)
+            return Response(data={"detail": (_("Invalid URL"),)}, status=status.HTTP_404_NOT_FOUND)
+        return Response(data={"field_errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
