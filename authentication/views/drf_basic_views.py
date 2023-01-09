@@ -3,7 +3,6 @@ from rest_framework import viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from drf_spectacular.utils import extend_schema, OpenApiParameter
 
 from authentication.serializers.basic_serializers import UserPaginatedSerializer
 from ..models import CustomUser
@@ -16,7 +15,6 @@ from ..documentations.basic_view_docs import UserViewSetCreateDoc
 class UserViewSet(viewsets.ViewSet, CustomPageNumberPagination):
     queryset = CustomUser.objects.all()
 
-    @extend_schema(responses=UserViewSetCreateDoc.responses)
     def create(self, request):
         """
         Create a new User
@@ -28,9 +26,6 @@ class UserViewSet(viewsets.ViewSet, CustomPageNumberPagination):
             return Response(data=serializer.data, status=status.HTTP_201_CREATED)
         return Response({"field_errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-    @extend_schema(responses={200: UserPaginatedSerializer},
-                   parameters=[OpenApiParameter(name='page', type=int),
-                               OpenApiParameter(name='page_size', type=int)])
     def list(self, request):
         """
         Get List of User objects
@@ -40,8 +35,6 @@ class UserViewSet(viewsets.ViewSet, CustomPageNumberPagination):
         serializer = serializer_class(instance=page, many=True)
         return self.get_paginated_response(data=serializer.data)
 
-    @extend_schema(request=None, responses={200: UserSerializer,
-                                            400: MessageSerializer})
     def retrieve(self, request, pk):
         """
         Retrieve a object detail from database
@@ -52,8 +45,6 @@ class UserViewSet(viewsets.ViewSet, CustomPageNumberPagination):
         serializer =  serializer_class(instance=user)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
 
-    @extend_schema(responses={200: MessageSerializer,
-                              400: MessageSerializer})
     def destroy(self, request, pk):
         """
         Destroy a object from database
@@ -63,9 +54,6 @@ class UserViewSet(viewsets.ViewSet, CustomPageNumberPagination):
         user.delete()
         return Response(data={"detail": ["User Delete Successful"]}, status=status.HTTP_200_OK)
 
-    @extend_schema(request=UserUpdateSerializer, responses={200: UserUpdateSerializer,
-                                                            400: FieldErrorSerializer,
-                                                            422: MessageSerializer})
     def update(self, request, pk):
         """
         Update a user profile
@@ -88,8 +76,6 @@ class UserViewSet(viewsets.ViewSet, CustomPageNumberPagination):
 
 
 class ActiveAccount(APIView):
-    @extend_schema(request=None, responses={202: MessageSerializer,
-                                            422: MessageSerializer})
     def get(self, request, uidb64, token):
         """
         Activate Account from unique uidb64 and token generated for user.
