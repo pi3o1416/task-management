@@ -7,9 +7,13 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
+from ..models import CustomUser
 from ..serializers import (MyTokenObtainPairSerializer, MyTokenRefreshSerializer,
                            PasswordForgetSerializer, PasswordResetSerializer)
-from ..models import CustomUser
+from ..documentations.auth_view_docs import (
+    GetTokenDoc, RefreshTokenDoc, LogoutDoc, ForgetPassswordDoc,
+    PasswordResetDoc
+)
 
 
 def _set_cookie(response=None, cookie_name=None, cookie_value=None, max_age=3600*24*15):
@@ -26,6 +30,8 @@ def _set_cookie(response=None, cookie_name=None, cookie_value=None, max_age=3600
     return response
 
 
+@extend_schema(responses=GetTokenDoc.responses,
+               parameters=GetTokenDoc.parameters)
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
     permission_classes = [AllowAny]
@@ -48,6 +54,8 @@ class MyTokenObtainPairView(TokenObtainPairView):
         return super().finalize_response(request, response, *args, **kwargs)
 
 
+@extend_schema(responses=RefreshTokenDoc.responses,
+               parameters=RefreshTokenDoc.parameters)
 class MyTokenRefreshView(TokenRefreshView):
     serializer_class = MyTokenRefreshSerializer
     permission_classes = [AllowAny]
@@ -68,6 +76,8 @@ class MyTokenRefreshView(TokenRefreshView):
         return super().finalize_response(request, response, *args, **kwargs)
 
 
+@extend_schema(responses=LogoutDoc.responses,
+               parameters=LogoutDoc.parameters)
 class LogoutView(APIView):
     permission_classes = [AllowAny,]
 
@@ -80,6 +90,8 @@ class LogoutView(APIView):
         return response
 
 
+@extend_schema(responses=ForgetPassswordDoc.responses,
+               parameters=ForgetPassswordDoc.parameters)
 class ForgetPasswordView(APIView):
     permission_classes = [AllowAny,]
     serializer_class = PasswordForgetSerializer
@@ -92,6 +104,9 @@ class ForgetPasswordView(APIView):
             return Response(data={"detail": ["A Password Reset Link is send to your email."]}, status=status.HTTP_200_OK)
         return Response(data={"field_errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
+
+@extend_schema(responses=PasswordResetDoc.responses,
+               parameters=PasswordResetDoc.parameters)
 class PasswordResetView(APIView):
     serializer_class = PasswordResetSerializer
 
