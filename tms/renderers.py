@@ -23,7 +23,7 @@ class CustomJSONRenderer(JSONRenderer):
             if field_errors:
                 custom_data["error"]["field_errors"] = field_errors
             if not detail and not field_errors:
-                custom_data["detail"] = data
+                custom_data["error"]["detail"] = data
         else:
             custom_data["response_data"] = data
         return super().render(custom_data, accepted_media_type, renderer_context)
