@@ -5,7 +5,7 @@ from rest_framework.renderers import JSONRenderer
 class CustomJSONRenderer(JSONRenderer):
     def render(self, data, accepted_media_type=None, renderer_context=None):
         custom_data = {
-            "data": None,
+            "response_data": None,
             "error": None,
             "status": None,
         }
@@ -25,7 +25,7 @@ class CustomJSONRenderer(JSONRenderer):
             if not detail and not field_errors:
                 custom_data["detail"] = data
         else:
-            custom_data["data"] = data
+            custom_data["response_data"] = data
         return super().render(custom_data, accepted_media_type, renderer_context)
 
 
