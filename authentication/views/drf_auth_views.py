@@ -44,6 +44,8 @@ class MyTokenObtainPairView(TokenObtainPairView):
         if response.data.get('detail'):
             error_detail = response.data.get('detail')
             response.data['detail'] = [error_detail]
+        if response.status_code == 400:
+            response.data = {"field_errors": response.data}
         return super().finalize_response(request, response, *args, **kwargs)
 
 
