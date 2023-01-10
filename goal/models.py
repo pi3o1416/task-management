@@ -15,11 +15,11 @@ class Goal(models.Model):
         PENDING = "Pen", _("Pending")
 
 
-    class QuarterChoices(models.TextChoices):
-        QUARTER1 = "Q1", _("Quarter 1")
-        QUARTER2 = "Q2", _("Quarter 2")
-        QUARTER3 = "Q3", _("Quarter 3")
-        QUARTER4 = "Q4", _("Quarter 4")
+    class QuarterChoices(models.IntegerChoices):
+        QUARTER1 = 1, _("Quarter 1")
+        QUARTER2 = 2, _("Quarter 2")
+        QUARTER3 = 3, _("Quarter 3")
+        QUARTER4 = 4, _("Quarter 4")
 
 
     department = models.ForeignKey(
@@ -39,8 +39,7 @@ class Goal(models.Model):
         verbose_name=_("Goal Year"),
         validators=[validate_year],
     )
-    quarter = models.CharField(
-        max_length=10,
+    quarter = models.IntegerField(
         verbose_name=_("Year Quarter"),
         choices=QuarterChoices.choices,
     )
