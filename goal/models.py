@@ -1,6 +1,7 @@
 
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from rest_framework.exceptions import APIException
 
 from department.models import Department
 
@@ -84,6 +85,12 @@ class Goal(models.Model):
     def add_review(self, review):
         self.review = review
         self.save()
+
+    def sefe_delete(self):
+        try:
+            self.delete()
+        except Exception as exception:
+            raise APIException({"detail": exception.args})
 
 
 
