@@ -3,7 +3,7 @@ from operator import __and__
 from functools import reduce
 from django.utils.translation import gettext_lazy as _
 from django.db.models import QuerySet, Q, CharField
-from rest_framework.exceptions import NotFound
+from rest_framework.exceptions import NotFound, APIException
 from rest_framework.request import Request
 
 
@@ -55,10 +55,13 @@ class DepartmentMemberQuerySet(QuerySet):
         return self.filter(Q(department=department_pk))
 
     def filter_from_query_prams(self, request: Request):
-        q_objects = _generate_q_objects_from_query_params(self.model, request)
-        if q_objects:
-            return self.filter(reduce(__and__, q_objects))
-        return self.all()
+        try:
+            q_objects = _generate_q_objects_from_query_params(self.model, request)
+            if q_objects:
+                return self.filter(reduce(__and__, q_objects))
+            return self.all()
+        except Exception as exception:
+            raise APIException(detail={"detail": exception.args})
 
     def is_department_head_exist(self, department):
         return self.filter(Q(department=department), Q(is_head=True)).exists()
