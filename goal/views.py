@@ -48,7 +48,7 @@ class GoalViewSet(ViewSet, PageNumberPagination):
         goal.accept_goal()
         return Response(data={"detail": [_("Goal accepted")]})
 
-    @action(method=["patch"], detail=True, url_path='reject')
+    @action(methods=["patch"], detail=True, url_path='reject')
     def reject_goal(self, request, pk):
         goal = Goal.objects.get_goal_by_pk(pk)
         goal.set_status_pending()
