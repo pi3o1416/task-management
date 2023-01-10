@@ -40,10 +40,12 @@ class Goal(models.Model):
     quarter = models.CharField(
         max_length=10,
         verbose_name=_("Year Quarter"),
+        choices=QuarterChoices.choices,
     )
     review_status = models.CharField(
         max_length=10,
         verbose_name=_("Goal Review Status"),
+        choices=ReviewStatusChoices.choices,
     )
     review = models.TextField(
         verbose_name=_("Review under goal")
