@@ -20,7 +20,7 @@ class Goal(models.Model):
         QUARTER4 = "Q4", _("Quarter 4")
 
 
-    Department = models.ForeignKey(
+    department = models.ForeignKey(
         verbose_name=_("Department"),
         to=Department,
         on_delete=models.CASCADE,
