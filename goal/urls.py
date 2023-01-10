@@ -9,5 +9,5 @@ goal_router.register('', GoalViewSet, 'goal')
 
 app_name='goal'
 urlpatterns = [
-    path('goals/', include(goal_router.urls)),
+    path('', include(goal_router.urls)),
 ]
