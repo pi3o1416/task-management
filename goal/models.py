@@ -49,11 +49,14 @@ class Goal(models.Model):
         default=ReviewStatusChoices.PENDING,
     )
     review = models.TextField(
-        verbose_name=_("Review under goal")
+        verbose_name=_("Review under goal"),
+        null=True,
+        blank=True,
     )
     completion = models.IntegerField(
         verbose_name=_("Goal total completion on percentage"),
-        validators=[validate_completion]
+        validators=[validate_completion],
+        default=0
     )
     class Meta:
         permissions = (("can_add_review", _("Can Add Review")),
