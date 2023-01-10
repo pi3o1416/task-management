@@ -46,6 +46,7 @@ class Goal(models.Model):
         max_length=10,
         verbose_name=_("Goal Review Status"),
         choices=ReviewStatusChoices.choices,
+        default=ReviewStatusChoices.PENDING,
     )
     review = models.TextField(
         verbose_name=_("Review under goal")
