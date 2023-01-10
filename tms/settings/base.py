@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'emailservice.apps.EmailserviceConfig',
     'department.apps.DepartmentConfig',
     'permission_handler.apps.PermissionHandlerConfig',
+    'goal.apps.GoalConfig',
 ]
 
 MIDDLEWARE = [
