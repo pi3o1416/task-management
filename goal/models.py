@@ -3,6 +3,8 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from department.models import Department
+
+from .querysets import GoalQuerySet
 from .validators import validate_completion, validate_year
 
 # Create your models here.
@@ -58,12 +60,14 @@ class Goal(models.Model):
         validators=[validate_completion],
         default=0
     )
+    objects = GoalQuerySet().as_manager()
     class Meta:
         permissions = (("can_add_review", _("Can Add Review")),
                        ("can_change_status", _("Can Change Status")))
 
     def __str__(self):
         return self.title
+
 
 
 
