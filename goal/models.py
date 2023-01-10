@@ -68,6 +68,27 @@ class Goal(models.Model):
     def __str__(self):
         return self.title
 
+    def accept_goal(self):
+        #TODO: Put operation on hold for undoing
+        self.review_status = self.ReviewStatusChoices.ACCEPTED
+        self.save()
+
+    def set_status_pending(self):
+        #TODO: Put operation on hold for undoing
+        self.review_status = self.ReviewStatusChoices.PENDING
+        self.save()
+
+    def update_completion_percentage(self, percentage):
+        self.completion = percentage
+        self.save()
+
+    def add_review(self, review):
+        self.review = review
+        self.save()
+
+
+
+
 
 
 
