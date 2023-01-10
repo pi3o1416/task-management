@@ -2,6 +2,7 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+from department.models import Department
 from .validators import validate_completion, validate_year
 
 # Create your models here.
@@ -19,6 +20,12 @@ class Goal(models.Model):
         QUARTER4 = "Q4", _("Quarter 4")
 
 
+    Department = models.ForeignKey(
+        verbose_name=_("Department"),
+        to=Department,
+        on_delete=models.CASCADE,
+        related_name='department_goals'
+    )
     title = models.CharField(
         max_length=300,
         verbose_name=_("Quarter Goal Title"),
