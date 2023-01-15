@@ -42,19 +42,19 @@ class GoalViewSet(ViewSet, PageNumberPagination):
         goal.safe_delete()
         return Response(data={"detail": [_("Goal Delete Successful")]})
 
-    @action(methods=["pathc"], detail=True, url_path='accept')
+    @action(methods=["pathc"], detail=True, url_path='accept-goal')
     def accept_goal(self, request, pk):
         goal = Goal.objects.get_goal_by_pk(pk)
         goal.accept_goal()
         return Response(data={"detail": [_("Goal accepted")]})
 
-    @action(methods=["patch"], detail=True, url_path='reject')
+    @action(methods=["patch"], detail=True, url_path='reject-goal')
     def reject_goal(self, request, pk):
         goal = Goal.objects.get_goal_by_pk(pk)
         goal.set_status_pending()
         return Response(data={"detail": [_("Goal pending status set")]})
 
-    @action(methods=["patch"], detail=True, url_path='review_set')
+    @action(methods=["patch"], detail=True, url_path='add-review')
     def review_on_goal(self, request, pk):
         goal = Goal.objects.get_goal_by_pk(pk)
         serializer = self.get_serializer_class()(data=request.data)
