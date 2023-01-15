@@ -15,6 +15,7 @@ class GoalSerializer(serializers.ModelSerializer):
 
 
 class GoalReviewSerializer(serializers.Serializer):
+    review = serializers.CharField(required=True)
     class Meta:
         model=Goal
         fields = ['pk', 'department', 'title', 'description', 'year', 'quarter', 'review_status', 'review', 'completion']
