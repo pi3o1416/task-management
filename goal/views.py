@@ -55,7 +55,7 @@ class GoalViewSet(ViewSet, PageNumberPagination):
         return Response(data={"detail": [_("Goal pending status set")]})
 
     @action(methods=["patch"], detail=True, url_path='add-review')
-    def review_on_goal(self, request, pk):
+    def add_review_on_goal(self, request, pk):
         goal = Goal.objects.get_goal_by_pk(pk)
         serializer = self.get_serializer_class()(data=request.data)
         if serializer.is_valid():
@@ -63,11 +63,16 @@ class GoalViewSet(ViewSet, PageNumberPagination):
             return Response(data={"detail": [_("Rview set successful")]})
         return Response(data={"field_errors": serializer.errors})
 
+    @action(methods=["patch"], detail=True, url_path='delete-review')
+    def delete_goal_review(self, request, pk):
+        goal = Goal.objects.get_goal_by_pk(pk)
+        goal.delete_review()
+        return Response(data={"detail": [_("Review delete successful")]})
 
     def get_serializer_class(self):
-        if self.action == 'accept_goal':
+        if self.action in ['delete_goal_review', 'reject_goal', 'accept_goal']:
             return EmptySerializer
-        elif self.action == 'review_on_goal':
+        elif self.action == 'add_review_on_goal':
             return GoalReviewSerializer
         return GoalSerializer
 
