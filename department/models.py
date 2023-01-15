@@ -104,7 +104,8 @@ class DepartmentMember(models.Model):
         related_name="user_departments",
         null=False,
         blank=False,
-        verbose_name=_("Member")
+        verbose_name=_("Member"),
+        primary_key=True,
     )
     department = models.ForeignKey(
         to=Department,
