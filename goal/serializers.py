@@ -14,7 +14,7 @@ class GoalSerializer(serializers.ModelSerializer):
         read_only_fields = ['pk', 'review_status', 'review', 'completion']
 
 
-class GoalReviewSerializer(serializers.Serializer):
+class GoalReviewSerializer(serializers.ModelSerializer):
     review = serializers.CharField(required=True)
     class Meta:
         model=Goal
@@ -25,11 +25,6 @@ class GoalReviewSerializer(serializers.Serializer):
         review = self.validated_data.get('review')
         instance.add_review(review)
         return True
-
-
-
-
-
 
 
 
