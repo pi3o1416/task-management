@@ -101,7 +101,7 @@ class DepartmentMember(models.Model):
     member = models.OneToOneField(
         to=User,
         on_delete=models.CASCADE,
-        related_name="user_departments",
+        related_name="user_department",
         null=False,
         blank=False,
         verbose_name=_("Member"),
@@ -120,7 +120,7 @@ class DepartmentMember(models.Model):
         on_delete=models.RESTRICT,
         null=False,
         blank=False,
-        verbose_name="designated_member"
+        verbose_name="designated_members"
     )
     is_head = models.BooleanField(
         verbose_name=_("Department Head"),
