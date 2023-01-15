@@ -9,7 +9,7 @@ from rest_framework.pagination import PageNumberPagination
 
 from department.models import Department
 from .models import Goal
-from .serializers import GoalSerializer, EmptySerializer, GoalReviewSerializer, GoalUpdateSerializer
+from .serializers import GoalSerializer, EmptySerializer, GoalReviewSerializer, GoalUpdateSerializer, GoalPercentageSerializer
 
 
 class GoalViewSet(ViewSet, PageNumberPagination):
@@ -71,9 +71,22 @@ class GoalViewSet(ViewSet, PageNumberPagination):
         goal.delete_review()
         return Response(data={"detail": [_("Review delete successful")]}, status=status.HTTP_200_OK)
 
+    @action(methods=["patch"], detail=True, url_path='update-completion-percentage')
+    def update_completion_percentage(self, request, pk):
+        goal = Goal.objects.get_goal_by_pk(pk)
+        serializer = self.get_serializer_class()(data=request.data)
+        if serializer.is_valid():
+            serializer.update_percentage(instance=goal)
+            return Response(data={"detail": [_("Goal completion percentage update successful")]}, status=status.HTTP_200_OK)
+        return Response(data={"field_errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
     def get_serializer_class(self):
         if self.action in ['delete_goal_review', 'reject_goal', 'accept_goal']:
             return EmptySerializer
+        elif self.action == 'update_completion_percentage':
+            return GoalPercentageSerializer
         elif self.action == 'update':
             return GoalUpdateSerializer
         elif self.action == 'add_review_on_goal':
