@@ -20,10 +20,9 @@ class GoalReviewSerializer(serializers.Serializer):
         fields = ['pk', 'department', 'title', 'description', 'year', 'quarter', 'review_status', 'review', 'completion']
         read_only_fields = ['pk', 'department', 'title', 'description', 'year', 'quarter', 'review_status', 'completion']
 
-    
     def add_review(self, instance, validated_data):
         review = self.validated_data.get('review')
-        instance.add_reivew(review)
+        instance.add_review(review)
         return True
 
 
