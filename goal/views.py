@@ -40,19 +40,19 @@ class GoalViewSet(ViewSet, PageNumberPagination):
     def destroy(self, request, pk):
         goal = Goal.objects.get_goal_by_pk(pk)
         goal.safe_delete()
-        return Response(data={"detail": [_("Goal Delete Successful")]})
+        return Response(data={"detail": [_("Goal Delete Successful")]}, status=status.HTTP_200_OK)
 
     @action(methods=["patch"], detail=True, url_path='accept-goal')
     def accept_goal(self, request, pk):
         goal = Goal.objects.get_goal_by_pk(pk)
         goal.accept_goal()
-        return Response(data={"detail": [_("Goal accepted")]})
+        return Response(data={"detail": [_("Goal accepted")]}, status=status.HTTP_200_OK)
 
     @action(methods=["patch"], detail=True, url_path='reject-goal')
     def reject_goal(self, request, pk):
         goal = Goal.objects.get_goal_by_pk(pk)
         goal.set_status_pending()
-        return Response(data={"detail": [_("Goal pending status set")]})
+        return Response(data={"detail": [_("Goal pending status set")]}, status=status.HTTP_200_OK)
 
     @action(methods=["patch"], detail=True, url_path='add-review')
     def add_review_on_goal(self, request, pk):
@@ -60,14 +60,14 @@ class GoalViewSet(ViewSet, PageNumberPagination):
         serializer = self.get_serializer_class()(data=request.data)
         if serializer.is_valid():
             serializer.add_review(instance=goal, validated_data=serializer.validated_data)
-            return Response(data={"detail": [_("Rview set successful")]})
-        return Response(data={"field_errors": serializer.errors})
+            return Response(data={"detail": [_("Rview set successful")]}, status=status.HTTP_200_OK)
+        return Response(data={"field_errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
     @action(methods=["patch"], detail=True, url_path='delete-review')
     def delete_goal_review(self, request, pk):
         goal = Goal.objects.get_goal_by_pk(pk)
         goal.delete_review()
-        return Response(data={"detail": [_("Review delete successful")]})
+        return Response(data={"detail": [_("Review delete successful")]}, status=status.HTTP_200_OK)
 
     def get_serializer_class(self):
         if self.action in ['delete_goal_review', 'reject_goal', 'accept_goal']:
