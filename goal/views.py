@@ -2,10 +2,12 @@
 from django.utils.translation import gettext_lazy as _
 from rest_framework import status
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework.viewsets import ViewSet
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 
+from department.models import Department
 from .models import Goal
 from .serializers import GoalSerializer, EmptySerializer, GoalReviewSerializer, GoalUpdateSerializer
 
@@ -77,6 +79,21 @@ class GoalViewSet(ViewSet, PageNumberPagination):
         elif self.action == 'add_review_on_goal':
             return GoalReviewSerializer
         return GoalSerializer
+
+
+class DepartmentGoals(APIView):
+    serializer_class = GoalSerializer
+    def get(self, request, department_pk):
+        department = Department.objects.get_department(department_pk)
+        department_goals = Goal.objects.get_departmnet_goals(department=department)
+        filtered_department_goals = department_goals.filter_from_query_params(request)
+        serializer = self.serializer_class(instance=filtered_department_goals, many=True)
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
+
+
+
+
+
 
 
 
