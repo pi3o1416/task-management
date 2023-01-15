@@ -71,8 +71,8 @@ class GoalViewSet(ViewSet, PageNumberPagination):
         goal.delete_review()
         return Response(data={"detail": [_("Review delete successful")]}, status=status.HTTP_200_OK)
 
-    @action(methods=["patch"], detail=True, url_path='update-completion-percentage')
-    def update_completion_percentage(self, request, pk):
+    @action(methods=["patch"], detail=True, url_path='update-achivement-percentage')
+    def update_achivement_percentage(self, request, pk):
         goal = Goal.objects.get_goal_by_pk(pk)
         serializer = self.get_serializer_class()(data=request.data)
         if serializer.is_valid():
