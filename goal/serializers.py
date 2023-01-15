@@ -27,6 +27,18 @@ class GoalReviewSerializer(serializers.ModelSerializer):
         return True
 
 
+class GoalPercentageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=Goal
+        fields = ['pk', 'department', 'title', 'description', 'year', 'quarter', 'review_status', 'review', 'completion']
+        read_only_fields = ['pk', 'department', 'title', 'description', 'year', 'quarter', 'review_status', 'review']
+
+    def update_percentage(self, instance):
+        completion = self.validated_data.get('completion')
+        instance.update_completion_percentage(completion)
+        return True
+
+
 class GoalUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model=Goal
