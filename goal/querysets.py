@@ -18,6 +18,10 @@ class GoalQuerySet(QuerySet):
         department_yearly_goals = self.filter(department=department, year=year)
         return department_yearly_goals
 
+    def get_departmnet_goals(self, department):
+        goals = self.filter(department=department)
+        return goals
+
     def filter_from_query_params(self, request: Request):
         try:
             q_objects = _generate_q_objects_from_query_params(self.model, request)
