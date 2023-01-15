@@ -27,5 +27,10 @@ class GoalReviewSerializer(serializers.ModelSerializer):
         return True
 
 
+class GoalUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=Goal
+        fields = ['pk', 'department', 'title', 'description', 'year', 'quarter', 'review_status', 'review', 'completion']
+        read_only_fields = ['pk', 'department', 'review_status', 'review']
 
 
