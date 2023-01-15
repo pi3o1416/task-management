@@ -86,6 +86,10 @@ class Goal(models.Model):
         self.review = review
         self.save()
 
+    def delete_review(self):
+        self.review = None
+        self.save()
+
     def sefe_delete(self):
         try:
             self.delete()
