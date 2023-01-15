@@ -7,7 +7,7 @@ from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 
 from .models import Goal
-from .serializers import GoalSerializer, EmptySerializer, GoalReviewSerializer
+from .serializers import GoalSerializer, EmptySerializer, GoalReviewSerializer, GoalUpdateSerializer
 
 
 class GoalViewSet(ViewSet, PageNumberPagination):
@@ -72,6 +72,8 @@ class GoalViewSet(ViewSet, PageNumberPagination):
     def get_serializer_class(self):
         if self.action in ['delete_goal_review', 'reject_goal', 'accept_goal']:
             return EmptySerializer
+        elif self.action == 'update':
+            return GoalUpdateSerializer
         elif self.action == 'add_review_on_goal':
             return GoalReviewSerializer
         return GoalSerializer
