@@ -42,7 +42,7 @@ class GoalViewSet(ViewSet, PageNumberPagination):
         goal.safe_delete()
         return Response(data={"detail": [_("Goal Delete Successful")]})
 
-    @action(methods=["pathc"], detail=True, url_path='accept-goal')
+    @action(methods=["patch"], detail=True, url_path='accept-goal')
     def accept_goal(self, request, pk):
         goal = Goal.objects.get_goal_by_pk(pk)
         goal.accept_goal()
