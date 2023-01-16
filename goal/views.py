@@ -65,12 +65,6 @@ class GoalViewSet(ViewSet, PageNumberPagination):
             return Response(data={"detail": [_("Rview set successful")]}, status=status.HTTP_200_OK)
         return Response(data={"field_errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-    @action(methods=["patch"], detail=True, url_path='delete-review')
-    def delete_goal_review(self, request, pk):
-        goal = Goal.objects.get_goal_by_pk(pk)
-        goal.delete_review()
-        return Response(data={"detail": [_("Review delete successful")]}, status=status.HTTP_200_OK)
-
     @action(methods=["patch"], detail=True, url_path='update-achivement-percentage')
     def update_achivement_percentage(self, request, pk):
         goal = Goal.objects.get_goal_by_pk(pk)
@@ -83,7 +77,7 @@ class GoalViewSet(ViewSet, PageNumberPagination):
 
 
     def get_serializer_class(self):
-        if self.action in ['delete_goal_review', 'reject_goal', 'accept_goal']:
+        if self.action in ['reject_goal', 'accept_goal']:
             return EmptySerializer
         elif self.action == 'update_completion_percentage':
             return GoalPercentageSerializer
