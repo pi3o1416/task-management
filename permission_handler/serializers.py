@@ -19,11 +19,22 @@ class PermissionSerializer(serializers.ModelSerializer):
         read_only_fields = ['pk', 'name', 'content_type', 'codename']
 
 
+class PermissionMinimalSerializer(serializers.Serializer):
+    pk = serializers.IntegerField()
+    name = serializers.CharField()
+
+
 class GroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = Group
         fields = '__all__'
 
+
+class GroupDetailSerializer(serializers.ModelSerializer):
+    permissions = PermissionMinimalSerializer(many=True)
+    class Meta:
+        model = Group
+        fields = '__all__'
 
 
 
