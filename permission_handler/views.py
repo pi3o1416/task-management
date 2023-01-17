@@ -1,11 +1,12 @@
 
+from drf_spectacular.utils import extend_schema
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import Permission, Group
 from rest_framework.viewsets import ViewSet
 from rest_framework.response import Response
 from rest_framework import status
 
-from .serializers import PermissionSerializer, GroupSerializer
+from .serializers import PermissionSerializer, GroupSerializer, GroupDetailSerializer
 from .queries import get_group_by_pk
 
 
@@ -41,7 +42,10 @@ class GroupViewSet(ViewSet):
         return Response(data={"field_errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
     def get_serializer_class(self):
-        return GroupSerializer
+        if self.action in ['retrieve', 'list']:
+            return GroupDetailSerializer
+        else:
+            return GroupSerializer
 
 
 class PermissionViewSet(ViewSet):
