@@ -9,7 +9,8 @@ permission_router.register('', PermissionViewSet, 'permission')
 
 app_name='permission_handler'
 urlpatterns = [
-    path('', include(permission_router.urls)),
+    path('permission/', include(permission_router.urls)),
+
 ]
 
 
