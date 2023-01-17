@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from .serializers import PermissionSerializer, GroupSerializer
+from .queries import get_group_by_pk
 
 
 class GroupViewSet(ViewSet):
@@ -22,17 +23,17 @@ class GroupViewSet(ViewSet):
         return Response(data=serializer.data, status=status.HTTP_200_OK)
 
     def destroy(self, request, pk):
-        group = Group.objects.get(pk=pk)
+        group = get_group_by_pk(pk)
         group.delete()
         return Response(data={"detail": [_("Group delete successful")]}, status=status.HTTP_202_ACCEPTED)
 
     def retrieve(self, request, pk):
-        group = Group.objects.get(pk=pk)
+        group = get_group_by_pk(pk)
         serializer = self.get_serializer_class()(instance=group)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
 
     def update(self, request, pk):
-        group = Group.objects.get(pk=pk)
+        group = get_group_by_pk(pk)
         serializer = self.get_serializer_class()(data=request.data, instance=group)
         if serializer.is_valid():
             serializer.save()
