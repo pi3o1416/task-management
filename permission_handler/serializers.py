@@ -12,11 +12,10 @@ class ContentTypeSerializer(serializers.ModelSerializer):
 
 
 class PermissionSerializer(serializers.ModelSerializer):
-    content_type = ContentTypeSerializer()
     class Meta:
         model = Permission
-        fields = ['pk', 'name', 'content_type', 'codename']
-        read_only_fields = ['pk', 'name', 'content_type', 'codename']
+        fields = ['pk', 'name', 'codename']
+        read_only_fields = ['pk', 'name', 'codename']
 
 
 class PermissionMinimalSerializer(serializers.Serializer):
