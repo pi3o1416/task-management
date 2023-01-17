@@ -6,7 +6,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 
-from .serializers import PermissionSerializer, GroupSerializer, GroupDetailSerializer, PermissionDetailSerializer
+from authentication.models import CustomUser
+from .serializers import PermissionSerializer, GroupSerializer, GroupDetailSerializer, PermissionDetailSerializer, GroupAssignSerializer
 from .queries import get_group_by_pk, get_permission_by_pk
 
 
@@ -91,6 +92,27 @@ class PermissionViewSet(ViewSet):
             return PermissionDetailSerializer
         else:
             return PermissionSerializer
+
+
+class AssignGroup(APIView):
+    serializer_class = GroupAssignSerializer
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(data={"detail": [_("Gropu assignment successful")]}, status=status.HTTP_201_CREATED)
+        return Response(data={"field_errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class AllUserPermissions(APIView):
+    serializer_class = GroupDetailSerializer
+    def get(self, request, user_pk):
+        user = CustomUser.objects.get_user_by_pk(pk=user_pk)
+        serializer = self.serializer_class(instance=user.groups, many=True)
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
+
+
+
 
 
 
