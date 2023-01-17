@@ -1,13 +1,13 @@
 
-from drf_spectacular.utils import extend_schema
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import Permission, Group
 from rest_framework.viewsets import ViewSet
+from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 
-from .serializers import PermissionSerializer, GroupSerializer, GroupDetailSerializer
-from .queries import get_group_by_pk
+from .serializers import PermissionSerializer, GroupSerializer, GroupDetailSerializer, PermissionDetailSerializer
+from .queries import get_group_by_pk, get_permission_by_pk
 
 
 class GroupViewSet(ViewSet):
@@ -54,6 +54,24 @@ class PermissionViewSet(ViewSet):
         serializer = self.get_serializer_class()(instance=permissions, many=True)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
 
+    def retrieve(self, request, pk):
+        permission = get_permission_by_pk(pk)
+        serializer = self.get_serializer_class()(instance=permission)
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
+
     def get_serializer_class(self):
-        return PermissionSerializer
+        if self.action in ['retrieve']:
+            return PermissionDetailSerializer
+        else:
+            return PermissionSerializer
+
+
+
+
+
+
+
+
+
+
 
