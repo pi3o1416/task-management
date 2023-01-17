@@ -18,6 +18,15 @@ class PermissionSerializer(serializers.ModelSerializer):
         read_only_fields = ['pk', 'name', 'codename']
 
 
+class PermissionDetailSerializer(serializers.ModelSerializer):
+    content_type = ContentTypeSerializer()
+    class Meta:
+        model = Permission
+        fields = ['pk', 'name', 'codename', 'content_type']
+        read_only_fields = ['pk', 'name', 'codename', 'content_type']
+
+
+
 class PermissionMinimalSerializer(serializers.Serializer):
     pk = serializers.IntegerField()
     name = serializers.CharField()
