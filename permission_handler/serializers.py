@@ -33,6 +33,7 @@ class PermissionDetailSerializer(serializers.ModelSerializer):
 class PermissionMinimalSerializer(serializers.Serializer):
     pk = serializers.IntegerField()
     name = serializers.CharField()
+    codename = serializers.CharField()
 
 
 class GroupSerializer(serializers.ModelSerializer):
