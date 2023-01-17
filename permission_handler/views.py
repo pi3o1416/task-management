@@ -1,14 +1,46 @@
 
+from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import Permission, Group
 from rest_framework.viewsets import ViewSet
 from rest_framework.response import Response
 from rest_framework import status
 
-from .serializers import PermissionSerializer
+from .serializers import PermissionSerializer, GroupSerializer
 
 
 class GroupViewSet(ViewSet):
-    pass
+    def create(self, request):
+        serializer = self.get_serializer_class()(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(data=serializer.data, status=status.HTTP_201_CREATED)
+        return Response(data={"field_errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+    def list(self, request):
+        groups = Group.objects.all()
+        serializer = self.get_serializer_class()(instance=groups, many=True)
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
+
+    def destroy(self, request, pk):
+        group = Group.objects.get(pk=pk)
+        group.delete()
+        return Response(data={"detail": [_("Group delete successful")]}, status=status.HTTP_202_ACCEPTED)
+
+    def retrieve(self, request, pk):
+        group = Group.objects.get(pk=pk)
+        serializer = self.get_serializer_class()(instance=group)
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
+
+    def update(self, request, pk):
+        group = Group.objects.get(pk=pk)
+        serializer = self.get_serializer_class()(data=request.data, instance=group)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(data=serializer.data, status=status.HTTP_202_ACCEPTED)
+        return Response(data={"field_errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+    def get_serializer_class(self):
+        return GroupSerializer
 
 
 class PermissionViewSet(ViewSet):
