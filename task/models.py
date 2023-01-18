@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 
-from .querysets import TaskQuerySet, TaskAttachmentsQuerySet
+from .querysets import TaskQuerySet, TaskAttachmentsQuerySet, TaskTreeQuerySet, UsersTasksQuerySet
 from .exceptions import DBOperationFailed
 
 User = get_user_model()
@@ -126,6 +126,7 @@ class UsersTasks(models.Model):
         blank=True,
         null=True,
     )
+    objects = UsersTasksQuerySet.as_manager()
 
     class Meta:
         permissions = (("can_view_inter_department_task", _("Can View Inter Department Tasks")),
@@ -184,6 +185,7 @@ class TaskTree(models.Model):
         related_name='task_parent',
         on_delete=models.CASCADE
     )
+    objects = TaskTreeQuerySet.as_manager()
 
 
 
