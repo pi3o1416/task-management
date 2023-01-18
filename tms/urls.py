@@ -25,6 +25,7 @@ urlpatterns = [
     path('department/', include('department.urls')),
     path('goals/', include('goal.urls')),
     path('authorization/', include('permission_handler.urls')),
+    path('tasks/', include('task.urls')),
     path('schema/', SpectacularAPIView.as_view(), name='schema'),
     path("schema/redoc/", SpectacularRedocView.as_view( url_name="schema"), name="redoc",),
     path("schema/swagger/", SpectacularSwaggerView.as_view( url_name="schema"), name="swagger",),
