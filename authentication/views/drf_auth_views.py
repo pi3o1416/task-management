@@ -2,7 +2,7 @@
 from drf_spectacular.utils import extend_schema
 from django.utils.translation import gettext_lazy as _
 from rest_framework import status
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
@@ -79,7 +79,7 @@ class MyTokenRefreshView(TokenRefreshView):
 @extend_schema(responses=LogoutDoc.responses,
                parameters=LogoutDoc.parameters)
 class LogoutView(APIView):
-    permission_classes = [AllowAny,]
+    permission_classes = [IsAuthenticated,]
 
     def post(self, request):
         """
@@ -109,6 +109,7 @@ class ForgetPasswordView(APIView):
                parameters=PasswordResetDoc.parameters)
 class PasswordResetView(APIView):
     serializer_class = PasswordResetSerializer
+    permission_classes = [AllowAny]
 
     def post(self, request, uidb64, token):
         serializer = self.serializer_class(data=request.data)
