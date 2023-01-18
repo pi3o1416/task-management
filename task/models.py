@@ -6,6 +6,7 @@ from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 
 from .querysets import TaskQuerySet, TaskAttachmentsQuerySet
+from .exceptions import DBOperationFailed
 
 User = get_user_model()
 
@@ -64,6 +65,36 @@ class Task(models.Model):
 
     def __str__(self):
         return self.title
+
+    def approve_task(self):
+        self.approved_by_dept_head = True
+        self.save()
+        return True
+
+    def disapprove_task(self):
+        self.approved_by_dept_head = False
+        self.save()
+        return True
+
+    def _change_task_status(self, status):
+        try:
+            if self.status == status:
+                return True
+            self.status = status
+            self.save()
+            return True
+        except Exception as exception:
+            raise DBOperationFailed(detail={"detail": exception.args})
+
+
+    def mark_task_as_complete(self):
+        return self._change_task_status(self.StatusChoices.COMPLETED)
+
+    def mark_task_as_due(self):
+        return self._change_task_status(self.StatusChoices.DUE)
+
+    def mark_task_as_pending(self):
+        return self._change_task_status(self.StatusChoices.PENDING)
 
 
 class UsersTasks(models.Model):
