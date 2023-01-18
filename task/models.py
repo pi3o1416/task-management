@@ -32,12 +32,6 @@ class Task(models.Model):
         null=True,
         blank=True,
     )
-    assign_to = models.ForeignKey(
-        verbose_name=_("Task assign to"),
-        to=User,
-        on_delete=models.CASCADE,
-        related_name='user_tasks',
-    )
     title = models.CharField(
         verbose_name=_("Task title"),
         max_length=200,
@@ -70,6 +64,21 @@ class Task(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class UsersTasks(models.Model):
+    assigned_to = models.ForeignKey(
+        to=User,
+        on_delete=models.CASCADE,
+        related_name='user_tasks',
+        verbose_name=_("User assigned task")
+    )
+    task = models.OneToOneField(
+        to=Task,
+        on_delete=models.CASCADE,
+        related_name='task_assigned_to',
+        verbose_name=_("Task assigned to"),
+    )
 
 
 def task_attachment_upload_path(instance, filename):
@@ -123,6 +132,11 @@ class TaskTree(models.Model):
         related_name='task_parent',
         on_delete=models.CASCADE
     )
+
+
+
+
+
 
 
 
