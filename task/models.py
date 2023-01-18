@@ -106,13 +106,13 @@ class UsersTasks(models.Model):
         to=User,
         on_delete=models.CASCADE,
         related_name='user_tasks',
-        verbose_name=_("User assigned task")
+        verbose_name=_("User")
     )
     task = models.OneToOneField(
         to=Task,
         on_delete=models.CASCADE,
         related_name='task_assigned_to',
-        verbose_name=_("Task assigned to"),
+        verbose_name=_("Task"),
     )
     user_username = models.CharField(
         verbose_name=_("User username"),
