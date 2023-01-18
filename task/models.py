@@ -63,6 +63,10 @@ class Task(models.Model):
     )
     objects = TaskQuerySet.as_manager()
 
+    class Meta:
+        permissions = (("can_approve_disapprove_task", _("Can Approve Or Disapprove Tasks")),)
+
+
     def __str__(self):
         return self.title
 
