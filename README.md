@@ -26,25 +26,25 @@
 <h3>Installation</h3>
 <ol>
     <li>Clone the repository</li>
-    <pre>git clone https://github.com/your-username/task-management-system.git</pre>
+<pre>git clone https://github.com/your-username/task-management-system.git</pre>
     <li>Create a virtual environment and activate it</li>
-    <pre>python -m venv env
-    source env/bin/activate</pre>
+    <pre>python -m venv env</pre>
+    <pre>source env/bin/activate</pre>
     <li>Install dependencies</li>
     <pre>pip install -r requirements.txt</pre>
     <li>Create a .env file in the root directory with the following information:</li>
     <pre>
-        SECRET_KEY=<your Django secret key>
-        DEBUG=True
-        DB_NAME=<your PostgreSQL database name>
-        DB_USER=<your PostgreSQL database user>
-        DB_PASSWORD=<your PostgreSQL database password>
-        DB_HOST=<your PostgreSQL host>
-        DB_PORT=<your PostgreSQL port>
+    SECRET_KEY=<your Django secret key>
+    DEBUG=True
+    DB_NAME=<your PostgreSQL database name>
+    DB_USER=<your PostgreSQL database user>
+    DB_PASSWORD=<your PostgreSQL database password>
+    DB_HOST=<your PostgreSQL host>
+    DB_PORT=<your PostgreSQL port>
     </pre>
     <li>Run migrations</li>
-    <pre>python manage.py makemigrations
-    python manage.py migrate</pre>
+    <pre>python manage.py makemigrations</pre>
+    <pre>python manage.py migrate</pre>
     <li>Create a superuser</li>
     <pre>python manage.py createsuperuser</pre>
     <li>Start the server</li>
