@@ -110,6 +110,23 @@ class TaskAttachments(models.Model):
     objects = TaskAttachmentsQuerySet.as_manager()
 
 
+class TaskTree(models.Model):
+    parent = models.ForeignKey(
+        to=Task,
+        verbose_name=_("Task parent"),
+        related_name='task_childs',
+        on_delete=models.CASCADE,
+    )
+    child = models.OneToOneField(
+        to=Task,
+        verbose_name=_("Task child"),
+        related_name='task_parent',
+        on_delete=models.CASCADE
+    )
+
+
+
+
 
 
 
