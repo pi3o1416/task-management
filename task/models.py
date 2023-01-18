@@ -68,6 +68,9 @@ class Task(models.Model):
     )
     objects = TaskQuerySet.as_manager()
 
+    def __str__(self):
+        return self.title
+
 
 def task_attachment_upload_path(instance, filename):
     file_path = 'task-attachments/{}/{}'.format(instance.pk, filename)
