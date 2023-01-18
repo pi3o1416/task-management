@@ -73,13 +73,14 @@ class Task(models.Model):
 
 
 def task_attachment_upload_path(instance, filename):
-    file_path = 'task-attachments/{}/{}'.format(instance.pk, filename)
+    file_path = 'task-attachments/{}/{}'.format(instance.task.pk, filename)
     desired_path = os.path.join(settings.MEDIA_ROOT, file_path)
     name, extension = os.path.splitext(filename)
     counter = 1
     while os.path.exists(desired_path) == True:
-        file_path = 'task-attachments/{}/{}({}).{}'.format(instance.pk, name, counter, extension)
+        file_path = 'task-attachments/{}/{}_{}{}'.format(instance.task.pk, name, counter, extension)
         desired_path = os.path.join(settings.MEDIA_ROOT, file_path)
+        counter += 1
     return file_path
 
 
@@ -107,6 +108,7 @@ class TaskAttachments(models.Model):
         auto_now_add=True
     )
     objects = TaskAttachmentsQuerySet.as_manager()
+
 
 
 
