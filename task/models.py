@@ -114,6 +114,23 @@ class UsersTasks(models.Model):
         related_name='task_assigned_to',
         verbose_name=_("Task assigned to"),
     )
+    user_username = models.CharField(
+        verbose_name=_("User username"),
+        max_length=200,
+        blank=True,
+        null=True,
+    )
+    user_full_name = models.CharField(
+        verbose_name=_("User fullname"),
+        max_length=200,
+        blank=True,
+        null=True,
+    )
+
+    class Meta:
+        permissions = (("can_view_inter_department_task", _("Can View Inter Department Tasks")),
+                       ("can_view_all_tasks", _("Can View All Tasks")))
+
 
 
 def task_attachment_upload_path(instance, filename):
