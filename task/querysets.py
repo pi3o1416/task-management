@@ -8,3 +8,13 @@ class TaskQuerySet(QuerySet):
 
 class TaskAttachmentsQuerySet(QuerySet):
     pass
+
+
+class UsersTasksQuerySet(QuerySet):
+    pass
+
+
+class TaskTreeQuerySet(QuerySet):
+    pass
+
+
