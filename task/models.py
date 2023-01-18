@@ -1,9 +1,11 @@
 
+import os
 from django.db import models
 from django.contrib.auth import get_user_model
+from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 
-from .querysets import TaskQuerySet
+from .querysets import TaskQuerySet, TaskAttachmentsQuerySet
 
 User = get_user_model()
 
@@ -65,6 +67,48 @@ class Task(models.Model):
         choices=PriorityChoices.choices,
     )
     objects = TaskQuerySet.as_manager()
+
+
+def task_attachment_upload_path(instance, filename):
+    file_path = 'task-attachments/{}/{}'.format(instance.pk, filename)
+    desired_path = os.path.join(settings.MEDIA_ROOT, file_path)
+    name, extension = os.path.splitext(filename)
+    counter = 1
+    while os.path.exists(desired_path) == True:
+        file_path = 'task-attachments/{}/{}({}).{}'.format(instance.pk, name, counter, extension)
+        desired_path = os.path.join(settings.MEDIA_ROOT, file_path)
+    return file_path
+
+
+class TaskAttachments(models.Model):
+    task = models.ForeignKey(
+        to=Task,
+        on_delete=models.CASCADE,
+        related_name='task_attachments',
+        verbose_name=_("Task attachments")
+    )
+    attached_by = models.ForeignKey(
+        to=User,
+        on_delete=models.SET_NULL,
+        related_name='user_files',
+        verbose_name=_("Task attachments"),
+        blank=True,
+        null=True,
+    )
+    attachment = models.FileField(
+        verbose_name=_("Task attachment"),
+        upload_to=task_attachment_upload_path
+    )
+    attached_at = models.DateTimeField(
+        verbose_name=_("File attached at"),
+        auto_now_add=True
+    )
+    objects = TaskAttachmentsQuerySet.as_manager()
+
+
+
+
+
 
 
 
