@@ -55,11 +55,13 @@ class Task(models.Model):
         verbose_name=_("Task status"),
         max_length=3,
         choices=StatusChoices.choices,
+        default=StatusChoices.PENDING,
     )
     priority = models.CharField(
         verbose_name=_("Task priority"),
         max_length=3,
         choices=PriorityChoices.choices,
+        default=PriorityChoices.LOW,
     )
     created_by_user_username = models.CharField(
         verbose_name = _("Created by user  username"),
