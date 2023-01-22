@@ -7,12 +7,13 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.decorators import action
 
-from ..permissions import CanViewAllTasks, IsOwner
+from ..permissions import CanViewAllTasks, IsOwner, HasPermissionToApproveTask, IsAssignedUponUser
 from ..serializers import TaskSerializer
 from ..models import Task
 
 
 class TaskViewSet(ViewSet, PageNumberPagination):
+    #TODO: need reapproval from department head on task update
     def create(self, request):
         user = request.user
         serializer = self.get_serializer_class()(data=request.data)
@@ -31,21 +32,64 @@ class TaskViewSet(ViewSet, PageNumberPagination):
 
     def destroy(self, request, pk):
         task = Task.objects.get_task_by_pk(pk)
+        self.check_object_permissions(request, task)
         task.delete()
         return Response(data={"detail": [_("Task delete successful")]}, status=status.HTTP_202_ACCEPTED)
 
     def retrieve(self, request, pk):
         task = Task.objects.get_task_by_pk(pk)
+        self.check_object_permissions(request, task)
         serializer = self.get_serializer_class()(instance=task)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
 
     def update(self, request, pk):
         task = Task.objects.get_task_by_pk(pk)
+        self.check_object_permissions(request, task)
         serializer = self.get_serializer_class()(instance=task, data=request.data)
         if serializer.is_valid():
             serializer.update(instance=task, validated_data=serializer.validated_data)
             return Response(data=serializer.data, status=status.HTTP_202_ACCEPTED)
         return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(methods=['patch'], detail=True, url_path='approve-task')
+    def approve_task(self, request, pk):
+        task = Task.objects.get_task_by_pk(pk)
+        task.approve_task()
+        return Response(data={"detail": [_("Task with pk={} approved".format(pk))]}, status=status.HTTP_202_ACCEPTED)
+
+    @action(methods=['patch'], detail=True, url_path='disapprove-task')
+    def disapprove_task(self, request, pk):
+        task = Task.objects.get_task_by_pk(pk)
+        task.reject_approval_request()
+        return Response(data={"detail": [_("Task with pk={} has been denied")]})
+
+    @action(methods=['patch'], detail=True, url_path='start-task')
+    def start_task(self, request, pk):
+        task = Task.objects.get_task_by_pk(pk)
+        self.check_object_permissions(request, task)
+        task.start_task()
+        return Response(data={"detail": [_("Task start successful")]})
+
+    @action(methods=['patch'], detail=True, url_path='submit-task')
+    def submit_task(self, request, pk):
+        task = Task.objects.get_task_by_pk(pk)
+        self.check_object_permissions(request, task)
+        task.submit_task()
+        return Response(data={"detail": [_("Task submission successful")]})
+
+    @action(methods=['patch'], detail=True, url_path='accept-submission')
+    def accept_task_submission(self, request, pk):
+        task = Task.objects.get_task_by_pk(pk)
+        self.check_object_permissions(request, task)
+        task.accept_task_submission()
+        return Response(data={"detail": [_("Task submission accepted")]})
+
+    @action(methods=['patch'], detail=True, url_path='reject-submission')
+    def reject_task_submission(self, request, pk):
+        task = Task.objects.get_task_by_pk(pk)
+        self.check_object_permissions(request, task)
+        task.reject_task_submission()
+        return Response(data={"detail": [_("Task submission rejected")]})
 
     def get_serializer_class(self):
         return TaskSerializer
@@ -54,13 +98,18 @@ class TaskViewSet(ViewSet, PageNumberPagination):
         permission_classes = [IsAuthenticated]
         if self.action == 'create':
             permission_classes += []
-        if self.action == 'list':
+        elif self.action == 'list':
             permission_classes += [CanViewAllTasks]
-        if self.action == 'retrieve':
+        elif self.action == 'retrieve':
+            permission_classes += [IsOwner|CanViewAllTasks|IsAssignedUponUser]
+        elif self.action in ['destroy', 'update']:
             permission_classes += [IsOwner]
-        if self.action == 'destroy' or self.action == 'update':
+        elif self.action in ['approve_task', 'disapprove_task']:
+            permission_classes += [HasPermissionToApproveTask]
+        elif self.action in ['start_task', 'submit_task']:
+            permission_classes += [IsAssignedUponUser]
+        elif self.action in ['accept_task_submission', 'reject_task_submission']:
             permission_classes += [IsOwner]
-
         return [permission() for permission in permission_classes]
 
 
