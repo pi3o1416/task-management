@@ -1,9 +1,10 @@
 
 from functools import reduce
 from operator import __and__
+from django.utils.translation import gettext_lazy as _
 from django.db.models import QuerySet, CharField, Q
 from rest_framework.request import Request
-from rest_framework.exceptions import APIException
+from rest_framework.exceptions import APIException, NotFound
 
 
 class TaskQuerySet(QuerySet):
@@ -15,6 +16,17 @@ class TaskQuerySet(QuerySet):
             return self.all()
         except Exception as exception:
             raise APIException(detail={"detail": exception.args})
+
+    def get_task_by_pk(self, pk):
+        try:
+            task = self.get(pk=pk)
+            return task
+        except self.model.DoesNotExist:
+            raise NotFound(detail={"detail": _("Task with pk={} does not exist.".format(pk))})
+        except ValueError:
+            raise NotFound(detail={"detail": _("Task pk should be an integer")})
+        except Exception as exception:
+            raise NotFound(detail={"detail": exception.__str__()})
 
 
 class TaskAttachmentsQuerySet(QuerySet):
