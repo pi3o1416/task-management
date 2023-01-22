@@ -7,7 +7,7 @@ from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 
 from .querysets import TaskQuerySet, TaskAttachmentsQuerySet, TaskTreeQuerySet, UsersTasksQuerySet
-from .exceptions import DBOperationFailed
+from .exceptions import DBOperationFailed, InvalidRequest
 
 User = get_user_model()
 
@@ -119,14 +119,25 @@ class Task(models.Model):
         if commit:
             self.save()
 
-    def mark_task_as_complete(self):
-        return self._change_task_status(self.StatusChoices.COMPLETED)
+    def accept_task_submission(self):
+        if self.status == self.StatusChoices.SUBMITTED:
+            return self._change_task_status(self.StatusChoices.COMPLETED)
+        raise InvalidRequest(detail={"detail": _("Submit the task before mark it as complete")})
 
-    def mark_task_as_due(self):
-        return self._change_task_status(self.StatusChoices.DUE)
+    def reject_task_submission(self):
+        if self.status == self.StatusChoices.SUBMITTED:
+            return self._change_task_status(self.StatusChoices.DUE)
+        raise InvalidRequest(detail={"detail": _("Submit the task before reject it.")})
 
-    def mark_task_as_pending(self):
-        return self._change_task_status(self.StatusChoices.PENDING)
+    def start_task(self):
+        if self.status == self.StatusChoices.PENDING:
+            return self._change_task_status(self.StatusChoices.DUE)
+        raise InvalidRequest(detail={"detail": _("Cannot start a task that has been already started")})
+
+    def submit_task(self):
+        if self.status == self.StatusChoices.DUE:
+            return self._change_task_status(self.StatusChoices.SUBMITTED)
+        raise InvalidRequest(detail={"detail": _("Start the task before submit it")})
 
 
 class UsersTasks(models.Model):
