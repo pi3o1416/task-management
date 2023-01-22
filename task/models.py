@@ -17,6 +17,7 @@ class Task(models.Model):
         PENDING = "PEN", _("Pending task")
         DUE = "DUE", _("Due task")
         COMPLETED = "COM", _("Completed task")
+        SUBMITTED = "SUB", _("Sumitted Task")
 
 
     class PriorityChoices(models.TextChoices):
