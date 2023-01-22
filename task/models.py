@@ -93,6 +93,14 @@ class Task(models.Model):
     def __str__(self):
         return self.title
 
+    def approve_task(self):
+        self.approval_status = self.ApprovalChoices.APPROVED
+        self.save(update_fields=['approval_status'])
+
+    def reject_approval_request(self):
+        self.approval_status = self.ApprovalChoices.REJECTED
+        self.save(update_fields=['approval_status'])
+
     def _change_task_status(self, status):
         try:
             if self.status == status:
