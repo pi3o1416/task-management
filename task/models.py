@@ -87,7 +87,8 @@ class Task(models.Model):
     objects = TaskQuerySet.as_manager()
 
     class Meta:
-        permissions = (("can_approve_disapprove_task", _("Can Approve Or Disapprove Tasks")),)
+        permissions = (("can_approve_disapprove_task", _("Can Approve Or Disapprove Tasks")),
+                       ("can_view_all_tasks", _("Can View All Tasks")))
 
 
     def __str__(self):
@@ -156,7 +157,7 @@ class UsersTasks(models.Model):
 
     class Meta:
         permissions = (("can_view_inter_department_task", _("Can View Inter Department Tasks")),
-                       ("can_view_all_tasks", _("Can View All Tasks")))
+                       ("can_view_all_users_tasks", _("Can View All Users Tasks")))
 
 
 
