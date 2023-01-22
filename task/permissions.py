@@ -18,3 +18,13 @@ class IsOwner(BasePermission):
             return True
         return False
 
+
+class HasPermissionToApproveTask(BasePermission):
+    def has_permission(self, request, view):
+        user = request.user
+        if user.has_perm('task.can_approve_disapprove_task'):
+            return True
+        return False
+
+
+
