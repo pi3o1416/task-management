@@ -9,3 +9,10 @@ class DBOperationFailed(APIException):
     default_detail = _("Database operation failed")
     default_code = 'db_operation_failed'
 
+
+class InvalidRequest(APIException):
+    status_code = status.HTTP_409_CONFLICT,
+    default_detail = _("Invalid request, does not match with current state")
+    default_code = 'invalid_request'
+
+
