@@ -26,6 +26,12 @@ class Task(models.Model):
         LOW = "LOW", _("Low priority")
 
 
+    class ApprovalChoices(models.TextChoices):
+        APPROVED = "APP", _("Approved")
+        PENDING = "PEN", _("Pending")
+        REJECTED = "REJ", _("Rejected")
+
+
     created_by = models.ForeignKey(
         verbose_name=_("Task created by user"),
         to=User,
@@ -48,9 +54,11 @@ class Task(models.Model):
     last_date = models.DateTimeField(
         verbose_name=_("Task submission dadeline")
     )
-    approved_by_dept_head = models.BooleanField(
-        verbose_name=_("Approved by department head"),
-        default=False
+    approval_status = models.CharField(
+        verbose_name=_("Task approval by department head"),
+        max_length=3,
+        choices=ApprovalChoices.choices,
+        default=ApprovalChoices.PENDING
     )
     status = models.CharField(
         verbose_name=_("Task status"),
@@ -84,16 +92,6 @@ class Task(models.Model):
 
     def __str__(self):
         return self.title
-
-    def approve_task(self):
-        self.approved_by_dept_head = True
-        self.save()
-        return True
-
-    def disapprove_task(self):
-        self.approved_by_dept_head = False
-        self.save()
-        return True
 
     def _change_task_status(self, status):
         try:
