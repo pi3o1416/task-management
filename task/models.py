@@ -13,6 +13,7 @@ User = get_user_model()
 
 
 class Task(models.Model):
+    #TODO: validate last_date
     class StatusChoices(models.TextChoices):
         PENDING = "PEN", _("Pending task")
         DUE = "DUE", _("Due task")
