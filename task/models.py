@@ -96,12 +96,18 @@ class Task(models.Model):
         return self.title
 
     def approve_task(self):
+        if self.approval_status == self.ApprovalChoices.APPROVED:
+            raise InvalidRequest(detail={"detail": _("Task has already been approved by department head")})
         self.approval_status = self.ApprovalChoices.APPROVED
         self.save(update_fields=['approval_status'])
+        return True
 
     def reject_approval_request(self):
+        if self.approval_status == self.ApprovalChoices.REJECTED:
+            raise InvalidRequest(detail={"detail": _("Task has already been rejected by department head")})
         self.approval_status = self.ApprovalChoices.REJECTED
         self.save(update_fields=['approval_status'])
+        return True
 
     def _change_task_status(self, status):
         try:
