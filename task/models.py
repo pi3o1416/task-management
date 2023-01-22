@@ -1,4 +1,5 @@
 
+from io import DEFAULT_BUFFER_SIZE
 import os
 from django.db import models
 from django.contrib.auth import get_user_model
@@ -104,6 +105,11 @@ class Task(models.Model):
         except Exception as exception:
             raise DBOperationFailed(detail={"detail": exception.args})
 
+    def update_task_owner(self, user, commit=True):
+        assert type(user) is User, "Please Provide a valid user instance"
+        self.created_by = user
+        if commit:
+            self.save()
 
     def mark_task_as_complete(self):
         return self._change_task_status(self.StatusChoices.COMPLETED)
