@@ -12,9 +12,9 @@ class CanViewAllTasks(BasePermission):
 
 
 class IsOwner(BasePermission):
-    def has_object_permission(self, request, view, obj:Task):
+    def has_object_permission(self, request, view, task:Task):
         user = request.user
-        if obj.created_by == user:
+        if task.created_by == user:
             return True
         return False
 
@@ -25,6 +25,16 @@ class HasPermissionToApproveTask(BasePermission):
         if user.has_perm('task.can_approve_disapprove_task'):
             return True
         return False
+
+
+class IsAssignedUponUser(BasePermission):
+    def has_object_permission(self, request, view, task):
+        user = request.user
+        if task.task_assigned_to.assigned_to == user:
+            return True
+        return False
+
+
 
 
 
