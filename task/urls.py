@@ -1,15 +1,20 @@
 
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import TaskViewSet
+from .views import TaskViewSet, UsersTasksViewSet, UsersTasksCreateAndAssign
 
 
 task_router = DefaultRouter()
 task_router.register('', TaskViewSet, 'task')
 
+users_tasks_router = DefaultRouter()
+users_tasks_router.register('', UsersTasksViewSet, 'users-tasks')
+
 
 app_name='task'
 urlpatterns = [
-    path('', include(task_router.urls))
+    path('users-tasks/', include(users_tasks_router.urls)),
+    path('user-task-create/', UsersTasksCreateAndAssign.as_view(), name='user_task_create'),
+    path('', include(task_router.urls)),
 ]
 
