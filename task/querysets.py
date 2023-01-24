@@ -34,7 +34,25 @@ class TaskAttachmentsQuerySet(QuerySet):
 
 
 class UsersTasksQuerySet(QuerySet):
-    pass
+    def filter_from_query_params(self, request: Request):
+       try:
+           q_objects = _generate_q_objects_from_query_params(self.model, request)
+           if q_objects:
+               return self.filter(reduce(__and__, q_objects))
+           return self.all()
+       except Exception as exception:
+           raise APIException(detail={"detail": exception.args})
+
+    def get_user_task_by_pk(self, pk):
+        try:
+            user_task = self.get(pk=pk)
+            return user_task
+        except self.model.DoesNotExist:
+            raise NotFound(detail={"detail": _("User task with pk={} does not exist.".format(pk))})
+        except ValueError:
+            raise NotFound(detail={"detail": _("Task pk should be an integer")})
+        except Exception as exception:
+            raise NotFound(detail={"detail": exception.__str__()})
 
 
 class TaskTreeQuerySet(QuerySet):
