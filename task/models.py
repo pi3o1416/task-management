@@ -96,6 +96,11 @@ class Task(models.Model):
     def __str__(self):
         return self.title
 
+    def delete(self):
+        if self.approval_status == self.ApprovalChoices.APPROVED:
+            raise InvalidRequest(detail={"detail": _("Task that is approved by department head can not be deleted")})
+        return super().delete()
+
     def approve_task(self):
         if self.approval_status == self.ApprovalChoices.APPROVED:
             raise InvalidRequest(detail={"detail": _("Task has already been approved by department head")})

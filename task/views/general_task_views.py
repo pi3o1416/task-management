@@ -35,10 +35,8 @@ class TaskViewSet(ViewSet, PageNumberPagination):
     def destroy(self, request, pk):
         task = self.get_object(pk)
         self.check_object_permissions(request, task)
-        if task.approval_status == Task.ApprovalChoices.APPROVED:
-            task.delete()
-            return Response(data={"detail": [_("Task delete successful")]}, status=status.HTTP_202_ACCEPTED)
-        return Response(data={"detail": [_("Task canont be deleted after approval from department head")]})
+        task.delete()
+        return Response(data={"detail": [_("Task delete successful")]}, status=status.HTTP_202_ACCEPTED)
 
     def retrieve(self, request, pk):
         task = self.get_object(pk)
