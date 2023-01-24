@@ -24,7 +24,7 @@ class TaskViewSet(ViewSet, PageNumberPagination):
             #Update serializer with populate fields.
             serializer = self.get_serializer_class()(instance=task)
             return Response(data=serializer.data, status=status.HTTP_201_CREATED)
-        return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(data={"field_errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
     def list(self, request):
         tasks = Task.objects.filter_from_query_params(request)
@@ -51,7 +51,7 @@ class TaskViewSet(ViewSet, PageNumberPagination):
         if serializer.is_valid():
             serializer.update(instance=task, validated_data=serializer.validated_data)
             return Response(data=serializer.data, status=status.HTTP_202_ACCEPTED)
-        return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(data={"field_errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
     @action(methods=['patch'], detail=True, url_path='approve-task')
     def approve_task(self, request, pk):
