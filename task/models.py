@@ -33,7 +33,6 @@ class Task(models.Model):
         PENDING = "PEN", _("Pending")
         REJECTED = "REJ", _("Rejected")
 
-
     created_by = models.ForeignKey(
         verbose_name=_("Task created by user"),
         to=User,
@@ -92,9 +91,24 @@ class Task(models.Model):
         permissions = (("can_approve_disapprove_task", _("Can Approve Or Disapprove Tasks")),
                        ("can_view_all_tasks", _("Can View All Tasks")))
 
-
     def __str__(self):
         return self.title
+
+    @classmethod
+    def create_factory(cls, commit, **kwargs):
+        try:
+            assert kwargs.get("title") != None, "Task title is required"
+            assert kwargs.get("description") != None, "Task description is required"
+            assert kwargs.get("last_date") != None, "Task submission last date is required"
+            assert kwargs.get("priority") != None, "Task priority is required"
+            task = cls(**kwargs)
+            if commit == True:
+                task.save()
+            return task
+        except AssertionError as exception:
+            raise InvalidRequest(detail={"detail": _(exception.__str__())})
+        except Exception as exception:
+            raise DBOperationFailed(detail={"detail": _(exception.__str__())})
 
     def delete(self):
         if self.approval_status == self.ApprovalChoices.APPROVED:
@@ -184,6 +198,20 @@ class UsersTasks(models.Model):
                        ("can_view_all_users_tasks", _("Can View All Users Tasks")))
 
 
+    @classmethod
+    def create_factory(cls, commit=False, **kwargs):
+        try:
+            assert kwargs.get("task") != None, "Task should not be empty"
+            assert kwargs.get("assigned_to") != None, "Task assigned_to field should not be empty"
+            user_task = cls(**kwargs)
+            if commit == True:
+                user_task.save()
+            return user_task
+        except AssertionError as exception:
+            raise InvalidRequest(detail={"detail": _(exception.__str__())})
+        except Exception as exception:
+            raise InvalidRequest(detail={"detail": _(exception.__str__())})
+
 
 def task_attachment_upload_path(instance, filename):
     file_path = 'task-attachments/{}/{}'.format(instance.task.pk, filename)
@@ -237,19 +265,6 @@ class TaskTree(models.Model):
         on_delete=models.CASCADE
     )
     objects = TaskTreeQuerySet.as_manager()
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
