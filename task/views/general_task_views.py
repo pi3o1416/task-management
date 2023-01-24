@@ -31,19 +31,19 @@ class TaskViewSet(ViewSet, PageNumberPagination):
         return self.get_paginated_response(data=serializer.data)
 
     def destroy(self, request, pk):
-        task = Task.objects.get_task_by_pk(pk)
+        task = self.get_object(pk)
         self.check_object_permissions(request, task)
         task.delete()
         return Response(data={"detail": [_("Task delete successful")]}, status=status.HTTP_202_ACCEPTED)
 
     def retrieve(self, request, pk):
-        task = Task.objects.get_task_by_pk(pk)
+        task = self.get_object(pk)
         self.check_object_permissions(request, task)
         serializer = self.get_serializer_class()(instance=task)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
 
     def update(self, request, pk):
-        task = Task.objects.get_task_by_pk(pk)
+        task = self.get_object(pk)
         self.check_object_permissions(request, task)
         serializer = self.get_serializer_class()(instance=task, data=request.data)
         if serializer.is_valid():
@@ -53,43 +53,47 @@ class TaskViewSet(ViewSet, PageNumberPagination):
 
     @action(methods=['patch'], detail=True, url_path='approve-task')
     def approve_task(self, request, pk):
-        task = Task.objects.get_task_by_pk(pk)
+        task = self.get_object(pk)
         task.approve_task()
         return Response(data={"detail": [_("Task with pk={} approved".format(pk))]}, status=status.HTTP_202_ACCEPTED)
 
     @action(methods=['patch'], detail=True, url_path='disapprove-task')
     def disapprove_task(self, request, pk):
-        task = Task.objects.get_task_by_pk(pk)
+        task = self.get_object(pk)
         task.reject_approval_request()
         return Response(data={"detail": [_("Task with pk={} has been denied")]})
 
     @action(methods=['patch'], detail=True, url_path='start-task')
     def start_task(self, request, pk):
-        task = Task.objects.get_task_by_pk(pk)
+        task = self.get_object(pk)
         self.check_object_permissions(request, task)
         task.start_task()
         return Response(data={"detail": [_("Task start successful")]})
 
     @action(methods=['patch'], detail=True, url_path='submit-task')
     def submit_task(self, request, pk):
-        task = Task.objects.get_task_by_pk(pk)
+        task = self.get_object(pk)
         self.check_object_permissions(request, task)
         task.submit_task()
         return Response(data={"detail": [_("Task submission successful")]})
 
     @action(methods=['patch'], detail=True, url_path='accept-submission')
     def accept_task_submission(self, request, pk):
-        task = Task.objects.get_task_by_pk(pk)
+        task = self.get_object(pk)
         self.check_object_permissions(request, task)
         task.accept_task_submission()
         return Response(data={"detail": [_("Task submission accepted")]})
 
     @action(methods=['patch'], detail=True, url_path='reject-submission')
     def reject_task_submission(self, request, pk):
-        task = Task.objects.get_task_by_pk(pk)
+        task = self.get_object(pk)
         self.check_object_permissions(request, task)
         task.reject_task_submission()
         return Response(data={"detail": [_("Task submission rejected")]})
+
+    def get_object(self, pk):
+        task = Task.objects.get_task_by_pk(pk)
+        return task
 
     def get_serializer_class(self):
         return TaskSerializer
