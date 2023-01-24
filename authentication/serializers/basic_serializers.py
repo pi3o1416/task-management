@@ -66,7 +66,7 @@ class PasswordForgetSerializer(serializers.Serializer):
     email = serializers.EmailField()
 
     def validate_email(self, email):
-        user = CustomUser.objects.get_user(email=email)
+        user = CustomUser.objects.get_user_by_email(email=email)
         if user:
             self.instance = user
             return email
