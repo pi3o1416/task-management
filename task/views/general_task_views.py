@@ -21,6 +21,8 @@ class TaskViewSet(ViewSet, PageNumberPagination):
             task = serializer.create(commit=False)
             task.update_task_owner(user, commit=False)
             task.save()
+            #Update serializer with populate fields.
+            serializer = self.get_serializer_class()(instance=task)
             return Response(data=serializer.data, status=status.HTTP_201_CREATED)
         return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
