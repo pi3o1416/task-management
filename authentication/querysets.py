@@ -29,6 +29,9 @@ class CustomUserManager(UserManager):
     def get_user_by_encoded_pk(self, encoded_pk):
         return self.get_queryset().get_user_by_encoded_pk(encoded_pk=encoded_pk)
 
+    def get_user_by_email(self, email):
+        return self.get_queryset().get_user_by_email(email=email)
+
 
 class CustomUserQuerySet(QuerySet):
     def active_users(self):
@@ -59,6 +62,18 @@ class CustomUserQuerySet(QuerySet):
             return user
         except ObjectDoesNotExist:
             raise NotFound({"detail": [_("Invalid uid")]})
+
+    def get_user_by_email(self, email):
+        try:
+            user = self.get(Q(email=email))
+            return user
+        except self.model.DoesNotExist:
+            raise NotFound({"detail": [_("User with email={} does not exist.".format(email))]})
+        except ValueError:
+            raise NotFound({"detail": [_("User email should be string")]})
+        except Exception as exception:
+            raise NotFound({"detail": exception.args})
+
 
 
 
