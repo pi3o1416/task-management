@@ -1,6 +1,6 @@
 
 from django.dispatch import receiver
-from django.db.models.signals import pre_save, post_save
+from django.db.models.signals import pre_save
 from .models import UsersTasks, Task
 
 @receiver(signal=pre_save, sender=UsersTasks)
@@ -10,12 +10,12 @@ def fill_users_tasks_user_info(sender, instance, **kwargs):
     return instance
 
 
-@receiver(signal=post_save, sender=Task)
-def fill_task_created_by_user_info(sender, instance, created, **kwargs):
-    if created:
+@receiver(signal=pre_save, sender=Task)
+def fill_task_created_by_user_info(sender, instance, update_fields=None, **kwargs):
+    if update_fields == None:
         instance.created_by_user_username = instance.created_by.username
         instance.created_by_user_fullname = instance.created_by.full_name
-        instance.save()
+        return instance
 
 
 
