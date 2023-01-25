@@ -10,7 +10,8 @@ from rest_framework.decorators import action
 from rest_framework import status
 
 from ..serializers import UsersTasksSerializers, UsersTasksDetailSerializer, UsersTasksCreateAndAssignSerializer
-from ..models import UsersTasks
+from ..models import UsersTasks, Task
+from ..permissions import IsOwner
 
 
 User = get_user_model()
@@ -19,6 +20,8 @@ User = get_user_model()
 class UsersTasksViewSet(ViewSet, PageNumberPagination):
     @action(methods=['post'], detail=False, url_path='')
     def assign(self, request):
+        task = Task.objects.get_task_by_pk(request.data.get('task'))
+        self.check_object_permissions(request=request, obj=task)
         serializer = self.get_serializer_class()(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -47,12 +50,12 @@ class UsersTasksViewSet(ViewSet, PageNumberPagination):
 
     def get_permissions(self):
         permission_classes = [IsAuthenticated]
-        if self.action == 'create':
-            permission_classes += []
+        if self.action == 'assign':
+            permission_classes += [IsOwner]
         return [permission() for permission in permission_classes]
 
     def get_serializer_class(self):
-        if self.action == 'create':
+        if self.action == 'assign':
             return UsersTasksSerializers
         if self.action in ['list', 'retrieve']:
             return UsersTasksDetailSerializer
@@ -67,9 +70,14 @@ class UsersTasksCreateAndAssign(APIView):
         user = request.user
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            user_task = serializer.create(serializer.validated_data, user)
+            serializer = UsersTasksDetailSerializer(instance=user_task)
             return Response(data={"detail": serializer.data}, status=status.HTTP_201_CREATED)
         return Response(data={"field_errors": serializer.errors})
+
+
+
+
 
 
 
