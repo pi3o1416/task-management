@@ -250,6 +250,13 @@ class TaskAttachments(models.Model):
     )
     objects = TaskAttachmentsQuerySet.as_manager()
 
+    def delete(self):
+        try:
+            super().delete()
+            return True
+        except Exception as exception:
+            raise DBOperationFailed(detail={"detail": _(exception.__str__())})
+
 
 class TaskTree(models.Model):
     parent = models.ForeignKey(
