@@ -144,6 +144,23 @@ class TaskAttachmentsAdd(APIView):
         return task
 
 
+class TaskAttachmentsDelete(APIView):
+    serializer_class = TaskAttachmentsSerializer
+
+    def delete(self, request:Request, task_attachment_pk):
+        task_attachment = TaskAttachments.objects.get_attachment_by_pk(pk=task_attachment_pk)
+        task_attachment.delete()
+        return Response(data={"detail": [_("Attachment delete successful")]}, status=status.HTTP_202_ACCEPTED)
+
+
+class TaskBasedAttachments(APIView):
+    serializer_class = TaskAttachmentsSerializer
+
+    def get(self, request:Request, task_pk)
+
+
+
+
 
 
 
