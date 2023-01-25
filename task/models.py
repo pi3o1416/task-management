@@ -250,13 +250,6 @@ class TaskAttachments(models.Model):
     )
     objects = TaskAttachmentsQuerySet.as_manager()
 
-    def delete(self):
-        try:
-            super().delete()
-            return True
-        except Exception as exception:
-            raise DBOperationFailed(detail={"detail": _(exception.__str__())})
-
     @classmethod
     def create_factory(cls, commit=False, **kwargs):
         try:
@@ -295,6 +288,24 @@ class TaskTree(models.Model):
         on_delete=models.CASCADE
     )
     objects = TaskTreeQuerySet.as_manager()
+
+    @classmethod
+    def create_factory(cls, commit=False, **kwargs):
+        try:
+            assert kwargs.get("parent") != None, "Parent should not be empty"
+            assert kwargs.get("child") != None, "Child should not be empty"
+            task_tree = cls(**kwargs)
+            if commit == True:
+                task_tree.save()
+            return task_tree
+        except AssertionError as exception:
+            raise InvalidRequest(detail={"detail": _(exception.__str__())})
+        except Exception as exception:
+            raise InvalidRequest(detail={"detail": _(exception.__str__())})
+
+
+
+
 
 
 
