@@ -30,7 +30,16 @@ class TaskQuerySet(QuerySet):
 
 
 class TaskAttachmentsQuerySet(QuerySet):
-    pass
+    def get_attachment_by_pk(self, pk):
+        try:
+            attachment = self.get(pk=pk)
+            return attachment
+        except self.model.DoesNotExist:
+            raise NotFound(detail={"detail": _("Attachment with pk={} does not exist.".format(pk))})
+        except ValueError:
+            raise NotFound(detail={"detail": _("Attachment pk should be an integer")})
+        except Exception as exception:
+            raise NotFound(detail={"detail": exception.__str__()})
 
 
 class UsersTasksQuerySet(QuerySet):
