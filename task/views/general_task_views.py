@@ -156,7 +156,15 @@ class TaskAttachmentsDelete(APIView):
 class TaskBasedAttachments(APIView):
     serializer_class = TaskAttachmentsSerializer
 
-    def get(self, request:Request, task_pk)
+    def get(self, request:Request, task_pk):
+        task = self.get_object(pk=task_pk)
+        attachments = task.task_attachments.all()
+        serializer = self.serializer_class(instance=attachments, many=True)
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
+
+    def get_object(self, pk):
+        task = Task.objects.get_task_by_pk(pk=pk)
+        return task
 
 
 
