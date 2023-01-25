@@ -11,8 +11,9 @@ class DBOperationFailed(APIException):
 
 
 class InvalidRequest(APIException):
-    status_code = status.HTTP_409_CONFLICT,
+    status_code = status.HTTP_409_CONFLICT
     default_detail = _("Invalid request, does not match with current state")
     default_code = 'invalid_request'
+
 
 
