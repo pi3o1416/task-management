@@ -76,6 +76,24 @@ class UsersTasksCreateAndAssign(APIView):
         return Response(data={"field_errors": serializer.errors})
 
 
+class UserTasksList(APIView, PageNumberPagination):
+    """
+    API view to get user specific task list
+    """
+    serializer_class = UsersTasksDetailSerializer
+
+    def get(self, request, user_pk):
+        user = User.objects.get_user_by_pk(user_pk)
+        user_tasks = user.user_tasks.select_related('task')
+        filtered_user_tasks = user_tasks.filter_with_task(request)
+        page = self.paginate_queryset(queryset=filtered_user_tasks, request=request)
+        serializer = self.serializer_class(instance=page, many=True)
+        return self.get_paginated_response(data=serializer.data)
+
+
+
+
+
 
 
 
