@@ -20,6 +20,9 @@ User = get_user_model()
 class UsersTasksViewSet(ViewSet, PageNumberPagination):
     @action(methods=['post'], detail=False, url_path='')
     def assign(self, request):
+        """
+        Assign task to user
+        """
         task = Task.objects.get_task_by_pk(request.data.get('task'))
         self.check_object_permissions(request=request, obj=task)
         serializer = self.get_serializer_class()(data=request.data)
@@ -29,17 +32,26 @@ class UsersTasksViewSet(ViewSet, PageNumberPagination):
         return Response(data={"field_errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
     def list(self, request):
+        """
+        List of all tasks
+        """
         tasks = UsersTasks.objects.filter_from_query_params(request)
         page = self.paginate_queryset(queryset=tasks, request=request)
         serializer = self.get_serializer_class()(instance=page, many=True)
         return self.get_paginated_response(data=serializer.data)
 
     def retrieve(self, request, pk):
+        """
+        Detail of specific task
+        """
         user_task = self.get_object(pk)
         serializer = self.get_serializer_class()(instance=user_task)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
 
     def destroy(self, request, pk):
+        """
+        Destroy specific task assignment
+        """
         user_task = self.get_object(pk)
         user_task.delete()
         return Response(data={"detail": _("User Task destroy successful")})
@@ -63,6 +75,9 @@ class UsersTasksViewSet(ViewSet, PageNumberPagination):
 
 
 class UsersTasksCreateAndAssign(APIView):
+    """
+    Create a new task and assign it to a user.
+    """
     serializer_class = UsersTasksCreateAndAssignSerializer
     permission_classes = [IsAuthenticated]
 
