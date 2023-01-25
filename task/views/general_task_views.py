@@ -1,15 +1,17 @@
 
 from django.utils.translation import gettext_lazy as _
 from rest_framework.viewsets import ViewSet
+from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
+from rest_framework.request import Request
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.decorators import action
 
 from ..permissions import CanViewAllTasks, IsOwner, HasPermissionToApproveTask, IsAssignedUponUser
-from ..serializers import TaskSerializer
-from ..models import Task
+from ..serializers import TaskSerializer, TaskAttachmentsSerializer
+from ..models import Task, TaskAttachments
 
 
 class TaskViewSet(ViewSet, PageNumberPagination):
@@ -98,7 +100,9 @@ class TaskViewSet(ViewSet, PageNumberPagination):
         return task
 
     def get_serializer_class(self):
-        return TaskSerializer
+        if self.action == 'add_attachment':
+            return TaskSerializer
+        return TaskAttachmentsSerializer
 
     def get_permissions(self):
         permission_classes = [IsAuthenticated]
@@ -117,6 +121,27 @@ class TaskViewSet(ViewSet, PageNumberPagination):
         elif self.action in ['accept_task_submission', 'reject_task_submission']:
             permission_classes += [IsOwner]
         return [permission() for permission in permission_classes]
+
+
+class TaskAttachmentsAdd(APIView):
+    serializer_class = TaskAttachmentsSerializer
+
+    def post(self, request:Request, task_pk):
+        attachment = request.FILES.get("attachment")
+        task = self.get_object(pk=task_pk)
+        attached_by = request.user
+        task_attachment = TaskAttachments.create_factory(
+            commit=True,
+            attachment=attachment,
+            task=task,
+            attached_by=attached_by
+        )
+        serializer = self.serializer_class(instance=task_attachment)
+        return Response(data=serializer.data, status=status.HTTP_201_CREATED)
+
+    def get_object(self, pk):
+        task = Task.objects.get_task_by_pk(pk=pk)
+        return task
 
 
 
