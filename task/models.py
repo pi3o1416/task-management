@@ -257,6 +257,22 @@ class TaskAttachments(models.Model):
         except Exception as exception:
             raise DBOperationFailed(detail={"detail": _(exception.__str__())})
 
+    @classmethod
+    def create_factory(cls, commit=False, **kwargs):
+        try:
+            assert kwargs.get("task") != None, "Task should not be empty"
+            assert kwargs.get("attachment") != None, "Attachment should not be empty"
+            assert isinstance(kwargs.get("attached_by"), User), "Please provide a valid user"
+            task_attachment = cls(**kwargs)
+            if commit == True:
+                task_attachment.save()
+            return task_attachment
+        except AssertionError as exception:
+            breakpoint()
+            raise InvalidRequest(detail={"detail": _(exception.__str__())})
+        except Exception as exception:
+            breakpoint()
+            raise InvalidRequest(detail={"detail": _(exception.__str__())})
 
 class TaskTree(models.Model):
     parent = models.ForeignKey(
