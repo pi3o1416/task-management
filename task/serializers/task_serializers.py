@@ -1,7 +1,7 @@
 
 from rest_framework import serializers
 
-from ..models import Task, TaskTree
+from ..models import Task, TaskAttachments
 
 
 class TaskSerializer(serializers.ModelSerializer):
@@ -30,3 +30,11 @@ class TaskSerializer(serializers.ModelSerializer):
         if commit:
             instance.save(update_fields=['title', 'description', 'status', 'last_date'])
         return instance
+
+
+class TaskAttachmentsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TaskAttachments
+        fields = ['pk', 'task', 'attached_by', 'attachment', 'attached_at']
+        read_only_fields = ['pk', 'attached_by', 'attached_at', 'task']
+
