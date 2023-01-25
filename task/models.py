@@ -230,13 +230,13 @@ class TaskAttachments(models.Model):
         to=Task,
         on_delete=models.CASCADE,
         related_name='task_attachments',
-        verbose_name=_("Task attachments")
+        verbose_name=_("Task")
     )
     attached_by = models.ForeignKey(
         to=User,
         on_delete=models.SET_NULL,
         related_name='user_files',
-        verbose_name=_("Task attachments"),
+        verbose_name=_("Attached by"),
         blank=True,
         null=True,
     )
