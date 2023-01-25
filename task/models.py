@@ -274,6 +274,13 @@ class TaskAttachments(models.Model):
             breakpoint()
             raise InvalidRequest(detail={"detail": _(exception.__str__())})
 
+    def delete(self):
+        try:
+            super().delete()
+            return True
+        except Exception as exception:
+            raise DBOperationFailed(detail={"detail": _(exception.__str__())})
+
 class TaskTree(models.Model):
     parent = models.ForeignKey(
         to=Task,
