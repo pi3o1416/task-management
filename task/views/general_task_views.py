@@ -10,7 +10,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.decorators import action
 
 from ..permissions import CanViewAllTasks, IsOwner, HasPermissionToApproveTask, IsAssignedUponUser
-from ..serializers import TaskSerializer, TaskAttachmentsSerializer
+from ..serializers import TaskSerializer, TaskAttachmentsSerializer, TaskStatusStatisticsSerializer
 from ..models import Task, TaskAttachments
 
 
@@ -33,6 +33,13 @@ class TaskViewSet(ViewSet, PageNumberPagination):
         page = self.paginate_queryset(queryset=tasks, request=request)
         serializer = self.get_serializer_class()(instance=page, many=True)
         return self.get_paginated_response(data=serializer.data)
+
+    @action(methods=['get'], detail=False, url_path="all-task-statistics")
+    def task_list_statistics(self, request):
+        tasks = Task.objects.filter_from_query_params(request)
+        tasks_statistics = tasks.get_task_status_statistics()
+        serializer = self.get_serializer_class()(instance=tasks_statistics, many=True)
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
 
     def destroy(self, request, pk):
         task = self.get_object(pk)
@@ -100,6 +107,8 @@ class TaskViewSet(ViewSet, PageNumberPagination):
         return task
 
     def get_serializer_class(self):
+        if self.action == 'task_list_statistics':
+            return TaskStatusStatisticsSerializer
         return TaskSerializer
 
     def get_permissions(self):
