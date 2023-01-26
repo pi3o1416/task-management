@@ -33,6 +33,14 @@ class Task(models.Model):
         PENDING = "PEN", _("Pending")
         REJECTED = "REJ", _("Rejected")
 
+
+    class TaskType(models.TextChoices):
+        NONE = "NON", _("Type not yet fixed")
+        USER_TASK = "RGT", _("Regular task")
+        DEPARTMENT_TASK = "DPT", _("Department task")
+        PROJECT_TASK = "PRT", _("Project task")
+        TEAM_TASK = "TMT", _("Team task")
+
     created_by = models.ForeignKey(
         verbose_name=_("Task created by user"),
         to=User,
@@ -72,6 +80,16 @@ class Task(models.Model):
         max_length=3,
         choices=PriorityChoices.choices,
         default=PriorityChoices.LOW,
+    )
+    task_type = models.CharField(
+        verbose_name=_("Task type"),
+        max_length=3,
+        choices=TaskType.choices,
+        default=TaskType.NONE
+    )
+    is_assigned = models.BooleanField(
+        verbose_name=_("Is task already assigned"),
+        default=False
     )
     created_by_user_username = models.CharField(
         verbose_name = _("Created by user  username"),
