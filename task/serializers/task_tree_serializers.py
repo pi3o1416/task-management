@@ -7,28 +7,29 @@ from ..models import TaskTree, Task
 from ..exceptions import DBOperationFailed
 
 
-class TaskTreeCreateSerializer(serializers.ModelSerializer):
-    child = TaskSerializer()
+class SubTaskCreateSerializer(serializers.ModelSerializer):
     class Meta:
-        model = TaskTree
-        fields = ['parent', 'child']
+        model = Task
+        fields = ['pk', 'created_by', 'title', 'description', 'created_at', 'last_date',
+                  'approval_status', 'status', 'priority', 'created_by_user_username',
+                  'created_by_user_fullname']
+        read_only_fields = ['pk', 'created_by', 'created_at', 'created_by_user_username',
+                            'created_by_user_fullname', 'approval_status', 'status']
 
     def create(self, user, commit=True):
         assert self.validated_data != None, "Validate serializer before create instance"
-        child = self.validated_data.get("child")
-        parent = self.validated_data.get("parent")
-        sub_task = self.create_subtask(child, user)
-        task_tree = TaskTree.create_factory(commit=commit, parent=parent, child=sub_task)
+        task = self.create_subtask(self.validated_data, user, commit=commit)
+        return task
+
+    def create_subtask(self, task_data, user, commit=True):
+        task = Task.create_factory(commit=False, **task_data)
+        task.update_task_owner(user=user, commit=commit)
+        return task
+
+    def create_task_tree(self, child, parent, commit=True):
+        task_tree = TaskTree.create_factory(commit=commit, parent=parent, child=child)
         return task_tree
 
-    def create_subtask(self, task_data, user):
-        try:
-            task = Task.create_factory(commit=False, **task_data)
-            task.created_by = user
-            task.save()
-            return task
-        except Exception as exception:
-            raise DBOperationFailed(detail={"detail": _(exception.__str__())})
 
 
 class TaskTreeDetailSerializer(serializers.Serializer):
