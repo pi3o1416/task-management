@@ -32,6 +32,17 @@ class TaskSerializer(serializers.ModelSerializer):
         return instance
 
 
+class TaskStatusStatisticsSerializer(serializers.Serializer):
+    status = serializers.CharField()
+    count = serializers.IntegerField()
+
+    @property
+    def final_data(self):
+        final_data = self.data
+        breakpoint()
+        return final_data
+
+
 class TaskAttachmentsSerializer(serializers.ModelSerializer):
     class Meta:
         model = TaskAttachments
