@@ -100,9 +100,7 @@ class TaskViewSet(ViewSet, PageNumberPagination):
         return task
 
     def get_serializer_class(self):
-        if self.action == 'add_attachment':
-            return TaskSerializer
-        return TaskAttachmentsSerializer
+        return TaskSerializer
 
     def get_permissions(self):
         permission_classes = [IsAuthenticated]
