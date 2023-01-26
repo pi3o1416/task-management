@@ -28,6 +28,10 @@ class TaskQuerySet(QuerySet):
         except Exception as exception:
             raise NotFound(detail={"detail": exception.__str__()})
 
+    def get_subtasks(self, parent_task):
+        subtasks = self.filter(task_parent__parent=parent_task)
+        return subtasks
+
 
 class TaskAttachmentsQuerySet(QuerySet):
     def get_attachment_by_pk(self, pk):
