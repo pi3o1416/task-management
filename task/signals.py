@@ -1,7 +1,7 @@
 
 from django.dispatch import receiver
 from django.db.models.signals import pre_save, post_save
-from .models import UsersTasks, Task
+from .models import UsersTasks, Task, TaskTree
 
 @receiver(signal=pre_save, sender=UsersTasks)
 def fill_users_tasks_user_info(sender, instance, **kwargs):
@@ -25,6 +25,15 @@ def change_task_type_and_assignment_status(sender, instance, created, **kwargs):
         task.is_assigned=True
         task.task_type = Task.TaskType.USER_TASK
         task.save(update_fields=['is_assigned', 'task_type'])
+
+
+@receiver(signal=post_save, sender=TaskTree)
+def update_has_subtask_fields_of_task_instance(sender, instance, created, **kwargs):
+    pass
+
+
+
+
 
 
 
