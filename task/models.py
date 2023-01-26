@@ -91,6 +91,10 @@ class Task(models.Model):
         verbose_name=_("Is task already assigned"),
         default=False
     )
+    has_subtask = models.BooleanField(
+        verbose_name=_("Task has any subtask"),
+        default=False,
+    )
     created_by_user_username = models.CharField(
         verbose_name = _("Created by user  username"),
         max_length=100,
