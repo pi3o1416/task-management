@@ -2,7 +2,7 @@
 from functools import reduce
 from operator import __and__
 from django.utils.translation import gettext_lazy as _
-from django.db.models import QuerySet, CharField, Q, TextField
+from django.db.models import QuerySet, CharField, Q, TextField, Count
 from rest_framework.request import Request
 from rest_framework.exceptions import APIException, NotFound
 
@@ -31,6 +31,22 @@ class TaskQuerySet(QuerySet):
     def get_subtasks(self, parent_task):
         subtasks = self.filter(task_parent__parent=parent_task)
         return subtasks
+
+    def get_subtask_count(self, parent_task):
+        subtasks = self.get_subtasks(parent_task=parent_task)
+        return subtasks.count()
+
+    def get_task_count(self):
+        return self.count()
+
+    def get_subtasks_statistics(self, parent_task):
+        subtasks = self.get_subtasks(parent_task=parent_task)
+        subtasks_statistics = subtasks.get_task_status_statistics()
+        return subtasks_statistics
+
+    def get_task_status_statistics(self):
+        statistics = self.values('status').annotate(count=Count('status'))
+        return statistics
 
 
 class TaskAttachmentsQuerySet(QuerySet):
