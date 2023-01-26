@@ -5,17 +5,19 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 
+from ..permissions import IsAssignedUponUser
 from ..serializers import SubTaskCreateSerializer, TaskTreeDetailSerializer, TaskSerializer
 from ..models import Task
 
 
 class CreateSubTask(APIView):
     serializer_class = SubTaskCreateSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsAssignedUponUser]
 
     def post(self, request, task_pk):
         user = request.user
         parent_task = self.get_object(pk=task_pk)
+        self.check_object_permissions(request=request, obj=parent_task)
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
             child_task = serializer.create(user=user, commit=True)
