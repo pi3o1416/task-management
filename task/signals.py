@@ -1,6 +1,6 @@
 
 from django.dispatch import receiver
-from django.db.models.signals import pre_save
+from django.db.models.signals import pre_save, post_save
 from .models import UsersTasks, Task
 
 @receiver(signal=pre_save, sender=UsersTasks)
@@ -18,18 +18,13 @@ def fill_task_created_by_user_info(sender, instance, update_fields=None, **kwarg
         return instance
 
 
-
-
-
-
-
-
-
-
-
-
-
-
+@receiver(signal=post_save, sender=UsersTasks)
+def change_task_type_and_assignment_status(sender, instance, created, **kwargs):
+    if created:
+        task = instance.task
+        task.is_assigned=True
+        task.task_type = Task.TaskType.USER_TASK
+        task.save(update_fields=['is_assigned', 'task_type'])
 
 
 
