@@ -1,6 +1,5 @@
 
 import os
-from django.conf import settings
 from django.template.loader import render_to_string
 from django.db import models
 from django.contrib.auth.models import AbstractUser
@@ -17,9 +16,8 @@ from .services import get_absolute_uri, ACTIVE_ACCOUNT_EMAIL_SUBJECT, PASSWORD_R
 
 def user_photo_upload_path(instance, file):
     _, file_extension = os.path.splitext(file)
-    file_path = 'users_photos/{}/profile_picture.{}'.format(instance.username, file_extension)
-    path = os.path.join(settings.MEDIA_ROOT, file_path)
-    return path
+    file_path = 'users-photos/{}/profile_picture{}'.format(instance.username, file_extension)
+    return file_path
 
 
 class CustomUser(AbstractUser):
