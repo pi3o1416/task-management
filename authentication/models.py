@@ -1,4 +1,6 @@
 
+import os
+from django.conf import settings
 from django.template.loader import render_to_string
 from django.db import models
 from django.contrib.auth.models import AbstractUser
@@ -13,8 +15,20 @@ from .querysets import CustomUserManager
 from .services import get_absolute_uri, ACTIVE_ACCOUNT_EMAIL_SUBJECT, PASSWORD_RESET_EMIAL_SUBJECT
 
 
+def user_photo_upload_path(instance, file):
+    _, file_extension = os.path.splitext(file)
+    file_path = 'users_photos/{}/profile_picture.{}'.format(instance.username, file_extension)
+    path = os.path.join(settings.MEDIA_ROOT, file_path)
+    return path
+
 
 class CustomUser(AbstractUser):
+    photo = models.FileField(
+        verbose_name=_("User photo"),
+        upload_to=user_photo_upload_path,
+        blank=True,
+        null=True,
+    )
     email = models.EmailField(
         _("email address"),
         blank=False,
