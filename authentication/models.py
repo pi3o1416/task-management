@@ -23,7 +23,7 @@ def user_photo_upload_path(instance, file):
 
 
 class CustomUser(AbstractUser):
-    photo = models.FileField(
+    photo = models.ImageField(
         verbose_name=_("User photo"),
         upload_to=user_photo_upload_path,
         blank=True,
