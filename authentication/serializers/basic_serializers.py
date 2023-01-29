@@ -109,6 +109,21 @@ class UserPaginatedSerializer(serializers.Serializer):
     results = UserSerializer(many=True)
 
 
+class UploadPhotoSerializer(serializers.ModelSerializer):
+    photo = serializers.FileField(
+        required=True
+    )
+    class Meta:
+        model = CustomUser
+        fields = ['photo']
+
+    def validate_photo(self, image):
+        if image.size > 4*1024*1024:
+            raise ValidationError(detail=_("Image size should be less than 4mb"))
+        return image
+
+
+
 
 
 
