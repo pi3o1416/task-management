@@ -3,10 +3,11 @@ from drf_spectacular.utils import extend_schema
 from rest_framework import viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.decorators import action
 from rest_framework import status
 
 from ..models import CustomUser
-from ..serializers import UserSerializer, UserUpdateSerializer
+from ..serializers import UserSerializer, UserUpdateSerializer, UploadPhotoSerializer
 from ..pagination import CustomPageNumberPagination
 from ..documentations.basic_view_docs import (
     UserCreateDoc, UserListDoc, UserRetrieveDoc,
@@ -79,10 +80,25 @@ class UserViewSet(viewsets.ViewSet, CustomPageNumberPagination):
             return Response(data=serializer.data, status=status.HTTP_202_ACCEPTED)
         return Response(data={"field_errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
+    @action(methods=["patch"], detail=True, url_path='upload-photo')
+    def upload_photo(self, request, pk):
+        """
+        Update a user photo
+        parameter: (int)pk
+        """
+        user = CustomUser.objects.get_user_by_pk(pk)
+        serializer = self.get_serializer_class()(instance=user, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(data=serializer.data, status=status.HTTP_202_ACCEPTED)
+        return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
     def get_serializer_class(self):
         if self.action == 'update':
             return UserUpdateSerializer
+        elif self.action == 'upload_photo':
+            return UploadPhotoSerializer
         else:
             return UserSerializer
 
