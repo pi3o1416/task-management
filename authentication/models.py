@@ -21,6 +21,7 @@ def user_photo_upload_path(instance, file):
 
 
 class CustomUser(AbstractUser):
+    #TODO: Take photo height and width into consideration
     photo = models.ImageField(
         verbose_name=_("User photo"),
         upload_to=user_photo_upload_path,
