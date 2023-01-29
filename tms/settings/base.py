@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'permission_handler.apps.PermissionHandlerConfig',
     'goal.apps.GoalConfig',
     'task.apps.TaskConfig',
+    'team.apps.TeamComfig',
 ]
 
 MIDDLEWARE = [
