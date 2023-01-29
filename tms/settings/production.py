@@ -22,7 +22,7 @@ DEFAULT_FROM_EMAIL = CONFIG['DEFAULT_FROM_EMAIL']
 
 
 # Domain
-DOMAIN_URI = "https://tmsv2.aamarpay.com"
+DOMAIN_URI = "https://tmsv2-backend.aamarpay.xyz"
 
 # Celery Configuration Options
 CELERY_TIMEZONE = "UTC"
