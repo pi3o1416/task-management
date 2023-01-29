@@ -29,6 +29,24 @@ class Team(models.Model):
         null=True,
         blank=True,
     )
+    team_lead_username = models.CharField(
+        verbose_name=_("Team Lead Username"),
+        max_length=200,
+        null=True,
+        blank=True
+    )
+    team_lead_first_name = models.CharField(
+        verbose_name=_("Team Lead First Name"),
+        max_length=200,
+        null=True,
+        blank=True
+    )
+    team_lead_last_name = models.CharField(
+        verbose_name=_("Team Lead Last Name"),
+        max_length=200,
+        null=True,
+        blank=True
+    )
 
     class Meta:
         unique_together = [['department', 'title']]
@@ -38,6 +56,10 @@ class Team(models.Model):
         team_lead_department = self.team_lead.department
         if team_department != team_lead_department:
             raise ValidationError(message=_("Team lead should be in same department as team"))
+
+
+
+
 
 
 
