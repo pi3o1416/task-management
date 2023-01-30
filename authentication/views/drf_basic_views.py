@@ -1,6 +1,7 @@
 
 from drf_spectacular.utils import extend_schema
 from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -93,6 +94,14 @@ class UserViewSet(viewsets.ViewSet, CustomPageNumberPagination):
             return Response(data=serializer.data, status=status.HTTP_202_ACCEPTED)
         return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    @action(methods=['get'], detail=False, url_path='get-authenticated-user')
+    def get_authenticated_user(self, request, pk):
+        """
+        Get authenticated user
+        """
+        user = request.user
+        serializer = self.get_serializer_class()(instance=user)
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
 
     def get_serializer_class(self):
         if self.action == 'update':
@@ -101,6 +110,12 @@ class UserViewSet(viewsets.ViewSet, CustomPageNumberPagination):
             return UploadPhotoSerializer
         else:
             return UserSerializer
+
+    def get_permissions(self):
+        permission_classes = []
+        if self.action == 'get_authenticated_user':
+            permission_classes += [IsAuthenticated]
+        return [permission() for permission in permission_classes]
 
 
 class ActiveAccount(APIView):
