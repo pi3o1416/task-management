@@ -16,11 +16,11 @@ class TeamQuerySet(QuerySet):
             team = self.get(pk=pk)
             return team
         except self.model.DoesNotExist:
-            raise NotFound(detail=_("Team with pk={} does not exist".format(pk)))
+            raise NotFound(detail={"detail":_("Team with pk={} does not exist".format(pk))})
         except ValueError:
-            raise NotFound(detail=_("Team pk should be integer"))
+            raise NotFound(detail={"detail":_("Team primary key should be an integer")})
         except Exception as exception:
-            raise NotFound(detail=_(exception.__str__()))
+            raise NotFound(detail={"detail":_(exception.__str__())})
 
     def filter_from_query_params(self, request: Request):
        try:
