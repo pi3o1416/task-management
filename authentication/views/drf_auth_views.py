@@ -5,6 +5,7 @@ from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from ..models import CustomUser
@@ -79,16 +80,18 @@ class MyTokenRefreshView(TokenRefreshView):
 @extend_schema(responses=LogoutDoc.responses,
                parameters=LogoutDoc.parameters)
 class LogoutView(APIView):
-    permission_classes = [IsAuthenticated,]
+    permission_classes = []
 
     def post(self, request):
         """
         Logout view. Remove refresh token from cookie
         """
         response = Response({'detail': ['Logout Successful']}, status=status.HTTP_200_OK)
+        refresh_token = RefreshToken(request.COOKIES.get('refresh_token'))
+        refresh_token.blacklist()
         response.delete_cookie("refresh_token")
+        del request.COOKIES['refresh_token']
         return response
-
 
 @extend_schema(responses=ForgetPassswordDoc.responses,
                parameters=ForgetPassswordDoc.parameters)
