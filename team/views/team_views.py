@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 
-from ..serializers import TeamSerializer, TeamUpdateSerializer, TeamLeadChangeSerializer
+from ..serializers import TeamSerializer, TeamUpdateSerializer
 from ..models import Team
 
 
