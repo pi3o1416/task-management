@@ -95,7 +95,7 @@ class UserViewSet(viewsets.ViewSet, CustomPageNumberPagination):
         return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(methods=['get'], detail=False, url_path='get-authenticated-user')
-    def get_authenticated_user(self, request, pk):
+    def get_authenticated_user(self, request):
         """
         Get authenticated user
         """
