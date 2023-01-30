@@ -6,6 +6,7 @@ from django.core.exceptions import ValidationError
 
 from department.models import Department
 from department.models import DepartmentMember
+from services.exceptions import DBOperationFailed
 from ..querysets import TeamQuerySet
 
 User = get_user_model()
@@ -58,6 +59,13 @@ class Team(models.Model):
         team_lead_department = self.team_lead.department
         if team_department != team_lead_department:
             raise ValidationError(message=_("Team lead should be in same department as team"))
+
+    def delete(self):
+        try:
+            super().delete()
+            return True
+        except Exception as exception:
+            raise DBOperationFailed(detail={"detail":_(exception.__str__())})
 
 
 
