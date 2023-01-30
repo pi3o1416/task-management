@@ -6,6 +6,7 @@ from django.core.exceptions import ValidationError
 
 from department.models import Department
 from department.models import DepartmentMember
+from ..querysets import TeamQuerySet
 
 User = get_user_model()
 
@@ -47,6 +48,7 @@ class Team(models.Model):
         null=True,
         blank=True
     )
+    objects = TeamQuerySet.as_manager()
 
     class Meta:
         unique_together = [['department', 'title']]
