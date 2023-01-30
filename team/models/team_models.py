@@ -55,6 +55,24 @@ class Team(models.Model):
         except Exception as exception:
             raise DBOperationFailed(detail={"detail":_(exception.__str__())})
 
+    def update(self, **kwargs):
+        valid_fields_for_update = ['title', 'description', 'team_lead']
+        for key, value in kwargs.items():
+            if key not in valid_fields_for_update:
+                raise InvalidRequest(detail={"detail": _("{} is not a valid field of team model for update".format(self.pk))})
+            setattr(self, key, value)
+        self.save(update_fields=kwargs.keys())
+
+    @classmethod
+    def create_factory(cls, commit=False, **kwargs):
+        try:
+            team_instance = cls(**kwargs)
+            if commit == True:
+                team_instance.save()
+            return team_instance
+        except Exception as exception:
+            raise DBOperationFailed(detail={"detail":_(exception.__str__())})
+
 
 
 
