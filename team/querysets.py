@@ -13,7 +13,7 @@ from services.query_services import generate_q_objects_from_query_params
 class TeamQuerySet(QuerySet):
     def get_team_by_pk(self, pk):
         try:
-            team = self.get(pk)
+            team = self.get(pk=pk)
             return team
         except self.model.DoesNotExist:
             raise NotFound(detail=_("Team with pk={} does not exist".format(pk)))
