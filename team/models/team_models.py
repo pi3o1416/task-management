@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError
 
 from department.models import Department
 from department.models import DepartmentMember
-from services.exceptions import DBOperationFailed
+from services.exceptions import DBOperationFailed, InvalidRequest
 from ..querysets import TeamQuerySet
 
 User = get_user_model()
@@ -31,20 +31,8 @@ class Team(models.Model):
         null=True,
         blank=True,
     )
-    team_lead_username = models.CharField(
+    team_lead_full_name = models.CharField(
         verbose_name=_("Team Lead Username"),
-        max_length=200,
-        null=True,
-        blank=True
-    )
-    team_lead_first_name = models.CharField(
-        verbose_name=_("Team Lead First Name"),
-        max_length=200,
-        null=True,
-        blank=True
-    )
-    team_lead_last_name = models.CharField(
-        verbose_name=_("Team Lead Last Name"),
         max_length=200,
         null=True,
         blank=True
@@ -66,6 +54,7 @@ class Team(models.Model):
             return True
         except Exception as exception:
             raise DBOperationFailed(detail={"detail":_(exception.__str__())})
+
 
 
 
