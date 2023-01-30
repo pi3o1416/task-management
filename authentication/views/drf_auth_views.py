@@ -26,7 +26,7 @@ def _set_cookie(response=None, cookie_name=None, cookie_value=None, max_age=3600
     assert cookie_name != None, 'Cookie Name should not be null'
     assert cookie_value != None, 'Cookie Value should not be null'
     response.set_cookie(cookie_name, cookie_value, max_age,
-                        httponly=True, samesite=None, secure=True)
+                        httponly=True, samesite="None", secure=True)
     return response
 
 
