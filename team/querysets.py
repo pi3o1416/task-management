@@ -6,7 +6,7 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework.exceptions import NotFound, APIException
 from rest_framework.request import Request
 
-from services.query_services import generate_q_objects_from_query_params
+from services.query_services import generate_q_objects_from_query_params, TemplateQuerySet
 
 
 
@@ -32,4 +32,6 @@ class TeamQuerySet(QuerySet):
            raise APIException(detail={"detail": exception.args})
 
 
+class TeamMemberQuerySet(TemplateQuerySet):
+    pass
 
