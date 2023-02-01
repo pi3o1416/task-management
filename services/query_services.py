@@ -9,6 +9,9 @@ from rest_framework.exceptions import NotFound
 
 
 class TemplateQuerySet(QuerySet):
+    def filter_objects_by_pk(self, pks:list):
+        return self.filter(pk__in=pks)
+
     def get_object_by_pk(self, pk):
         try:
             obj = self.get(pk=pk)
