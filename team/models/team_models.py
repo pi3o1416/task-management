@@ -47,6 +47,9 @@ class Team(models.Model):
     class Meta:
         unique_together = [['department', 'title']]
 
+    def __str__(self):
+        return '{}-({})'.format(self.title, self.department)
+
     def clean(self):
         try:
             team_department = self.department
