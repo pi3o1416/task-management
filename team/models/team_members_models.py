@@ -35,6 +35,9 @@ class TeamMember(models.Model):
     )
     objects = TeamMemberQuerySet.as_manager()
 
+    class Meta:
+        unique_together = [['team', 'member']]
+
     def delete(self):
         try:
             super().delete()
