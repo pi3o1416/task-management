@@ -35,6 +35,23 @@ class TeamMember(models.Model):
     )
     objects = TeamMemberQuerySet.as_manager()
 
+    def delete(self):
+        try:
+            super().delete()
+            return True
+        except Exception as exception:
+            raise DBOperationFailed(detail={"detail":_(exception.__str__())})
+
+    @classmethod
+    def create_factory(cls, commit=False, **kwargs):
+        try:
+            team_member_instance = cls(**kwargs)
+            if commit == True:
+                team_member_instance.save()
+            return team_member_instance
+        except Exception as exception:
+            raise DBOperationFailed(detail={"detail":_(exception.__str__())})
+
 
 
 
