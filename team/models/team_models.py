@@ -2,10 +2,9 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, ObjectDoesNotExist
 
 from department.models import Department
-from department.models import DepartmentMember
 from services.exceptions import DBOperationFailed, InvalidRequest
 from ..querysets import TeamQuerySet
 
@@ -25,7 +24,7 @@ class Team(models.Model):
         related_name='department_teams',
     )
     team_lead = models.ForeignKey(
-        to=DepartmentMember,
+        to=User,
         on_delete=models.SET_NULL,
         related_name='leading_teams',
         null=True,
@@ -37,16 +36,27 @@ class Team(models.Model):
         null=True,
         blank=True
     )
+    team_lead_username = models.CharField(
+        verbose_name=_("Team Lead Username"),
+        max_length=200,
+        null=True,
+        blank=True
+    )
     objects = TeamQuerySet.as_manager()
 
     class Meta:
         unique_together = [['department', 'title']]
 
     def clean(self):
-        team_department = self.department
-        team_lead_department = self.team_lead.department
-        if team_department != team_lead_department:
-            raise ValidationError(message=_("Team lead should be in same department as team"))
+        try:
+            team_department = self.department
+            team_lead_department = self.team_lead.user_department.department
+            if team_department != team_lead_department:
+                raise ValidationError(message=_("Team lead should be in same department as team"))
+        except ValidationError as exception:
+            raise ValidationError(message=_(exception.__str__()))
+        except ObjectDoesNotExist as exception:
+            raise ValidationError(message=_("Team lead is not assigned to any department"))
 
     def delete(self):
         try:
