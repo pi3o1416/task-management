@@ -3,7 +3,9 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
 
+from services.exceptions import DBOperationFailed
 from .team_models import Team
+from ..querysets import TeamMemberQuerySet
 
 User = get_user_model()
 
@@ -31,8 +33,7 @@ class TeamMember(models.Model):
         null=True,
         blank=True,
     )
-
-
+    objects = TeamMemberQuerySet.as_manager()
 
 
 
