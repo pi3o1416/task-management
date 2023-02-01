@@ -2,6 +2,7 @@
 from functools import reduce
 from operator import __and__
 from django.db.models import QuerySet
+from django.db.models.signals import pre_save
 from django.utils.translation import gettext_lazy as _
 from rest_framework.exceptions import NotFound, APIException
 from rest_framework.request import Request
@@ -33,5 +34,11 @@ class TeamQuerySet(QuerySet):
 
 
 class TeamMemberQuerySet(TemplateQuerySet):
-    pass
+    def bulk_create_team_member(self, team_members):
+        Model = self.model
+        team_members = [pre_save.send(Model, instance=team_member, update_fields=None)[0][1] for team_member in team_members]
+        breakpoint()
+        team_members = Model.objects.bulk_create(team_members)
+        return team_members
+
 
