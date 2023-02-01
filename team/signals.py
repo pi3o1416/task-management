@@ -15,8 +15,7 @@ def fill_team_lead_info(sender, instance, update_fields, **kwargs):
 
 @receiver(signal=pre_save, sender=Team)
 def update_team_lead_info(sender, instance, update_fields, **kwargs):
-    breakpoint()
-    if 'team_lead' in update_fields:
+    if update_fields and 'team_lead' in update_fields:
         team_lead = instance.team_lead
         instance.team_lead_full_name = team_lead.member_full_name
     return instance
