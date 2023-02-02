@@ -18,3 +18,7 @@ class TeamMemberQuerySet(TemplateQuerySet):
         return team_members
 
 
+class TeamTasksQuerySet(TemplateQuerySet):
+    pass
+
+
