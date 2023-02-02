@@ -5,6 +5,7 @@ from services.exceptions import InvalidRequest
 
 from task.models import Task
 from .team_models import Team
+from ..querysets import TeamTasksQuerySet
 
 
 class TeamTasks(models.Model):
@@ -20,7 +21,7 @@ class TeamTasks(models.Model):
         related_name='task_team',
         verbose_name=_("Task")
     )
-
+    objects = TeamTasksQuerySet.as_manager()
     @classmethod
     def create_factory(cls, commit=False, **kwargs):
         try:
