@@ -53,7 +53,7 @@ class TeamViewSet(ViewSet, PageNumberPagination):
 
 
     def get_object(self, pk):
-        team = Team.objects.get_team_by_pk(pk)
+        team = Team.objects.get_object_by_pk(pk)
         return team
 
     def get_serializer_class(self):
