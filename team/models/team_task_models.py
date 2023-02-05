@@ -15,7 +15,7 @@ class TeamTasks(models.Model):
         related_name='team_tasks',
         verbose_name=_("Team"),
     )
-    task = models.ForeignKey(
+    task = models.OneToOneField(
         to=Task,
         on_delete=models.CASCADE,
         related_name='task_team',
