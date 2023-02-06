@@ -34,17 +34,34 @@ class TeamTasksDetail(APIView):
         return TeamTasks.objects.get_object_by_pk(pk)
 
 
-#class TeamTasksList(APIView, PageNumberPagination):
-#    """
-#    List of all teams tasks
-#    """
-#    serializer_class = TeamTasksDetailSerializer
-#
-#    def get(self, request):
-#        teams_tasks = TeamTasks.objects.filter_from_query_params(request)
-#        page = self.paginate_queryset(queryset=teams_tasks, request=request)
-#        serializer = self.serializer_class(instance=page, many=True)
+class TeamTasksList(APIView, PageNumberPagination):
+    """
+    List of all teams tasks
+    """
+    serializer_class = TeamTasksDetailSerializer
 
+    def get(self, request):
+        teams_tasks = TeamTasks.objects.filter_with_related_fields(request)
+        page = self.paginate_queryset(queryset=teams_tasks, request=request)
+        serializer = self.serializer_class(instance=page, many=True)
+        return self.get_paginated_response(data=serializer.data)
+
+
+class TasksOfTeamList(APIView, PageNumberPagination):
+    """
+    List of all tasks of a team
+    """
+    serializer_class = TeamTasksDetailSerializer
+
+    def get(self, request, team_pk):
+        team = self.get_object(pk=team_pk)
+        team_tasks = team.team_tasks.all().filter_with_related_fields(request=request)
+        page = self.paginate_queryset(queryset=team_tasks, request=request)
+        serializer = self.serializer_class(instance=page, many=True)
+        return self.get_paginated_response(data=serializer.data)
+
+    def get_object(self, pk):
+        return Team.objects.get_object_by_pk(pk)
 
 
 
