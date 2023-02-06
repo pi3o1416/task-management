@@ -2,7 +2,7 @@
 from django.db.models.signals import pre_save
 from django.utils.translation import gettext_lazy as _
 
-from services.query_services import TemplateQuerySet
+from services.querysets import TemplateQuerySet, get_model_foreignkey_fields
 
 
 class TeamQuerySet(TemplateQuerySet):
@@ -19,6 +19,16 @@ class TeamMemberQuerySet(TemplateQuerySet):
 
 
 class TeamTasksQuerySet(TemplateQuerySet):
-    pass
+    def filter_with_related_fields(self, request):
+        #Default filter
+        filtered_tasks = self.filter_from_query_params(request=request)
+        #Filter for foreignkey relation
+        for field in get_model_foreignkey_fields(self.model):
+            FieldModel = field.remote_field.model
+            field_name = field.name
+            filtered_tasks = self.filter_from_query_params(request=request, FieldModel=FieldModel, related_field=field_name)
+        return filtered_tasks
+
+
 
 
