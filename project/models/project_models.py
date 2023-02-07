@@ -9,6 +9,11 @@ User = get_user_model()
 
 
 class Project(models.Model):
+    class ProjectStatus(models.TextChoices):
+        PAUSED = "PAU", _("Paused")
+        ACTIVE = "ACT", _("Active")
+        FINISHED = "FIN", _("Active")
+
     title = models.CharField(
         verbose_name=_("Project Title".title()),
         max_length=500
@@ -45,6 +50,12 @@ class Project(models.Model):
         related_name="department_projects",
         on_delete=models.CASCADE,
         verbose_name=_("Department Projects".title())
+    )
+    status = models.CharField(
+        verbose_name=_("Project Status".title()),
+        max_length=3,
+        choices=ProjectStatus.choices,
+        default=ProjectStatus.PAUSED,
     )
 
     def __str__(self):
