@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'goal.apps.GoalConfig',
     'task.apps.TaskConfig',
     'team.apps.TeamConfig',
+    'project.apps.ProjectConfig',
 ]
 
 MIDDLEWARE = [
