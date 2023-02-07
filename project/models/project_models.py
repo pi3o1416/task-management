@@ -4,6 +4,7 @@ from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model
 
 from department.models import Department
+from ..querysets import ProjectQuerySet
 
 User = get_user_model()
 
@@ -57,6 +58,7 @@ class Project(models.Model):
         choices=ProjectStatus.choices,
         default=ProjectStatus.PAUSED,
     )
+    objects = ProjectQuerySet.as_manager()
 
     def __str__(self):
         return self.title
