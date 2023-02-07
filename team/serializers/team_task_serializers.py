@@ -17,6 +17,7 @@ class TeamTasksCreateAssignSerializer(TaskSerializer):
         assert self.validated_data != None, "Validate serializer before create instance"
         task = super().create(commit=False)
         task.created_by = user
+        task.task_type=Task.TaskType.TEAM_TASK
         task.save()
         team_task = TeamTasks.create_factory(commit=True, task=task, team=team)
         return team_task
