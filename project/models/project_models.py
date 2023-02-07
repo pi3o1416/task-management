@@ -64,6 +64,35 @@ class Project(models.Model):
         return self.title
 
 
+class ProjectSchemaLessData(models.Model):
+    project = models.OneToOneField(
+        to=Project,
+        on_delete=models.CASCADE,
+        related_name='schemaless_data',
+        verbose_name=_("Schemaless Data".title())
+    )
+    department_title = models.CharField(
+        verbose_name=_("Department Title".title()),
+        max_length=200
+    )
+    project_owner_fullname = models.CharField(
+        verbose_name=_("Project Owner Fullname".title()),
+        max_length=200,
+    )
+    project_owner_username = models.CharField(
+        verbose_name=_("Project Owner Username".title()),
+        max_length=200,
+    )
+    project_manager_fullname = models.CharField(
+        verbose_name=_("Project Manager Fullname".title()),
+        max_length=200,
+    )
+    project_owner_username = models.CharField(
+        verbose_name=_("Project Manager Username".title()),
+        max_length=200,
+    )
+
+
 
 
 
