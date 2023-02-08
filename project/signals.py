@@ -8,7 +8,7 @@ from .models import Project, ProjectSchemaLessData
 
 
 @receiver(signal=post_save, sender=Project)
-def update_project_schemaless_data(sender, instance:Project, created=None, **kwargs):
+def create_project_schemaless_data(sender, instance:Project, created=None, **kwargs):
     if created:
         try:
             ProjectSchemaLessData.create_factory(
@@ -23,6 +23,8 @@ def update_project_schemaless_data(sender, instance:Project, created=None, **kwa
         except InvalidRequest:
             instance.delete()
             raise DBOperationFailed(detail={"detail":_("Project optional data update filed")})
+
+
 
 
 
