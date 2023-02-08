@@ -3,6 +3,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model
 
+from services.exceptions import  InvalidRequest
 from department.models import Department
 from ..querysets import ProjectQuerySet
 
@@ -63,6 +64,20 @@ class Project(models.Model):
     def __str__(self):
         return self.title
 
+    @classmethod
+    def create_factory(cls, commit=True, **kwargs):
+        try:
+            project = cls(
+                **kwargs
+            )
+            if commit == True:
+                project.save()
+            return project
+        except Exception as exception:
+            raise InvalidRequest(detail={"detail":_(exception.__str__())})
+
+
+
 
 class ProjectSchemaLessData(models.Model):
     project = models.OneToOneField(
@@ -91,6 +106,21 @@ class ProjectSchemaLessData(models.Model):
         verbose_name=_("Project Manager Username".title()),
         max_length=200,
     )
+
+    @classmethod
+    def create_factory(cls, commit=True, **kwargs):
+        try:
+            project_schemaless_data = cls(
+                **kwargs
+            )
+            if commit == True:
+                project_schemaless_data.save()
+            return project_schemaless_data
+        except Exception as exception:
+            raise InvalidRequest(detail={"detail":_(exception.__str__())})
+
+
+
 
 
 
