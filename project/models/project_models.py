@@ -6,6 +6,7 @@ from django.contrib.auth import get_user_model
 from services.exceptions import  InvalidRequest
 from department.models import Department
 from ..querysets import ProjectQuerySet
+from ..validators import validate_project_deadline
 
 User = get_user_model()
 
@@ -24,7 +25,8 @@ class Project(models.Model):
         verbose_name=_("Project Description".title())
     )
     deadline = models.DateField(
-        verbose_name=_("Project Deadline".title())
+        verbose_name=_("Project Deadline".title()),
+        validators=[validate_project_deadline]
     )
     budget = models.DecimalField(
         verbose_name=_("Project Budget".title()),
@@ -33,19 +35,15 @@ class Project(models.Model):
     )
     project_manager = models.ForeignKey(
         to=User,
-        on_delete=models.SET_NULL,
+        on_delete=models.RESTRICT,
         related_name="managed_projects",
         verbose_name=_("Project Manager".title()),
-        null=True,
-        blank=True,
     )
     project_owner = models.ForeignKey(
         to=User,
-        on_delete=models.SET_NULL,
+        on_delete=models.RESTRICT,
         related_name="owned_projects",
         verbose_name=_("Project Owner".title()),
-        null=True,
-        blank=True,
     )
     department = models.ForeignKey(
         to=Department,
@@ -60,6 +58,9 @@ class Project(models.Model):
         default=ProjectStatus.PAUSED,
     )
     objects = ProjectQuerySet.as_manager()
+
+    class Meta:
+        unique_together = [['department', 'title']]
 
     def __str__(self):
         return self.title
