@@ -93,6 +93,12 @@ class Project(models.Model):
         except Exception as exception:
             raise InvalidRequest(detail={"detail":_(exception.__str__())})
 
+    @property
+    def extended_data(self):
+        try:
+            return self.schemaless_data
+        except ObjectDoesNotExist:
+            return None
 
 class ProjectSchemaLessData(models.Model):
     project = models.OneToOneField(
