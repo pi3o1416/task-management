@@ -61,6 +61,10 @@ class Project(models.Model):
 
     class Meta:
         unique_together = [['department', 'title']]
+        permissions = (("can_maintain_project", _("Can manage a project".title())),
+                       ("can_own_project", _("Can own project".title())),
+                       ("can_view_all_project", _("Can View All Projects".title())))
+
 
     def __str__(self):
         return self.title
