@@ -25,13 +25,15 @@ def validate_budget(budget):
     return budget
 
 
-def validate_project_manager_permission(project_manager):
-    if project_manager.has_perm('can_maintain_project') == True:
+def validate_project_manager_permission(project_manager_pk):
+    project_manager = User.objects.get_user_by_pk(pk=project_manager_pk)
+    if project_manager.has_perm('project.can_maintain_project') == True:
         return project_manager
     raise ValidationError(message="Project manager does not have permission to maintain project")
 
 
-def validate_project_owner_permission(project_owner):
+def validate_project_owner_permission(project_owner_pk):
+    project_owner = User.objects.get_user_by_pk(pk=project_owner_pk)
     if project_owner.has_perm('project.can_own_project') == True:
         return project_owner
     raise ValidationError(message="Project owner does not have permission to own project")
