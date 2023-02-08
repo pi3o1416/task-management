@@ -1,12 +1,14 @@
 
 from django.db import models
+from django.core.exceptions import ObjectDoesNotExist
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 
 from services.exceptions import  InvalidRequest
 from department.models import Department
 from ..querysets import ProjectQuerySet
-from ..validators import validate_project_deadline
+from ..validators import validate_project_deadline, validate_project_manager_permission, validate_project_owner_permission, validate_budget
 
 User = get_user_model()
 
@@ -31,19 +33,22 @@ class Project(models.Model):
     budget = models.DecimalField(
         verbose_name=_("Project Budget".title()),
         max_digits=20,
-        decimal_places=10
+        decimal_places=10,
+        validators=[validate_budget],
     )
     project_manager = models.ForeignKey(
         to=User,
         on_delete=models.RESTRICT,
         related_name="managed_projects",
         verbose_name=_("Project Manager".title()),
+        validators=[validate_project_manager_permission]
     )
     project_owner = models.ForeignKey(
         to=User,
         on_delete=models.RESTRICT,
         related_name="owned_projects",
         verbose_name=_("Project Owner".title()),
+        validators=[validate_project_owner_permission]
     )
     department = models.ForeignKey(
         to=Department,
@@ -65,6 +70,13 @@ class Project(models.Model):
                        ("can_own_project", _("Can own project".title())),
                        ("can_view_all_project", _("Can View All Projects".title())))
 
+    def clean(self):
+        try:
+            project_manager = self.project_manager
+            if project_manager.user_department.department != self.department:
+                raise ValidationError(message=_("Project manager should in same department as user department"))
+        except ObjectDoesNotExist:
+            raise ValidationError(message=_("Project manager does not belong to any department"))
 
     def __str__(self):
         return self.title
@@ -80,8 +92,6 @@ class Project(models.Model):
             return project
         except Exception as exception:
             raise InvalidRequest(detail={"detail":_(exception.__str__())})
-
-
 
 
 class ProjectSchemaLessData(models.Model):
