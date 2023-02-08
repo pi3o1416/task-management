@@ -102,7 +102,7 @@ class ProjectSchemaLessData(models.Model):
         verbose_name=_("Project Manager Fullname".title()),
         max_length=200,
     )
-    project_owner_username = models.CharField(
+    project_manager_username = models.CharField(
         verbose_name=_("Project Manager Username".title()),
         max_length=200,
     )
