@@ -3,6 +3,7 @@ from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model
 from django.db import models
 
+from services.exceptions import InvalidRequest
 from .project_models import Project
 
 User = get_user_model()
@@ -23,6 +24,16 @@ class ProjectMember(models.Model):
     )
     class Meta:
         unique_together = [("project", "member")]
+
+    @classmethod
+    def create_factory(cls, commit=True, **kwargs):
+        try:
+            project_member = cls(**kwargs)
+            if commit == True:
+                project_member.save()
+            return project_member
+        except Exception as exception:
+            raise InvalidRequest(detail=_(exception.__str__()))
 
 
 class ProjectMemberSchemaLessData(models.Model):
