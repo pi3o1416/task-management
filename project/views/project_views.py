@@ -1,12 +1,13 @@
 
 from django.utils.translation import gettext_lazy as _
 from rest_framework.decorators import action
+from rest_framework.views import APIView
 from rest_framework.viewsets import ViewSet
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework import status
 
-
+from department.models import Department
 from ..serializers import ProjectSerializer, ProjectDetailSerializer
 from ..models import Project
 
@@ -46,6 +47,27 @@ class ProjectViewSet(ViewSet, PageNumberPagination):
             return Response(data=response_serializer.data, status=status.HTTP_202_ACCEPTED)
         return Response(data={"field_errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
+    @action(methods=['patch'], detail=True, url_path='start-project')
+    def active_project(self, request, pk):
+        project = self.get_object(pk)
+        project.active_project()
+        response_serializer = ProjectDetailSerializer(instance=project)
+        return Response(data=response_serializer.data, status=status.HTTP_202_ACCEPTED)
+
+    @action(methods=['patch'], detail=True, url_path='pause-project')
+    def pause_project(self, request, pk):
+        project = self.get_object(pk)
+        project.pause_project()
+        response_serializer = ProjectDetailSerializer(instance=project)
+        return Response(data=response_serializer.data, status=status.HTTP_202_ACCEPTED)
+
+    @action(methods=['patch'], detail=True, url_path='end-project')
+    def finish_project(self, request, pk):
+        project = self.get_object(pk)
+        project.finish_project()
+        response_serializer = ProjectDetailSerializer(instance=project)
+        return Response(data=response_serializer.data, status=status.HTTP_202_ACCEPTED)
+
     def get_serializer_class(self):
         if self.action in ['create', 'update']:
             return ProjectSerializer
@@ -56,6 +78,8 @@ class ProjectViewSet(ViewSet, PageNumberPagination):
 
     def get_object(self, pk):
         return Project.objects.get_object_by_pk(pk=pk)
+
+
 
 
 
