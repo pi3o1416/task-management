@@ -11,6 +11,12 @@ class ProjectSerializer(serializers.ModelSerializer):
                   'project_owner', 'department', 'status']
         read_only_fields = ['pk', 'status']
 
+    def update(self):
+        assert self.instance != None, "Initialize serializer with a project instance before update"
+        assert self.validated_data != None, "Validate serializer data before update"
+        self.instance = Project.update(instance_pk=self.instance.pk, **self.validated_data)
+        return self.instance
+
 
 class ProjectSchemaLessDataSerializer(serializers.ModelSerializer):
     class Meta:
