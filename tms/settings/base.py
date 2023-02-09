@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     'drf_spectacular',
     'django_extensions',
     'corsheaders',
+    'guardian',
 
     # Local apps
     'authentication.apps.AuthenticationConfig',
@@ -142,6 +143,13 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Custom settings
 
 AUTH_USER_MODEL = 'authentication.CustomUser'
+
+
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend', # this is default
+    'guardian.backends.ObjectPermissionBackend',
+)
+
 
 REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
