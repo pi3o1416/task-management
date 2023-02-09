@@ -4,6 +4,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
+from django.db.utils import IntegrityError
 
 from services.exceptions import  DBOperationFailed, InvalidRequest
 from department.models import Department
@@ -97,6 +98,8 @@ class Project(models.Model):
             if commit == True:
                 project.save()
             return project
+        except IntegrityError as exception:
+            raise DBOperationFailed(detail={"detail": _("Project with same title and department already exist.")})
         except Exception as exception:
             raise InvalidRequest(detail={"detail": _(exception.__str__())})
 
