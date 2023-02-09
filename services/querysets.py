@@ -50,7 +50,7 @@ class TemplateQuerySet(QuerySet):
                 return self.filter(reduce(__and__, q_objects))
             return self.all()
         except Exception as exception:
-           raise InvalidRequest(detail={"detail": exception.args})
+            raise InvalidRequest(detail={"detail": exception.args})
 
 
 def generate_q_objects_from_query_params(ModelName, request: Request, related_field=None):
@@ -68,9 +68,9 @@ def generate_q_objects_from_query_params(ModelName, request: Request, related_fi
     q_objects = []
     for param, value in query_params.items():
         if related_field:
-            parent_field, child_field = param.split('.')
-            if child_field and parent_field == related_field:
-                param = child_field
+            splited_param = param.split('.')
+            if len(splited_param) == 2 and splited_param[0] == related_field and splited_param[1]:
+                param = splited_param[1]
             else:
                 continue
         if param in fields.keys():
