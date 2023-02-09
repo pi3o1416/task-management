@@ -20,15 +20,16 @@ class ProjectSchemaLessDataSerializer(serializers.ModelSerializer):
         read_only_fields = ['department_title', 'project_owner_username', 'project_owner_fullname',
                   'project_manager_username', 'project_manager_fullname']
 
+
 class ProjectDetailSerializer(serializers.ModelSerializer):
-    extended_data = ProjectSchemaLessDataSerializer()
+    schemaless_data = ProjectSchemaLessDataSerializer()
 
     class Meta:
         model = Project
         fields = ['pk', 'title', 'description', 'deadline', 'budget', 'project_manager',
-                  'project_owner', 'department', 'status', 'extended_data']
+                  'project_owner', 'department', 'status', 'schemaless_data']
         read_only_fields = ['pk', 'title', 'description', 'deadline', 'budget', 'project_manager',
-                  'project_owner', 'department', 'status', 'extended_data']
+                  'project_owner', 'department', 'status', 'schemaless_data']
 
 
 
