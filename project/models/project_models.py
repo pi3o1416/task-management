@@ -5,7 +5,7 @@ from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 
-from services.exceptions import  InvalidRequest
+from services.exceptions import  DBOperationFailed, InvalidRequest
 from department.models import Department
 from ..querysets import ProjectQuerySet
 from ..validators import validate_project_deadline, validate_project_manager_permission, validate_project_owner_permission, validate_budget
@@ -80,6 +80,12 @@ class Project(models.Model):
 
     def __str__(self):
         return self.title
+
+    def delete(self):
+        try:
+            super().delete()
+        except Exception as exception:
+            raise DBOperationFailed(detail={"detial":_(exception.__str__())})
 
     @classmethod
     def create_factory(cls, commit=True, **kwargs):
