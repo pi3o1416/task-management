@@ -2,8 +2,9 @@
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.db.utils import IntegrityError
 
-from services.exceptions import InvalidRequest
+from services.exceptions import DBOperationFailed, InvalidRequest
 from .project_models import Project
 
 User = get_user_model()
@@ -32,6 +33,8 @@ class ProjectMember(models.Model):
             if commit == True:
                 project_member.save()
             return project_member
+        except IntegrityError:
+            raise DBOperationFailed(detail=_("Project Member already exist on this project"))
         except Exception as exception:
             raise InvalidRequest(detail=_(exception.__str__()))
 
@@ -55,6 +58,16 @@ class ProjectMemberSchemaLessData(models.Model):
         max_length=200,
         verbose_name=_("Member Fullname")
     )
+
+    @classmethod
+    def create_factory(cls, commit=True, **kwargs):
+        try:
+            project_member_schemaless_data = cls(**kwargs)
+            if commit == True:
+                project_member_schemaless_data.save()
+            return project_member_schemaless_data
+        except Exception as exception:
+            raise InvalidRequest(detail=_(exception.__str__()))
 
 
 
