@@ -21,6 +21,8 @@ class ProjectMember(models.Model):
         related_name='user_projects',
         verbose_name=_("Project Member")
     )
+    class Meta:
+        unique_together = [("project", "member")]
 
 
 class ProjectMemberSchemaLessData(models.Model):
