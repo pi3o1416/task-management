@@ -84,6 +84,7 @@ class Project(models.Model):
     def delete(self):
         try:
             super().delete()
+            return True
         except Exception as exception:
             raise DBOperationFailed(detail={"detial":_(exception.__str__())})
 
@@ -97,7 +98,7 @@ class Project(models.Model):
                 project.save()
             return project
         except Exception as exception:
-            raise InvalidRequest(detail={"detail":_(exception.__str__())})
+            raise InvalidRequest(detail={"detail": _(exception.__str__())})
 
     @property
     def extended_data(self):
@@ -105,6 +106,15 @@ class Project(models.Model):
             return self.schemaless_data
         except ObjectDoesNotExist:
             return None
+
+    @classmethod
+    def update(cls, instance_pk, **kwargs):
+        try:
+            instance = cls(pk=instance_pk, **kwargs)
+            instance.save(update_fields=kwargs.keys())
+            return instance
+        except Exception as exception:
+            raise InvalidRequest(detail={"detail": _(exception.__str__())})
 
 class ProjectSchemaLessData(models.Model):
     project = models.OneToOneField(
