@@ -80,6 +80,22 @@ class ProjectViewSet(ViewSet, PageNumberPagination):
         return Project.objects.get_object_by_pk(pk=pk)
 
 
+class DepartmentProjects(APIView, PageNumberPagination):
+    serializer_class = ProjectDetailSerializer
+
+    def get(self, request, department_pk):
+        department = self.get_object(pk=department_pk)
+        department_projects = department.department_projects.all()
+        filtered_queryset = department_projects.filter_with_reverse_related_fields(request=request)
+        page = self.paginate_queryset(queryset=filtered_queryset, request=request)
+        serializer = self.serializer_class(instance=page, many=True)
+        return self.get_paginated_response(data=serializer.data)
+
+    def get_object(self, pk):
+        department = Department.objects.get_department(pk)
+        return department
+
+
 
 
 
