@@ -116,6 +116,25 @@ class Project(models.Model):
         except Exception as exception:
             raise InvalidRequest(detail={"detail": _(exception.__str__())})
 
+    def active_project(self):
+        if self.status != self.ProjectStatus.ACTIVE:
+            self.status = self.ProjectStatus.ACTIVE
+            project = Project.update(self.pk, status=self.ProjectStatus.ACTIVE)
+            self.status = project.status
+        return True
+
+    def finish_project(self):
+        if self.status != self.ProjectStatus.FINISHED:
+            project = Project.update(self.pk, status=self.ProjectStatus.FINISHED)
+            self.status = project.status
+        return True
+
+    def pause_project(self):
+        if self.status != self.ProjectStatus.PAUSED:
+            project = Project.update(self.pk, status=self.ProjectStatus.PAUSED)
+            self.status = project.status
+        return True
+
 class ProjectSchemaLessData(models.Model):
     project = models.OneToOneField(
         to=Project,
