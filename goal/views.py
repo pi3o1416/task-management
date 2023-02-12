@@ -13,13 +13,6 @@ from .serializers import GoalSerializer, EmptySerializer, GoalReviewSerializer, 
 
 
 class GoalViewSet(ViewSet, PageNumberPagination):
-    def create(self, request):
-        serializer = self.get_serializer_class()(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response({"field_errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
     def list(self, request):
         goals = Goal.objects.filter_from_query_params(request)
         page = self.paginate_queryset(queryset=goals, request=request)
@@ -96,6 +89,21 @@ class DepartmentGoals(APIView):
         filtered_department_goals = department_goals.filter_from_query_params(request)
         serializer = self.serializer_class(instance=filtered_department_goals, many=True)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
+
+
+class GoalCreateView(APIView):
+    serializer_class = GoalSerializer
+    def post(self, request, department_pk):
+        department = Department.objects.get_department(department_pk)
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            goal = serializer.create(commit=False)
+            goal.department = department
+            goal.save()
+            response_serializer = GoalSerializer(instance=goal)
+            return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+        return Response({"field_errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 
