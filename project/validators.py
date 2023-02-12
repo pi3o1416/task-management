@@ -3,6 +3,8 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 
+from task.models import Task
+
 User = get_user_model()
 
 
@@ -40,6 +42,12 @@ def validate_project_owner_permission(project_owner):
         return project_owner
     raise ValidationError(message="Project owner does not have permission to own project")
 
+def validate_project_task_type(project_task):
+    if not isinstance(project_task, Task):
+        project_task = Task.objects.get_task_by_pk(project_task)
+    if project_task.task_type == Task.TaskType.PROJECT_TASK:
+        return project_task
+    raise ValidationError(message="Task type should be project task")
 
 
 
