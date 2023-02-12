@@ -1,7 +1,7 @@
 
 from django.contrib import admin
 
-from .models import Project, ProjectSchemaLessData, ProjectAttachment, ProjectMember, ProjectMemberSchemaLessData
+from .models import Project, ProjectSchemaLessData, ProjectAttachment, ProjectMember, ProjectMemberSchemaLessData, ProjectTask
 
 
 @admin.register(Project)
@@ -21,6 +21,10 @@ class ProjectAttachmentAdmin(admin.ModelAdmin):
     list_display = ['pk', 'project', 'attached_by', 'attachment', 'attached_by',
                     'attached_by_user_username', 'attached_by_user_fullname']
 
+
+@admin.register(ProjectTask)
+class ProjectTaskAdmin(admin.ModelAdmin):
+    list_display = ['pk', 'project', 'task']
 
 
 
