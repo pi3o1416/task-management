@@ -16,6 +16,7 @@
 #media/files
 /media/task-attachments/*
 /media/users-photos/*
+/media/project-attachments/
 .env
 dev.env
 .idea
