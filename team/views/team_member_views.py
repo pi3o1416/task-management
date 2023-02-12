@@ -34,7 +34,7 @@ class TeamMemberViewSet(ViewSet, PageNumberPagination):
     def destroy(self, request, pk):
         team_member = self.get_object(pk)
         team_member.delete()
-        return Response(data={"detail": _("Team member delete successful")})
+        return Response(data={"detail": _("Team member delete successful")}, status=status.HTTP_202_ACCEPTED)
 
     def get_object(self, pk):
         team_member = TeamMember.objects.get_object_by_pk(pk)
