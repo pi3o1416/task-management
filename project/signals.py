@@ -2,7 +2,6 @@
 from django.utils.translation import gettext_lazy as _
 from django.dispatch import receiver
 from django.db.models.signals import post_save
-from project.models.project_member_models import ProjectMemberSchemaLessData
 
 from services.exceptions import DBOperationFailed, InvalidRequest
 from .models import Project, ProjectSchemaLessData, ProjectMember
@@ -58,21 +57,6 @@ def add_project_manager_as_project_member(sender, instance:Project, created=None
             instance.delete()
             raise DBOperationFailed(detail=_("Project create cancled due to failure in add project manager as project member"))
 
-
-@receiver(signal=post_save, sender=ProjectMember)
-def create_project_member_schemaless_data(sender, instance:ProjectMember, created=None, update_fields=None, **kwargs):
-    if created:
-        try:
-            project_member_schemaless_data = ProjectMemberSchemaLessData.create_factory(
-                commit=True,
-                project=instance.project,
-                member_username=instance.member.username,
-                member_fullname=instance.member.full_name,
-            )
-            return project_member_schemaless_data
-        except InvalidRequest:
-            instance.delete()
-            raise InvalidRequest(detail={"detail": _("Project Member create cancled due to failure in project schemaless data creation")})
 
 
 
