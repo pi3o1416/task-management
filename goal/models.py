@@ -4,6 +4,7 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework.exceptions import APIException
 
 from department.models import Department
+from services.exceptions import InvalidRequest
 
 from .querysets import GoalQuerySet
 from .validators import validate_completion, validate_year
@@ -22,6 +23,13 @@ class Goal(models.Model):
         QUARTER3 = 3, _("Quarter 3")
         QUARTER4 = 4, _("Quarter 4")
 
+    error_messages = {
+        "CREATE": "Goal create failed.",
+        "UPDATE": "Goal update failed.",
+        "DELETE": "Goal delete failed.",
+        "RETRIEVE": "Goal retrieve failed.",
+        "PATCH": "Goal patch failed.",
+    }
 
     department = models.ForeignKey(
         verbose_name=_("Department"),
@@ -95,6 +103,20 @@ class Goal(models.Model):
             self.delete()
         except Exception as exception:
             raise APIException({"detail": exception.args})
+
+    @classmethod
+    def create_factory(cls, commit=True, **kwargs):
+        try:
+            goal = cls(
+                **kwargs
+            )
+            if commit == True:
+                goal.save()
+            return goal
+        except Exception as exception:
+            raise InvalidRequest(
+                detail={"detail": _(cls.error_messages["CREATE"] + exception.__str__())}
+            )
 
 
 
