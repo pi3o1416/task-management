@@ -11,7 +11,12 @@ class GoalSerializer(serializers.ModelSerializer):
     class Meta:
         model = Goal
         fields = ['pk', 'department', 'title', 'description', 'year', 'quarter', 'review_status', 'review', 'completion']
-        read_only_fields = ['pk', 'review_status', 'review', 'completion']
+        read_only_fields = ['pk', 'review_status', 'review', 'completion', 'department']
+
+    def create(self, commit=True):
+        assert self.validated_data != None, "Validate serializer before create goal instance"
+        goal = Goal.create_factory(commit=commit, **self.validated_data)
+        return goal
 
 
 class GoalReviewSerializer(serializers.ModelSerializer):
