@@ -11,6 +11,14 @@ User = get_user_model()
 
 
 class ProjectMember(models.Model):
+    error_messages = {
+        "CREATE": "Project member create failed.",
+        "UPDATE": "Project member update failed.",
+        "DELETE": "Project member delete failed.",
+        "RETRIEVE": "Project member retrieve failed.",
+        "PATCH": "Project member patch failed.",
+    }
+
     project = models.ForeignKey(
         to=Project,
         related_name='project_members',
@@ -34,12 +42,20 @@ class ProjectMember(models.Model):
                 project_member.save()
             return project_member
         except IntegrityError:
-            raise DBOperationFailed(detail=_("Project Member already exist on this project"))
+            raise DBOperationFailed(detail=_(cls.error_messages["CREATE"] + "Project Member already exist on this project"))
         except Exception as exception:
-            raise InvalidRequest(detail=_(exception.__str__()))
+            raise InvalidRequest(detail=_(cls.error_messages["CREATE"] + exception.__str__()))
 
 
 class ProjectMemberSchemaLessData(models.Model):
+    error_messages = {
+        "CREATE": "Project member schemaless data create failed.",
+        "UPDATE": "Project member schemaless data update failed.",
+        "DELETE": "Project member schemaless data delete failed.",
+        "RETRIEVE": "Project member schemaless data retrieve failed.",
+        "PATCH": "Project member schemaless data patch failed.",
+    }
+
     project = models.OneToOneField(
         to=ProjectMember,
         on_delete=models.CASCADE,
@@ -67,7 +83,7 @@ class ProjectMemberSchemaLessData(models.Model):
                 project_member_schemaless_data.save()
             return project_member_schemaless_data
         except Exception as exception:
-            raise InvalidRequest(detail=_(exception.__str__()))
+            raise InvalidRequest(detail=_(cls.error_messages["CREATE"] + exception.__str__()))
 
 
 
