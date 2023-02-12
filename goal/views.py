@@ -72,7 +72,7 @@ class GoalViewSet(ViewSet, PageNumberPagination):
     def get_serializer_class(self):
         if self.action in ['reject_goal', 'accept_goal']:
             return EmptySerializer
-        elif self.action == 'update_completion_percentage':
+        elif self.action == 'update_achivement_percentage':
             return GoalPercentageSerializer
         elif self.action == 'update':
             return GoalUpdateSerializer
