@@ -54,45 +54,15 @@ class ProjectMember(models.Model):
         except Exception as exception:
             raise DBOperationFailed(detail={"detail": _(self.error_messages["DELETE"] + exception.__str__())})
 
+    @property
+    def member_username(self):
+        return self.member.username
+
+    @property
+    def member_fullname(self):
+        return self.member.full_name
 
 
-class ProjectMemberSchemaLessData(models.Model):
-    error_messages = {
-        "CREATE": "Project member schemaless data create failed.",
-        "UPDATE": "Project member schemaless data update failed.",
-        "DELETE": "Project member schemaless data delete failed.",
-        "RETRIEVE": "Project member schemaless data retrieve failed.",
-        "PATCH": "Project member schemaless data patch failed.",
-    }
-
-    project = models.OneToOneField(
-        to=ProjectMember,
-        on_delete=models.CASCADE,
-        related_name='project_member_schemaless_data',
-        verbose_name=_("Project")
-    )
-    project_title = models.CharField(
-        max_length=500,
-        verbose_name=_("Project Title"),
-    )
-    member_username = models.CharField(
-        max_length=200,
-        verbose_name=_("Member Username")
-    )
-    member_fullname = models.CharField(
-        max_length=200,
-        verbose_name=_("Member Fullname")
-    )
-
-    @classmethod
-    def create_factory(cls, commit=True, **kwargs):
-        try:
-            project_member_schemaless_data = cls(**kwargs)
-            if commit == True:
-                project_member_schemaless_data.save()
-            return project_member_schemaless_data
-        except Exception as exception:
-            raise InvalidRequest(detail=_(cls.error_messages["CREATE"] + exception.__str__()))
 
 
 
