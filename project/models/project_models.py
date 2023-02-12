@@ -1,14 +1,16 @@
 
-from collections import namedtuple
+import os
 from django.db import models
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db.utils import IntegrityError
+from django.conf import settings
 
 from services.exceptions import DBOperationFailed, InvalidRequest
 from department.models import Department
+
 from ..querysets import ProjectQuerySet
 from ..validators import validate_project_deadline, validate_project_manager_permission, validate_project_owner_permission, validate_budget
 
@@ -100,7 +102,9 @@ class Project(models.Model):
             super().delete()
             return True
         except Exception as exception:
-            raise DBOperationFailed(detail={"detial": _(self.error_messages["DELETE"] + exception.__str__())})
+            raise DBOperationFailed(detail={
+                "detial": _(self.error_messages["DELETE"] + exception.__str__())
+            })
 
     @classmethod
     def create_factory(cls, commit=True, **kwargs):
@@ -112,11 +116,13 @@ class Project(models.Model):
                 project.save()
             return project
         except IntegrityError as exception:
-            raise DBOperationFailed(
-                detail={"detail": _(cls.error_messages["CREATE"] + "Project with same title and department already exist.")}
-            )
+            raise DBOperationFailed(detail={
+                "detail": _(cls.error_messages["CREATE"] + "Project with same title and department already exist.")
+            })
         except Exception as exception:
-            raise InvalidRequest(detail={"detail": _(cls.error_messages["CREATE"] + exception.__str__())})
+            raise InvalidRequest(detail={
+                "detail": _(cls.error_messages["CREATE"] + exception.__str__())
+            })
 
     @property
     def extended_data(self):
@@ -155,6 +161,9 @@ class Project(models.Model):
             project = Project.update(self.pk, status=self.ProjectStatus.PAUSED)
             self.status = project.status
         return True
+
+    def get_project_members(self):
+        return self.project_members.all()
 
 
 class ProjectSchemaLessData(models.Model):
@@ -206,3 +215,97 @@ class ProjectSchemaLessData(models.Model):
             raise InvalidRequest(
                 detail={"detail": _(cls.error_messages["CREATE"] + exception.__str__())}
             )
+
+
+
+def project_attachment_upload_path(instance, filename):
+    file_path = 'project-attachments/{}/{}'.format(instance.project.pk, filename)
+    desired_path = os.path.join(settings.MEDIA_ROOT, file_path)
+    name, extension = os.path.splitext(filename)
+    counter = 1
+    while os.path.exists(desired_path) == True:
+        file_path = 'project-attachments/{}/{}_{}{}'.format(instance.project.pk, name, counter, extension)
+        desired_path = os.path.join(settings.MEDIA_ROOT, file_path)
+        counter += 1
+    return file_path
+
+
+
+class ProjectAttachment(models.Model):
+    error_messages = {
+        "CREATE": "Project attachment create failed.",
+        "UPDATE": "Project attachment update failed.",
+        "DELETE": "Project attachment delete failed.",
+        "RETRIEVE": "Project attachment retrieve failed.",
+        "PATCH": "Project attachment patch failed.",
+    }
+
+    project = models.ForeignKey(
+        to=Project,
+        on_delete=models.CASCADE,
+        related_name='project_attachments',
+        verbose_name=_("Project")
+    )
+    attached_by = models.ForeignKey(
+        to=User,
+        on_delete=models.RESTRICT,
+        related_name='attachments_on_project',
+        verbose_name=_("Attached by".title())
+    )
+    attachment = models.FileField(
+        upload_to=project_attachment_upload_path,
+        verbose_name=_("Project Attachment".title())
+    )
+    attached_at = models.DateTimeField(
+        verbose_name=_("Attached at".title()),
+        auto_now_add=True
+    )
+
+    def clean(self):
+        project = self.project
+        if not project.get_project_members().filter(member=self.attached_by).exists():
+            raise ValidationError(message=_(self.error_messages["CREATE"] + "Attached by user does not belong to this project."))
+
+    @classmethod
+    def create_factory(cls, commit = True, **kwargs):
+        try:
+            assert kwargs.get("project") != None, "Project should not be empty"
+            assert kwargs.get("attachment") != None, "Attachment should not be empty"
+            assert isinstance(kwargs.get("attached_by"), User), "Please provide a valid user"
+            project_attachment = cls(**kwargs)
+            if commit == True:
+                project_attachment.save()
+            return project_attachment
+        except AssertionError as exception:
+            breakpoint()
+            raise InvalidRequest(detail={
+                "detail": _(cls.error_messages["CREATE"] + exception.__str__())
+            })
+        except Exception as exception:
+            breakpoint()
+            raise InvalidRequest(detail={
+                "detail": _(cls.error_messages["CREATE"] + exception.__str__())
+            })
+
+    def delete(self):
+        try:
+            super().delete()
+            return True
+        except Exception as exception:
+            raise DBOperationFailed(detail={
+                "detail": _(self.error_messages["DELETE"] + exception.__str__())
+            })
+
+    @property
+    def attached_by_user_username(self):
+        return self.attached_by.username
+
+    @property
+    def attached_by_user_fullname(self):
+        return self.attached_by.full_name
+
+
+
+
+
+
