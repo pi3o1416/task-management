@@ -3,6 +3,7 @@ from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.utils import IntegrityError
+from django.core.exceptions import ValidationError
 
 from services.exceptions import DBOperationFailed, InvalidRequest
 from .project_models import Project
@@ -45,6 +46,14 @@ class ProjectMember(models.Model):
             raise DBOperationFailed(detail=_(cls.error_messages["CREATE"] + "Project Member already exist on this project"))
         except Exception as exception:
             raise InvalidRequest(detail=_(cls.error_messages["CREATE"] + exception.__str__()))
+
+    def delete(self):
+        try:
+            super().delete()
+            return True
+        except Exception as exception:
+            raise DBOperationFailed(detail={"detail": _(self.error_messages["DELETE"] + exception.__str__())})
+
 
 
 class ProjectMemberSchemaLessData(models.Model):
