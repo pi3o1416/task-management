@@ -1,4 +1,5 @@
 
+from collections import namedtuple
 from django.db import models
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.translation import gettext_lazy as _
@@ -6,7 +7,7 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db.utils import IntegrityError
 
-from services.exceptions import  DBOperationFailed, InvalidRequest
+from services.exceptions import DBOperationFailed, InvalidRequest
 from department.models import Department
 from ..querysets import ProjectQuerySet
 from ..validators import validate_project_deadline, validate_project_manager_permission, validate_project_owner_permission, validate_budget
@@ -19,6 +20,14 @@ class Project(models.Model):
         PAUSED = "PAU", _("Paused")
         ACTIVE = "ACT", _("Active")
         FINISHED = "FIN", _("Active")
+
+    error_messages = {
+        "CREATE": "Project create failed.",
+        "UPDATE": "Project update failed.",
+        "DELETE": "Project delete failed.",
+        "RETRIEVE": "Project retrieve failed.",
+        "PATCH": "Project patch failed.",
+    }
 
     title = models.CharField(
         verbose_name=_("Project Title".title()),
@@ -75,9 +84,13 @@ class Project(models.Model):
         try:
             project_manager = self.project_manager
             if project_manager.user_department.department != self.department:
-                raise ValidationError(message=_("Project manager should in same department as user department"))
+                raise ValidationError(
+                    message=_(self.error_messages["CREATE"] + ": Project manager should in same department as user department")
+                )
         except ObjectDoesNotExist:
-            raise ValidationError(message=_("Project manager does not belong to any department"))
+            raise ValidationError(
+                message=_(self.error_messages["CREATE"] + "Project manager does not belong to any department")
+            )
 
     def __str__(self):
         return self.title
@@ -87,7 +100,7 @@ class Project(models.Model):
             super().delete()
             return True
         except Exception as exception:
-            raise DBOperationFailed(detail={"detial":_(exception.__str__())})
+            raise DBOperationFailed(detail={"detial": _(self.error_messages["DELETE"] + exception.__str__())})
 
     @classmethod
     def create_factory(cls, commit=True, **kwargs):
@@ -99,9 +112,11 @@ class Project(models.Model):
                 project.save()
             return project
         except IntegrityError as exception:
-            raise DBOperationFailed(detail={"detail": _("Project with same title and department already exist.")})
+            raise DBOperationFailed(
+                detail={"detail": _(cls.error_messages["CREATE"] + "Project with same title and department already exist.")}
+            )
         except Exception as exception:
-            raise InvalidRequest(detail={"detail": _(exception.__str__())})
+            raise InvalidRequest(detail={"detail": _(cls.error_messages["CREATE"] + exception.__str__())})
 
     @property
     def extended_data(self):
@@ -117,7 +132,9 @@ class Project(models.Model):
             instance.save(update_fields=kwargs.keys())
             return instance
         except Exception as exception:
-            raise InvalidRequest(detail={"detail": _(exception.__str__())})
+            raise InvalidRequest(
+                detail={"detail": _(cls.error_messages["UPDATE"] + exception.__str__())}
+            )
 
     def active_project(self):
         if self.status != self.ProjectStatus.ACTIVE:
@@ -128,7 +145,8 @@ class Project(models.Model):
 
     def finish_project(self):
         if self.status != self.ProjectStatus.FINISHED:
-            project = Project.update(self.pk, status=self.ProjectStatus.FINISHED)
+            project = Project.update(
+                self.pk, status=self.ProjectStatus.FINISHED)
             self.status = project.status
         return True
 
@@ -138,7 +156,16 @@ class Project(models.Model):
             self.status = project.status
         return True
 
+
 class ProjectSchemaLessData(models.Model):
+    error_messages = {
+        "CREATE": "Project schemaless data create failed.",
+        "UPDATE": "Project schemaless data update failed.",
+        "DELETE": "Project schemaless data delete failed.",
+        "RETRIEVE": "Project schemaless data retrieve failed.",
+        "PATCH": "Project schemaless data patch failed.",
+    }
+
     project = models.OneToOneField(
         to=Project,
         on_delete=models.CASCADE,
@@ -176,20 +203,6 @@ class ProjectSchemaLessData(models.Model):
                 project_schemaless_data.save()
             return project_schemaless_data
         except Exception as exception:
-            raise InvalidRequest(detail={"detail":_(exception.__str__())})
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+            raise InvalidRequest(
+                detail={"detail": _(cls.error_messages["CREATE"] + exception.__str__())}
+            )
