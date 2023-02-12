@@ -90,7 +90,7 @@ class Goal(models.Model):
         self.review = None
         self.save()
 
-    def sefe_delete(self):
+    def safe_delete(self):
         try:
             self.delete()
         except Exception as exception:
