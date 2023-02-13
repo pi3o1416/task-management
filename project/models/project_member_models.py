@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
 
 from services.exceptions import DBOperationFailed, InvalidRequest
 from .project_models import Project
+from ..querysets import ProjectMemberQuerySet
 
 User = get_user_model()
 
@@ -32,6 +33,8 @@ class ProjectMember(models.Model):
         related_name='user_projects',
         verbose_name=_("Project Member")
     )
+    objects = ProjectMemberQuerySet.as_manager()
+
     class Meta:
         unique_together = [("project", "member")]
 
