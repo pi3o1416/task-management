@@ -8,8 +8,8 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from department.models import Department
-from ..serializers import ProjectSerializer, ProjectDetailSerializer
-from ..models import Project
+from ..serializers import ProjectSerializer, ProjectDetailSerializer, ProjectAttachmentSerializer
+from ..models import Project, ProjectAttachment
 
 
 class ProjectViewSet(ViewSet, PageNumberPagination):
@@ -94,6 +94,58 @@ class DepartmentProjects(APIView, PageNumberPagination):
     def get_object(self, pk):
         department = Department.objects.get_department(pk)
         return department
+
+
+class APIViewTemplate(APIView):
+    def __init__(self, model=None):
+        self.model = model
+
+    def get_object(self, pk):
+        assert self.model != None, "Initialize model before get object"
+        return self.model.objects.get_object_by_pk(pk=pk)
+
+
+class ProjectAttachmentCreate(APIViewTemplate):
+    serializer_class = ProjectAttachmentSerializer
+    model = Project
+
+    def post(self, request, project_pk):
+        project = self.get_object(pk=project_pk)
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            project_attachment = serializer.create(commit=False)
+            project_attachment.update(
+                commit=True,
+                attached_by=request.user,
+                project=project
+            )
+            response_serializer = ProjectAttachmentSerializer(instance=project_attachment)
+            return Response(data=response_serializer.data, status=status.HTTP_201_CREATED)
+        return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ProjectAttachmentDelete(APIViewTemplate):
+    model = ProjectAttachment
+
+    def destroy(self, request, attachment_pk):
+        attachment = self.get_object(pk=attachment_pk)
+        attachment.delete()
+        return Response(
+            data={"detail": _("Attachment delete successful")},
+            status=status.HTTP_202_ACCEPTED
+        )
+
+class ProjectAttachmentsList(APIViewTemplate, PageNumberPagination):
+    model = Project
+
+    def get(self, request, project_pk):
+        project = self.get_object(pk=project_pk)
+        project_attachments = project.get_project_attachments()
+        page = self.paginate_queryset(queryset=project_attachments, request=request)
+        response_serializer = ProjectAttachmentSerializer(instance=page, many=True)
+        return self.get_paginated_response(data=response_serializer.data)
+
+
 
 
 
