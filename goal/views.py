@@ -64,10 +64,8 @@ class GoalViewSet(ViewSet, PageNumberPagination):
         serializer = self.get_serializer_class()(data=request.data)
         if serializer.is_valid():
             serializer.update_percentage(instance=goal)
-            return Response(data={"detail": [_("Goal completion percentage update successful")]}, status=status.HTTP_200_OK)
+            return Response(data={"detail": [_("Goal completion percentage update successful")]}, status=status.HTTP_202_ACCEPTED)
         return Response(data={"field_errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
-
 
     def get_serializer_class(self):
         if self.action in ['reject_goal', 'accept_goal']:
