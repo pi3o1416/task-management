@@ -87,11 +87,13 @@ class Project(models.Model):
             project_manager = self.project_manager
             if project_manager.user_department.department != self.department:
                 raise ValidationError(
-                    message=_(self.error_messages["CREATE"] + ": Project manager should in same department as user department")
+                    message=_(
+                        self.error_messages["CREATE"] + ": Project manager should in same department as user department")
                 )
         except ObjectDoesNotExist:
             raise ValidationError(
-                message=_(self.error_messages["CREATE"] + "Project manager does not belong to any department")
+                message=_(
+                    self.error_messages["CREATE"] + "Project manager does not belong to any department")
             )
 
     def __str__(self):
@@ -131,39 +133,42 @@ class Project(models.Model):
         except ObjectDoesNotExist:
             return None
 
-    @classmethod
-    def update(cls, instance_pk, **kwargs):
-        try:
-            instance = cls(pk=instance_pk, **kwargs)
-            instance.save(update_fields=kwargs.keys())
-            return instance
-        except Exception as exception:
-            raise InvalidRequest(
-                detail={"detail": _(cls.error_messages["UPDATE"] + exception.__str__())}
-            )
+    def update(self, commit=True, **kwargs):
+        previous_state = self
+        fields = [field.name for field in self._meta.fields]
+        for key, value in kwargs:
+            if key in fields:
+                setattr(self, key, value)
+            else:
+                self = previous_state
+                raise InvalidRequest(detail={
+                    "detail": _(self.error_messages["UPDATE"] + "{} is not an valid field of Project model.")
+                })
+        if commit == True:
+            self.save(update_fields=kwargs.keys())
+        return True
+
 
     def active_project(self):
         if self.status != self.ProjectStatus.ACTIVE:
-            self.status = self.ProjectStatus.ACTIVE
-            project = Project.update(self.pk, status=self.ProjectStatus.ACTIVE)
-            self.status = project.status
+            self.update(status=self.ProjectStatus.ACTIVE)
         return True
 
     def finish_project(self):
         if self.status != self.ProjectStatus.FINISHED:
-            project = Project.update(
-                self.pk, status=self.ProjectStatus.FINISHED)
-            self.status = project.status
+            self.update(status=self.ProjectStatus.FINISHED)
         return True
 
     def pause_project(self):
-        if self.status != self.ProjectStatus.PAUSED:
-            project = Project.update(self.pk, status=self.ProjectStatus.PAUSED)
-            self.status = project.status
+        if self.status != self.ProjectStatus.FINISHED:
+            self.update(status=self.ProjectStatus.PAUSED)
         return True
 
     def get_project_members(self):
         return self.project_members.all()
+
+    def get_project_attachments(self):
+        return self.project_attachments.all()
 
 
 class ProjectSchemaLessData(models.Model):
@@ -213,22 +218,23 @@ class ProjectSchemaLessData(models.Model):
             return project_schemaless_data
         except Exception as exception:
             raise InvalidRequest(
-                detail={"detail": _(cls.error_messages["CREATE"] + exception.__str__())}
+                detail={"detail": _(
+                    cls.error_messages["CREATE"] + exception.__str__())}
             )
 
 
-
 def project_attachment_upload_path(instance, filename):
-    file_path = 'project-attachments/{}/{}'.format(instance.project.pk, filename)
+    file_path = 'project-attachments/{}/{}'.format(
+        instance.project.pk, filename)
     desired_path = os.path.join(settings.MEDIA_ROOT, file_path)
     name, extension = os.path.splitext(filename)
     counter = 1
     while os.path.exists(desired_path) == True:
-        file_path = 'project-attachments/{}/{}_{}{}'.format(instance.project.pk, name, counter, extension)
+        file_path = 'project-attachments/{}/{}_{}{}'.format(
+            instance.project.pk, name, counter, extension)
         desired_path = os.path.join(settings.MEDIA_ROOT, file_path)
         counter += 1
     return file_path
-
 
 
 class ProjectAttachment(models.Model):
@@ -265,14 +271,17 @@ class ProjectAttachment(models.Model):
     def clean(self):
         project = self.project
         if not project.get_project_members().filter(member=self.attached_by).exists():
-            raise ValidationError(message=_(self.error_messages["CREATE"] + "Attached by user does not belong to this project."))
+            raise ValidationError(message=_(
+                self.error_messages["CREATE"] + "Attached by user does not belong to this project."))
 
     @classmethod
-    def create_factory(cls, commit = True, **kwargs):
+    def create_factory(cls, commit=True, **kwargs):
         try:
             assert kwargs.get("project") != None, "Project should not be empty"
-            assert kwargs.get("attachment") != None, "Attachment should not be empty"
-            assert isinstance(kwargs.get("attached_by"), User), "Please provide a valid user"
+            assert kwargs.get(
+                "attachment") != None, "Attachment should not be empty"
+            assert isinstance(kwargs.get("attached_by"),
+                              User), "Please provide a valid user"
             project_attachment = cls(**kwargs)
             if commit == True:
                 project_attachment.save()
@@ -297,6 +306,21 @@ class ProjectAttachment(models.Model):
                 "detail": _(self.error_messages["DELETE"] + exception.__str__())
             })
 
+    def update(self, commit=True, **kwargs):
+        previous_state = self
+        fields = [field.name for field in self._meta.fields]
+        for key, value in kwargs:
+            if key in fields:
+                setattr(self, key, value)
+            else:
+                self = previous_state
+                raise InvalidRequest(detail={
+                    "detail": _(self.error_messages["UPDATE"] + "{} is not an valid field of Project model.")
+                })
+        if commit == True:
+            self.save(update_fields=kwargs.keys())
+        return True
+
     @property
     def attached_by_user_username(self):
         return self.attached_by.username
@@ -304,9 +328,3 @@ class ProjectAttachment(models.Model):
     @property
     def attached_by_user_fullname(self):
         return self.attached_by.full_name
-
-
-
-
-
-
