@@ -11,7 +11,7 @@ from django.conf import settings
 from services.exceptions import DBOperationFailed, InvalidRequest
 from department.models import Department
 
-from ..querysets import ProjectQuerySet
+from ..querysets import ProjectQuerySet, ProjectAttachmentQuerySet
 from ..validators import validate_project_deadline, validate_project_manager_permission, validate_project_owner_permission, validate_budget
 
 User = get_user_model()
@@ -260,6 +260,7 @@ class ProjectAttachment(models.Model):
         verbose_name=_("Attached at".title()),
         auto_now_add=True
     )
+    objects = ProjectAttachmentQuerySet.as_manager()
 
     def clean(self):
         project = self.project

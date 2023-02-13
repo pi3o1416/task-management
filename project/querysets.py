@@ -12,4 +12,8 @@ class ProjectQuerySet(TemplateQuerySet):
         return filtered_projects
 
 
+class ProjectAttachmentQuerySet(TemplateQuerySet):
+    pass
+
+
 
