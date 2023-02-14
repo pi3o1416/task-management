@@ -5,6 +5,7 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import ViewSet
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 
 from department.models import Department
@@ -106,8 +107,11 @@ class APIViewTemplate(APIView):
 
 
 class ProjectAttachmentCreate(APIViewTemplate):
+    permission_classes = [IsAuthenticated]
     serializer_class = ProjectAttachmentSerializer
-    model = Project
+
+    def __init__(self):
+        super().__init__(model=Project)
 
     def post(self, request, project_pk):
         project = self.get_object(pk=project_pk)
@@ -125,9 +129,12 @@ class ProjectAttachmentCreate(APIViewTemplate):
 
 
 class ProjectAttachmentDelete(APIViewTemplate):
-    model = ProjectAttachment
+    permission_classes = [IsAuthenticated]
 
-    def destroy(self, request, attachment_pk):
+    def __init__(self):
+        super().__init__(model=ProjectAttachment)
+
+    def delete(self, request, attachment_pk):
         attachment = self.get_object(pk=attachment_pk)
         attachment.delete()
         return Response(
@@ -136,7 +143,10 @@ class ProjectAttachmentDelete(APIViewTemplate):
         )
 
 class ProjectAttachmentsList(APIViewTemplate, PageNumberPagination):
-    model = Project
+    permission_classes = [IsAuthenticated]
+
+    def __init__(self):
+        super().__init__(model=Project)
 
     def get(self, request, project_pk):
         project = self.get_object(pk=project_pk)
