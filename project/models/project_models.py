@@ -136,7 +136,7 @@ class Project(models.Model):
     def update(self, commit=True, **kwargs):
         previous_state = self
         fields = [field.name for field in self._meta.fields]
-        for key, value in kwargs:
+        for key, value in kwargs.items():
             if key in fields:
                 setattr(self, key, value)
             else:
@@ -145,7 +145,10 @@ class Project(models.Model):
                     "detail": _(self.error_messages["UPDATE"] + "{} is not an valid field of Project model.")
                 })
         if commit == True:
-            self.save(update_fields=kwargs.keys())
+            if self.pk != None:
+                self.save(update_fields=kwargs.keys())
+            else:
+                self.save()
         return True
 
 
@@ -277,22 +280,19 @@ class ProjectAttachment(models.Model):
     @classmethod
     def create_factory(cls, commit=True, **kwargs):
         try:
-            assert kwargs.get("project") != None, "Project should not be empty"
-            assert kwargs.get(
-                "attachment") != None, "Attachment should not be empty"
-            assert isinstance(kwargs.get("attached_by"),
-                              User), "Please provide a valid user"
+            if commit == True:
+                assert isinstance(kwargs.get("attached_by"), User), "Please provide a valid user"
+                assert kwargs.get("project") != None, "Project should not be empty"
+            assert kwargs.get("attachment") != None, "Attachment should not be empty"
             project_attachment = cls(**kwargs)
             if commit == True:
                 project_attachment.save()
             return project_attachment
         except AssertionError as exception:
-            breakpoint()
             raise InvalidRequest(detail={
-                "detail": _(cls.error_messages["CREATE"] + exception.__str__())
+                "detail": _("{} {}".format(cls.error_messages["CREATE"], exception.__str__()))
             })
         except Exception as exception:
-            breakpoint()
             raise InvalidRequest(detail={
                 "detail": _(cls.error_messages["CREATE"] + exception.__str__())
             })
@@ -309,7 +309,7 @@ class ProjectAttachment(models.Model):
     def update(self, commit=True, **kwargs):
         previous_state = self
         fields = [field.name for field in self._meta.fields]
-        for key, value in kwargs:
+        for key, value in kwargs.items():
             if key in fields:
                 setattr(self, key, value)
             else:
@@ -318,7 +318,10 @@ class ProjectAttachment(models.Model):
                     "detail": _(self.error_messages["UPDATE"] + "{} is not an valid field of Project model.")
                 })
         if commit == True:
-            self.save(update_fields=kwargs.keys())
+            if self.pk != None:
+                self.save(update_fields=kwargs.keys())
+            else:
+                self.save()
         return True
 
     @property
