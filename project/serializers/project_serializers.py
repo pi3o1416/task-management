@@ -50,7 +50,7 @@ class ProjectAttachmentSerializer(serializers.ModelSerializer):
         assert self.validated_data != None, "Validate serializer before create instance"
         project_attachment = ProjectAttachment.create_factory(
             commit=commit,
-            kwargs=self.validated_data
+            **self.validated_data
         )
         return project_attachment
 
