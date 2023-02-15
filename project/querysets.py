@@ -16,8 +16,6 @@ class ProjectAttachmentQuerySet(TemplateQuerySet):
     pass
 
 
-class ProjectMemberQuerySet(TemplateQuerySet):
-    pass
 
 
 
