@@ -140,6 +140,9 @@ class Project(models.Model):
         except ObjectDoesNotExist:
             return None
 
+    @property
+    def project_manager_pk(self):
+        return model_to_dict(self).get("project_manager")
 
     def update(self, commit=True, **kwargs):
         previous_state = self
