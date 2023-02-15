@@ -1,5 +1,6 @@
 
 import os
+from django.forms.models import model_to_dict
 from django.db import models
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.translation import gettext_lazy as _
@@ -29,6 +30,7 @@ class Project(models.Model):
         "DELETE": "Project delete failed.",
         "RETRIEVE": "Project retrieve failed.",
         "PATCH": "Project patch failed.",
+        "MEMBER_DELETE": "Project member delete failed."
     }
 
     title = models.CharField(
@@ -73,6 +75,11 @@ class Project(models.Model):
         max_length=3,
         choices=ProjectStatus.choices,
         default=ProjectStatus.PAUSED,
+    )
+    members = models.ManyToManyField(
+        to=User,
+        related_name='user_projects',
+        verbose_name=_("Project Members")
     )
     objects = ProjectQuerySet.as_manager()
 
@@ -133,6 +140,7 @@ class Project(models.Model):
         except ObjectDoesNotExist:
             return None
 
+
     def update(self, commit=True, **kwargs):
         previous_state = self
         fields = [field.name for field in self._meta.fields]
@@ -168,10 +176,11 @@ class Project(models.Model):
         return True
 
     def get_project_members(self):
-        return self.project_members.all()
+        return self.members.all()
 
     def get_project_attachments(self):
         return self.project_attachments.all()
+
 
 
 class ProjectSchemaLessData(models.Model):
