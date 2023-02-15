@@ -184,6 +184,18 @@ class Project(models.Model):
     def get_project_attachments(self):
         return self.project_attachments.all()
 
+    def delete_project_member(self, user):
+        try:
+            user_pk = user.pk
+            project_manager_pk = model_to_dict(self).get('project_manager')
+            if user_pk == project_manager_pk:
+                raise IntegrityError(_("The user assigned as the project manager of the project"))
+            self.members.remove(user)
+            return True
+        except IntegrityError as exception:
+            raise InvalidRequest(detail={
+                "detail": "{} {}".format(self.error_messages["MEMBER_DELETE"], exception.__str__())
+            })
 
 
 class ProjectSchemaLessData(models.Model):
