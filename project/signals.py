@@ -4,7 +4,7 @@ from django.dispatch import receiver
 from django.db.models.signals import post_save
 
 from services.exceptions import DBOperationFailed, InvalidRequest
-from .models import Project, ProjectSchemaLessData, ProjectMember
+from .models import Project, ProjectSchemaLessData
 
 
 @receiver(signal=post_save, sender=Project)
@@ -43,19 +43,8 @@ def update_project_schemaless_data(sender, instance:Project, created=None, updat
 @receiver(signal=post_save, sender=Project)
 def add_project_manager_as_project_member(sender, instance:Project, created=None, update_fields=None, **kwargs):
     if created:
-        try:
-            project_manager = instance.project_manager
-            project_member = ProjectMember.create_factory(
-                commit=True,
-                project=instance,
-                member=project_manager
-            )
-            return project_member
-        except DBOperationFailed:
-            return True
-        except InvalidRequest:
-            instance.delete()
-            raise DBOperationFailed(detail=_("Project create cancled due to failure in add project manager as project member"))
+        project_manager = instance.project_manager
+        instance.members.add(project_manager)
 
 
 
