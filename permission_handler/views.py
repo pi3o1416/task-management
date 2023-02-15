@@ -4,6 +4,7 @@ from django.contrib.auth.models import Permission, Group
 from rest_framework.viewsets import ViewSet
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.pagination import PageNumberPagination
 from rest_framework import status
 
 from authentication.models import CustomUser
@@ -11,7 +12,7 @@ from .serializers import PermissionSerializer, GroupSerializer, GroupDetailSeria
 from .queries import get_group_by_pk, get_permission_by_pk
 
 
-class GroupViewSet(ViewSet):
+class GroupViewSet(ViewSet, PageNumberPagination):
     def create(self, request):
         """
         Group create view
@@ -27,8 +28,10 @@ class GroupViewSet(ViewSet):
         Group list view
         """
         groups = Group.objects.all()
+        page = self.paginate_queryset(queryset=groups, request=request)
         serializer = self.get_serializer_class()(instance=groups, many=True)
-        return Response(data=serializer.data, status=status.HTTP_200_OK)
+        serializer = self.get_serializer_class()(instance=page, many=True)
+        return self.get_paginated_response(data=serializer.data)
 
     def destroy(self, request, pk):
         """
