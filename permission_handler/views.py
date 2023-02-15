@@ -70,14 +70,15 @@ class GroupViewSet(ViewSet, PageNumberPagination):
             return GroupSerializer
 
 
-class PermissionViewSet(ViewSet):
+class PermissionViewSet(ViewSet, PageNumberPagination):
     def list(self, request):
         """
         Permission list view
         """
         permissions = Permission.objects.all()
-        serializer = self.get_serializer_class()(instance=permissions, many=True)
-        return Response(data=serializer.data, status=status.HTTP_200_OK)
+        page = self.paginate_queryset(queryset=permissions, request=request)
+        serializer = self.get_serializer_class()(instance=page, many=True)
+        return self.get_paginated_response(data=serializer.data)
 
     def retrieve(self, request, pk):
         """
