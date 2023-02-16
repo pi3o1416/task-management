@@ -153,7 +153,7 @@ class Project(models.Model):
             else:
                 self = previous_state
                 raise InvalidRequest(detail={
-                    "detail": _(self.error_messages["UPDATE"] + "{} is not an valid field of Project model.")
+                    "detail": _("{} {} is not an valid field of Project model.".format(self.error_messages["UPDATE"], key))
                 })
         if commit == True:
             if self.pk != None:
