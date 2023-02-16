@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'guardian',
     'django_unused_media',
+    'django_cleanup.apps.CleanupConfig',
 
     # Local apps
     'authentication.apps.AuthenticationConfig',
