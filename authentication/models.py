@@ -9,6 +9,7 @@ from django.utils.translation import gettext_lazy as _
 
 from emailservice.emailclient import send_async_email
 
+from services.mixins import ModelUpdateMixin, ModelDeleteMixin
 from .validators import validate_aamarpay_email
 from .querysets import CustomUserManager
 from .services import get_absolute_uri, ACTIVE_ACCOUNT_EMAIL_SUBJECT, PASSWORD_RESET_EMIAL_SUBJECT
@@ -20,13 +21,21 @@ def user_photo_upload_path(instance, file):
     return file_path
 
 
-class CustomUser(AbstractUser):
-    #TODO: Take photo height and width into consideration
+class CustomUser(ModelUpdateMixin, ModelDeleteMixin, AbstractUser):
+    restricted_fields = ['pk']
+    error_messages = {
+        "CREATE": "User create failed.",
+        "UPDATE": "User update failed.",
+        "DELETE": "User delete failed.",
+        "RETRIEVE": "User retrieve failed.",
+        "PATCH": "User patch failed.",
+    }
+
     photo = models.ImageField(
         verbose_name=_("User photo"),
         upload_to=user_photo_upload_path,
         blank=True,
-        null=True,
+        null=True
     )
     email = models.EmailField(
         _("email address"),
@@ -106,20 +115,24 @@ class CustomUser(AbstractUser):
         send_async_email(subject=subject, email_to=email_to, message=html_message)
 
     def activate_account(self):
-        self.is_active = True
-        self.save()
+        if self.is_active != True:
+            self.update(is_active=True)
+        return True
 
     def inactivate_account(self):
-        self.is_active = False
-        self.save()
+        if self.is_active != False:
+            self.update(is_active=False)
+        return True
 
     def give_staff_permissions(self):
-        self.is_staff = True
-        self.save()
+        if self.is_staff != True:
+            self.update(is_active=True)
+        return True
 
     def remove_staff_permissions(self):
-        self.is_staff = False
-        self.save()
+        if self.is_staff != False:
+            self.update(is_active=False)
+        return True
 
 
 
