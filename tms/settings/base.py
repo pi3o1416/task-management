@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'django_extensions',
     'corsheaders',
     'guardian',
+    'django_unused_media',
 
     # Local apps
     'authentication.apps.AuthenticationConfig',
