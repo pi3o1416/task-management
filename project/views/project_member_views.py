@@ -45,7 +45,7 @@ class ProjectMemberDeleteView(APIViewTemplate):
 
     def delete(self, request, project_pk, user_pk):
         project = self.get_object(pk=project_pk)
-        project_member = User.objects.get_user_by_pk(pk=user_pk)
+        project_member = User.objects.get_object_by_pk(pk=user_pk)
         project.delete_project_member(project_member)
         return Response(data={"detail": _("Project member delete successful")})
 
