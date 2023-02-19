@@ -68,6 +68,8 @@ class CustomUser(ModelUpdateMixin, ModelDeleteMixin, AbstractUser):
 
     class Meta:
         ordering = ['username']
+        permissions = (("can_view_all_users", _("Can View All User".title())),
+                       ("can_active_accont", _("Can give staff permission to user".title())))
 
     @property
     def full_name(self):
