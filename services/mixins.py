@@ -2,9 +2,14 @@
 from django.utils.translation import gettext_lazy as _
 from django.db import models
 
-from .exceptions import InvalidRequest
+from .exceptions import InvalidRequest, DBOperationFailed
 
-class ModelUpdateMixins(models.Model):
+
+class ModelUpdateMixin(models.Model):
+    """
+    Model mixin to Update a model instance
+    declare error_messages with UPDATE key and restricted_fields on your model.
+    """
     class Meta:
         abstract=True
 
@@ -30,5 +35,27 @@ class ModelUpdateMixins(models.Model):
             else:
                 self.save(update_fields=kwargs.keys())
         return True
+
+
+class ModelDeleteMixin(models.Model):
+    """
+    Model mixin to delete a model object
+    declare error_messages field with DELETE field on your model
+    """
+    class Meta:
+        abstract=True
+
+    def delete(self):
+        assert hasattr(self, 'error_messages'), "Create error_messages field on your model"
+        assert type(self.error_messages) is type(dict()), "error_messages field should be an dict"
+        assert "DELETE" in self.error_messages, "UPDATE key is absent from error_messages dictionary"
+        try:
+            super().delete()
+            return True
+        except Exception as exception:
+            raise DBOperationFailed(detail={
+                "detail": _(self.error_messages["DELETE"] + exception.__str__())
+            })
+
 
 
