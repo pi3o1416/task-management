@@ -1,18 +1,19 @@
 
+from django.contrib.auth.models import Permission
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import Permission, Group
 from rest_framework.viewsets import ViewSet
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.pagination import PageNumberPagination
 from rest_framework import status
 
+from services.pagination import CustomPageNumberPagination
 from authentication.models import CustomUser
-from .serializers import PermissionSerializer, GroupSerializer, GroupDetailSerializer, PermissionDetailSerializer, GroupAssignSerializer
+from .serializers import PermissionSerializer, GroupSerializer, GroupDetailSerializer, PermissionDetailSerializer, GroupAssignSerializer, GroupMinimalSerializer
 from .queries import get_group_by_pk, get_permission_by_pk
 
 
-class GroupViewSet(ViewSet, PageNumberPagination):
+class GroupViewSet(ViewSet, CustomPageNumberPagination):
     def create(self, request):
         """
         Group create view
@@ -29,7 +30,6 @@ class GroupViewSet(ViewSet, PageNumberPagination):
         """
         groups = Group.objects.all()
         page = self.paginate_queryset(queryset=groups, request=request)
-        serializer = self.get_serializer_class()(instance=groups, many=True)
         serializer = self.get_serializer_class()(instance=page, many=True)
         return self.get_paginated_response(data=serializer.data)
 
@@ -70,15 +70,14 @@ class GroupViewSet(ViewSet, PageNumberPagination):
             return GroupSerializer
 
 
-class PermissionViewSet(ViewSet, PageNumberPagination):
+class PermissionViewSet(ViewSet):
     def list(self, request):
         """
         Permission list view
         """
         permissions = Permission.objects.all()
-        page = self.paginate_queryset(queryset=permissions, request=request)
-        serializer = self.get_serializer_class()(instance=page, many=True)
-        return self.get_paginated_response(data=serializer.data)
+        serializer = self.get_serializer_class()(instance=permissions, many=True)
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
 
     def retrieve(self, request, pk):
         """
@@ -109,11 +108,38 @@ class AssignGroup(APIView):
 
 
 class AllUserPermissions(APIView):
-    serializer_class = GroupDetailSerializer
+    serializer_class = PermissionDetailSerializer
     def get(self, request, user_pk):
-        user = CustomUser.objects.get_user_by_pk(pk=user_pk)
-        serializer = self.serializer_class(instance=user.groups, many=True)
+        user = self.get_object(pk=user_pk)
+        permissions = self.get_queryset(user=user)
+        serializer = self.serializer_class(instance=permissions, many=True)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
+
+    def get_object(self, pk):
+        user = CustomUser.objects.get_object_by_pk(pk=pk)
+        self.check_object_permissions(request=self.request, obj=user)
+        return user
+
+    def get_queryset(self, user):
+        if user.is_superuser == True:
+            return Permission.objects.all()
+        permission = Permission.objects.select_related('content_type').filter(group__user=user)
+        return permission
+
+
+class UserGroups(APIView):
+    serializer_class = GroupMinimalSerializer
+    def get(self, request, user_pk):
+        user = self.get_object(user_pk)
+        user_groups = user.groups.all()
+        serializer = self.serializer_class(instance=user_groups, many=True)
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
+
+
+    def get_object(self, pk):
+        user = CustomUser.objects.get_object_by_pk(pk=pk)
+        return user
+
 
 
 
