@@ -12,8 +12,9 @@ from ..models import CustomUser
 from ..serializers import UserSerializer, UserUpdateSerializer, UploadPhotoSerializer
 from ..permissions import IsAnonymous, UserViewSetPermission
 from ..documentations.basic_view_docs import (
-    UserCreateDoc, UserListDoc, UserRetrieveDoc,
-    UserDestroyDoc, UserUpdateDoc, ActiveAccountDoc
+    UserCreateDoc, UserListDoc, UserRetrieveDoc, UserDestroyDoc, UserUpdateDoc,
+    ActiveAccountDoc, ActiveAccountByAdminDoc, DeactiveAccountByAdminDoc, UploadUserPhotoDoc,
+    GrantStaffPermissionDoc, RemoveStaffPermissionDoc, GetAuthenticatedUserDoc
 )
 
 
@@ -54,7 +55,7 @@ class UserViewSet(viewsets.ViewSet, CustomPageNumberPagination):
         """
         serializer_class = self.get_serializer_class()
         user = self.get_object(pk=pk)
-        serializer =  serializer_class(instance=user)
+        serializer = serializer_class(instance=user)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
 
     @extend_schema(responses=UserDestroyDoc.responses,
@@ -83,6 +84,8 @@ class UserViewSet(viewsets.ViewSet, CustomPageNumberPagination):
             return Response(data=serializer.data, status=status.HTTP_202_ACCEPTED)
         return Response(data={"field_errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
+    @extend_schema(responses=UploadUserPhotoDoc.responses,
+                   parameters=UploadUserPhotoDoc.parameters)
     @action(methods=["patch"], detail=True, url_path='upload-photo')
     def upload_photo(self, request, pk):
         """
@@ -96,7 +99,8 @@ class UserViewSet(viewsets.ViewSet, CustomPageNumberPagination):
             return Response(data=serializer.data, status=status.HTTP_202_ACCEPTED)
         return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    @extend_schema(request=None)
+    @extend_schema(request=None,
+                   responses=GetAuthenticatedUserDoc.responses)
     @action(methods=['get'], detail=False, url_path='get-authenticated-user')
     def get_authenticated_user(self, request):
         """
@@ -106,7 +110,8 @@ class UserViewSet(viewsets.ViewSet, CustomPageNumberPagination):
         serializer = self.get_serializer_class()(instance=user)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
 
-    @extend_schema(request=None)
+    @extend_schema(request=None,
+                   responses=ActiveAccountByAdminDoc.responses)
     @action(methods=['patch'], detail=True, url_path='activate-account')
     def activate_account(self, request, pk):
         """
@@ -116,7 +121,8 @@ class UserViewSet(viewsets.ViewSet, CustomPageNumberPagination):
         user.activate_account()
         return Response(data={"detail": _("User account activation successful")}, status=status.HTTP_202_ACCEPTED)
 
-    @extend_schema(request=None)
+    @extend_schema(request=None,
+                   responses=DeactiveAccountByAdminDoc.responses)
     @action(methods=['patch'], detail=True, url_path='deactivate-account')
     def deactivate_account(self, request, pk):
         """
@@ -126,7 +132,8 @@ class UserViewSet(viewsets.ViewSet, CustomPageNumberPagination):
         user.deactivate_account()
         return Response(data={"detail": _("User account deactivate successful")}, status=status.HTTP_202_ACCEPTED)
 
-    @extend_schema(request=None)
+    @extend_schema(request=None,
+                   responses=GrantStaffPermissionDoc.responses)
     @action(methods=['patch'], detail=True, url_path='grant-staff-permission')
     def give_user_staff_permission(self, request, pk):
         """
@@ -136,7 +143,8 @@ class UserViewSet(viewsets.ViewSet, CustomPageNumberPagination):
         user.give_staff_permissions()
         return Response(data={"detail": _("User staff permission given")}, status=status.HTTP_202_ACCEPTED)
 
-    @extend_schema(request=None)
+    @extend_schema(request=None,
+                   responses=RemoveStaffPermissionDoc.responses)
     @action(methods=['patch'], detail=True, url_path='remove-staff-permission')
     def remove_user_staff_permission(self, request, pk):
         """
@@ -145,8 +153,6 @@ class UserViewSet(viewsets.ViewSet, CustomPageNumberPagination):
         user = self.get_object(pk=pk)
         user.remove_staff_permissions()
         return Response(data={"detail": _("User staff permission removed")}, status=status.HTTP_202_ACCEPTED)
-
-
 
     def get_serializer_class(self):
         if self.action == 'update':
@@ -164,6 +170,7 @@ class UserViewSet(viewsets.ViewSet, CustomPageNumberPagination):
 
 class ActiveAccount(APIView):
     permission_classes = [IsAnonymous]
+
     @extend_schema(responses=ActiveAccountDoc.responses,
                    parameters=ActiveAccountDoc.parameters)
     def get(self, request, uidb64, token):
@@ -181,8 +188,3 @@ class ActiveAccount(APIView):
         user = CustomUser.objects.get_user_by_encoded_pk(encoded_pk)
         self.check_object_permissions(request=self.request, obj=user)
         return user
-
-
-
-
-
