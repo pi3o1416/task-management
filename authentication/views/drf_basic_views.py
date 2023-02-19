@@ -2,7 +2,6 @@
 from django.utils.translation import gettext_lazy as _
 from drf_spectacular.utils import extend_schema
 from rest_framework import viewsets
-from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -115,7 +114,7 @@ class UserViewSet(viewsets.ViewSet, CustomPageNumberPagination):
         """
         user = self.get_object(pk=pk)
         user.activate_account()
-        return Response(data={"detail": _("User account activation successful")})
+        return Response(data={"detail": _("User account activation successful")}, status=status.HTTP_202_ACCEPTED)
 
     @extend_schema(request=None)
     @action(methods=['patch'], detail=True, url_path='deactivate-account')
@@ -125,7 +124,7 @@ class UserViewSet(viewsets.ViewSet, CustomPageNumberPagination):
         """
         user = self.get_object(pk=pk)
         user.deactivate_account()
-        return Response(data={"detail": _("User account deactivate successful")})
+        return Response(data={"detail": _("User account deactivate successful")}, status=status.HTTP_202_ACCEPTED)
 
     @extend_schema(request=None)
     @action(methods=['patch'], detail=True, url_path='grant-staff-permission')
@@ -135,7 +134,7 @@ class UserViewSet(viewsets.ViewSet, CustomPageNumberPagination):
         """
         user = self.get_object(pk=pk)
         user.give_staff_permissions()
-        return Response(data={"detail": _("User staff permission given")})
+        return Response(data={"detail": _("User staff permission given")}, status=status.HTTP_202_ACCEPTED)
 
     @extend_schema(request=None)
     @action(methods=['patch'], detail=True, url_path='remove-staff-permission')
@@ -145,7 +144,7 @@ class UserViewSet(viewsets.ViewSet, CustomPageNumberPagination):
         """
         user = self.get_object(pk=pk)
         user.remove_staff_permissions()
-        return Response(data={"detail": _("User staff permission removed")})
+        return Response(data={"detail": _("User staff permission removed")}, status=status.HTTP_202_ACCEPTED)
 
 
 
