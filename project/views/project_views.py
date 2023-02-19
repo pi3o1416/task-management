@@ -81,7 +81,7 @@ class ProjectViewSet(ViewSet, CustomPageNumberPagination):
         return Project.objects.get_object_by_pk(pk=pk)
 
 
-class DepartmentProjects(APIView, PageNumberPagination):
+class DepartmentProjects(APIView, CustomPageNumberPagination):
     serializer_class = ProjectDetailSerializer
 
     def get(self, request, department_pk):
@@ -142,7 +142,7 @@ class ProjectAttachmentDelete(APIViewTemplate):
             status=status.HTTP_202_ACCEPTED
         )
 
-class ProjectAttachmentsList(APIViewTemplate, PageNumberPagination):
+class ProjectAttachmentsList(APIViewTemplate, CustomPageNumberPagination):
     permission_classes = [IsAuthenticated]
 
     def __init__(self):
