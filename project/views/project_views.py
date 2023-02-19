@@ -3,17 +3,17 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework.decorators import action
 from rest_framework.views import APIView
 from rest_framework.viewsets import ViewSet
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 
+from services.pagination import CustomPageNumberPagination
 from department.models import Department
 from ..serializers import ProjectSerializer, ProjectDetailSerializer, ProjectAttachmentSerializer
 from ..models import Project, ProjectAttachment
 
 
-class ProjectViewSet(ViewSet, PageNumberPagination):
+class ProjectViewSet(ViewSet, CustomPageNumberPagination):
     def create(self, request):
         serializer = self.get_serializer_class()(data=request.data)
         if serializer.is_valid():
