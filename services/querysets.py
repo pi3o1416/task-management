@@ -4,7 +4,6 @@ from functools import reduce
 from django.utils.translation import gettext_lazy as _
 from django.db.models import CharField, Q, QuerySet, Model, TextField
 from rest_framework.request import Request
-from rest_framework.exceptions import APIException
 from rest_framework.exceptions import NotFound
 from .exceptions import InvalidRequest
 
@@ -21,13 +20,14 @@ class TemplateQuerySet(QuerySet):
         Return:
             object
         """
+        model_name = self.model._meta.model_name
         try:
             obj = self.get(pk=pk)
             return obj
         except self.model.DoesNotExist:
-            raise NotFound(detail={"detail": _("Ojbect with pk={} does not exist".format(pk))})
+            raise NotFound(detail={"detail": _("{} Ojbect with pk={} does not exist".format(model_name, pk))})
         except ValueError as exception:
-            raise NotFound(detail={"detail": _("Object primary key shoud be integer")})
+            raise NotFound(detail={"detail": _("{} Object primary key shoud be integer".format(model_name))})
         except Exception as exception:
             raise NotFound(detail={"detail": _(exception.__str__())})
 
