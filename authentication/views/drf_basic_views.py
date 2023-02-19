@@ -1,15 +1,17 @@
 
+from django.utils.translation import gettext_lazy as _
 from drf_spectacular.utils import extend_schema
 from rest_framework import viewsets
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework import status
 
+from services.pagination import CustomPageNumberPagination
 from ..models import CustomUser
 from ..serializers import UserSerializer, UserUpdateSerializer, UploadPhotoSerializer
-from ..pagination import CustomPageNumberPagination
+from ..permissions import IsAnonymous, UserViewSetPermission
 from ..documentations.basic_view_docs import (
     UserCreateDoc, UserListDoc, UserRetrieveDoc,
     UserDestroyDoc, UserUpdateDoc, ActiveAccountDoc
@@ -18,6 +20,7 @@ from ..documentations.basic_view_docs import (
 
 class UserViewSet(viewsets.ViewSet, CustomPageNumberPagination):
     queryset = CustomUser.objects.all()
+    permission_classes = [UserViewSetPermission]
 
     @extend_schema(responses=UserCreateDoc.responses,
                    parameters=UserCreateDoc.parameters)
@@ -51,7 +54,7 @@ class UserViewSet(viewsets.ViewSet, CustomPageNumberPagination):
         parameter: (int)pk
         """
         serializer_class = self.get_serializer_class()
-        user = CustomUser.objects.get_user_by_pk(pk)
+        user = self.get_object(pk=pk)
         serializer =  serializer_class(instance=user)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
 
@@ -62,7 +65,7 @@ class UserViewSet(viewsets.ViewSet, CustomPageNumberPagination):
         Destroy a object from database
         parameter: (int)pk
         """
-        user = CustomUser.objects.get_user_by_pk(pk)
+        user = self.get_object(pk=pk)
         user.delete()
         return Response(data={"detail": ["User Delete Successful"]}, status=status.HTTP_200_OK)
 
@@ -74,7 +77,7 @@ class UserViewSet(viewsets.ViewSet, CustomPageNumberPagination):
         parameter: (int)pk
         """
         serializer_class = self.get_serializer_class()
-        user = CustomUser.objects.get_user_by_pk(pk)
+        user = self.get_object(pk=pk)
         serializer = serializer_class(instance=user, data=request.data)
         if serializer.is_valid():
             serializer.update()
@@ -87,13 +90,14 @@ class UserViewSet(viewsets.ViewSet, CustomPageNumberPagination):
         Update a user photo
         parameter: (int)pk
         """
-        user = CustomUser.objects.get_user_by_pk(pk)
+        user = self.get_object(pk=pk)
         serializer = self.get_serializer_class()(instance=user, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(data=serializer.data, status=status.HTTP_202_ACCEPTED)
         return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    @extend_schema(request=None)
     @action(methods=['get'], detail=False, url_path='get-authenticated-user')
     def get_authenticated_user(self, request):
         """
@@ -103,6 +107,48 @@ class UserViewSet(viewsets.ViewSet, CustomPageNumberPagination):
         serializer = self.get_serializer_class()(instance=user)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
 
+    @extend_schema(request=None)
+    @action(methods=['patch'], detail=True, url_path='activate-account')
+    def activate_account(self, request, pk):
+        """
+        Activate a user account
+        """
+        user = self.get_object(pk=pk)
+        user.activate_account()
+        return Response(data={"detail": _("User account activation successful")})
+
+    @extend_schema(request=None)
+    @action(methods=['patch'], detail=True, url_path='deactivate-account')
+    def deactivate_account(self, request, pk):
+        """
+        Deactivate a user account
+        """
+        user = self.get_object(pk=pk)
+        user.deactivate_account()
+        return Response(data={"detail": _("User account deactivate successful")})
+
+    @extend_schema(request=None)
+    @action(methods=['patch'], detail=True, url_path='grant-staff-permission')
+    def give_user_staff_permission(self, request, pk):
+        """
+        Give user staff permission
+        """
+        user = self.get_object(pk=pk)
+        user.give_staff_permissions()
+        return Response(data={"detail": _("User staff permission given")})
+
+    @extend_schema(request=None)
+    @action(methods=['patch'], detail=True, url_path='remove-staff-permission')
+    def remove_user_staff_permission(self, request, pk):
+        """
+        Remvoe user staff permission
+        """
+        user = self.get_object(pk=pk)
+        user.remove_staff_permissions()
+        return Response(data={"detail": _("User staff permission removed")})
+
+
+
     def get_serializer_class(self):
         if self.action == 'update':
             return UserUpdateSerializer
@@ -111,14 +157,14 @@ class UserViewSet(viewsets.ViewSet, CustomPageNumberPagination):
         else:
             return UserSerializer
 
-    def get_permissions(self):
-        permission_classes = []
-        if self.action == 'get_authenticated_user':
-            permission_classes += [IsAuthenticated]
-        return [permission() for permission in permission_classes]
+    def get_object(self, pk):
+        user = CustomUser.objects.get_object_by_pk(pk)
+        self.check_object_permissions(request=self.request, obj=user)
+        return user
 
 
 class ActiveAccount(APIView):
+    permission_classes = [IsAnonymous]
     @extend_schema(responses=ActiveAccountDoc.responses,
                    parameters=ActiveAccountDoc.parameters)
     def get(self, request, uidb64, token):
@@ -126,11 +172,16 @@ class ActiveAccount(APIView):
         Activate Account from unique uidb64 and token generated for user.
         URL Parameter: uidb64, token
         """
-        user = CustomUser.objects.get_user_by_encoded_pk(uidb64)
+        user = self.get_object(encoded_pk=uidb64)
         if user.validate_token(token):
             user.activate_account()
-            return Response(data={"detail": ["Account Acivation Successful"]}, status=status.HTTP_202_ACCEPTED)
-        return Response(data={"detail": ["Invalid Token"]}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+            return Response(data={"detail": _("Account Acivation Successful")}, status=status.HTTP_202_ACCEPTED)
+        return Response(data={"detail": _("Invalid Token")}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+
+    def get_object(self, encoded_pk):
+        user = CustomUser.objects.get_user_by_encoded_pk(encoded_pk)
+        self.check_object_permissions(request=self.request, obj=user)
+        return user
 
 
 
