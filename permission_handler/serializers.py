@@ -10,8 +10,8 @@ from rest_framework.exceptions import ValidationError
 class ContentTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = ContentType
-        fields = ['pk', 'app_label', 'model']
-        read_only_fields = ['pk', 'app_label', 'model']
+        fields = ['pk', 'model']
+        read_only_fields = ['pk', 'model']
 
 
 class PermissionSerializer(serializers.ModelSerializer):
@@ -43,10 +43,16 @@ class GroupSerializer(serializers.ModelSerializer):
 
 
 class GroupDetailSerializer(serializers.ModelSerializer):
-    permissions = PermissionMinimalSerializer(many=True)
+    permissions = PermissionDetailSerializer(many=True)
     class Meta:
         model = Group
         fields = '__all__'
+
+
+class GroupMinimalSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Group
+        fields = ['pk', 'name']
 
 
 class GroupAssignSerializer(serializers.Serializer):
