@@ -80,7 +80,7 @@ class MyTokenRefreshView(TokenRefreshView):
 @extend_schema(responses=LogoutDoc.responses,
                parameters=LogoutDoc.parameters)
 class LogoutView(APIView):
-    permission_classes = []
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
         """
@@ -96,7 +96,7 @@ class LogoutView(APIView):
 @extend_schema(responses=ForgetPassswordDoc.responses,
                parameters=ForgetPassswordDoc.parameters)
 class ForgetPasswordView(APIView):
-    permission_classes = [AllowAny,]
+    permission_classes = [AllowAny]
     serializer_class = PasswordForgetSerializer
 
     def post(self, request):
