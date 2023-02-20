@@ -1,19 +1,23 @@
 
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import Permission, Group
-from rest_framework.viewsets import ViewSet
-from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 
 from services.pagination import CustomPageNumberPagination
-from authentication.models import CustomUser
+from services.views import TemplateAPIView, TemplateViewSet
 from .serializers import PermissionSerializer, GroupSerializer, GroupDetailSerializer, PermissionDetailSerializer, GroupAssignSerializer, GroupMinimalSerializer
-from .queries import get_group_by_pk, get_permission_by_pk
 
 
-class GroupViewSet(ViewSet, CustomPageNumberPagination):
+User = get_user_model
+
+
+class GroupViewSet(TemplateViewSet, CustomPageNumberPagination):
+    def __init__(self):
+        super().__init__(model=Group)
+
     def create(self, request):
         """
         Group create view
@@ -37,7 +41,7 @@ class GroupViewSet(ViewSet, CustomPageNumberPagination):
         """
         Group destroy view
         """
-        group = get_group_by_pk(pk)
+        group = self.get_object(pk=pk)
         group.delete()
         return Response(data={"detail": [_("Group delete successful")]}, status=status.HTTP_202_ACCEPTED)
 
@@ -45,7 +49,7 @@ class GroupViewSet(ViewSet, CustomPageNumberPagination):
         """
         Group retrieve view
         """
-        group = get_group_by_pk(pk)
+        group = self.get_object(pk=pk)
         serializer = self.get_serializer_class()(instance=group)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
 
@@ -53,7 +57,7 @@ class GroupViewSet(ViewSet, CustomPageNumberPagination):
         """
         Group udpate view
         """
-        group = get_group_by_pk(pk)
+        group = self.get_object(pk=pk)
         serializer = self.get_serializer_class()(data=request.data, instance=group)
         if serializer.is_valid():
             serializer.save()
@@ -70,7 +74,10 @@ class GroupViewSet(ViewSet, CustomPageNumberPagination):
             return GroupSerializer
 
 
-class PermissionViewSet(ViewSet):
+class PermissionViewSet(TemplateViewSet):
+    def __init__(self):
+        super().__init__(model=Permission)
+
     def list(self, request):
         """
         Permission list view
@@ -83,7 +90,7 @@ class PermissionViewSet(ViewSet):
         """
         Permission retrieve view
         """
-        permission = get_permission_by_pk(pk)
+        permission = self.get_object(pk=pk)
         serializer = self.get_serializer_class()(instance=permission)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
 
@@ -97,7 +104,7 @@ class PermissionViewSet(ViewSet):
             return PermissionSerializer
 
 
-class AssignGroup(APIView):
+class AssignGroup(TemplateAPIView):
     serializer_class = GroupAssignSerializer
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
@@ -107,18 +114,17 @@ class AssignGroup(APIView):
         return Response(data={"field_errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class AllUserPermissions(APIView):
+class AllUserPermissions(TemplateAPIView):
     serializer_class = PermissionDetailSerializer
+
+    def __init__(self):
+        super().__init__(model=User)
+
     def get(self, request, user_pk):
         user = self.get_object(pk=user_pk)
         permissions = self.get_queryset(user=user)
         serializer = self.serializer_class(instance=permissions, many=True)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
-
-    def get_object(self, pk):
-        user = CustomUser.objects.get_object_by_pk(pk=pk)
-        self.check_object_permissions(request=self.request, obj=user)
-        return user
 
     def get_queryset(self, user):
         if user.is_superuser == True:
@@ -127,18 +133,17 @@ class AllUserPermissions(APIView):
         return permission
 
 
-class UserGroups(APIView):
+class UserGroups(TemplateAPIView):
     serializer_class = GroupMinimalSerializer
+
+    def __init__(self):
+        super().__init__(model=User)
+
     def get(self, request, user_pk):
         user = self.get_object(user_pk)
         user_groups = user.groups.all()
         serializer = self.serializer_class(instance=user_groups, many=True)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
-
-
-    def get_object(self, pk):
-        user = CustomUser.objects.get_object_by_pk(pk=pk)
-        return user
 
 
 
