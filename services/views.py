@@ -4,8 +4,9 @@ from rest_framework.views import APIView
 
 
 class TemplateAPIView(APIView):
-    def __init__(self, model=None):
+    def __init__(self, model=None, *args, **kwargs):
         self.model = model
+        super().__init__(*args, **kwargs)
 
     def get_object(self, pk):
         assert self.model != None, "Initialize model before get object"
@@ -15,8 +16,9 @@ class TemplateAPIView(APIView):
 
 
 class TemplateViewSet(ViewSet):
-    def __init__(self, model=None):
+    def __init__(self, model=None, *args, **kwargs):
         self.model = model
+        super().__init__(*args, **kwargs)
 
     def get_object(self, pk):
         assert self.model != None, "Initialize model before get object"
