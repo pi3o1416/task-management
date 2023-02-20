@@ -3,20 +3,27 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import Permission, Group
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework import status
 
 from services.pagination import CustomPageNumberPagination
 from services.views import TemplateAPIView, TemplateViewSet
-from .serializers import PermissionSerializer, GroupSerializer, GroupDetailSerializer, PermissionDetailSerializer, GroupAssignSerializer, GroupMinimalSerializer
+from authentication.permissions import IsOwner
+from .serializers import (
+    PermissionSerializer, GroupSerializer, GroupDetailSerializer,
+    PermissionDetailSerializer, GroupAssignSerializer, GroupMinimalSerializer
+)
 
 
-User = get_user_model
+User = get_user_model()
 
 
 class GroupViewSet(TemplateViewSet, CustomPageNumberPagination):
-    def __init__(self):
-        super().__init__(model=Group)
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(model=Group, *args, **kwargs)
 
     def create(self, request):
         """
@@ -75,8 +82,9 @@ class GroupViewSet(TemplateViewSet, CustomPageNumberPagination):
 
 
 class PermissionViewSet(TemplateViewSet):
-    def __init__(self):
-        super().__init__(model=Permission)
+    permission_classes = [IsAuthenticated, IsAdminUser]
+    def __init__(self, *args, **kwargs):
+        super().__init__(model=Permission, *args, **kwargs)
 
     def list(self, request):
         """
@@ -106,6 +114,8 @@ class PermissionViewSet(TemplateViewSet):
 
 class AssignGroup(TemplateAPIView):
     serializer_class = GroupAssignSerializer
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
@@ -116,9 +126,10 @@ class AssignGroup(TemplateAPIView):
 
 class AllUserPermissions(TemplateAPIView):
     serializer_class = PermissionDetailSerializer
+    permission_classes = [IsAuthenticated, IsAdminUser|IsOwner]
 
-    def __init__(self):
-        super().__init__(model=User)
+    def __init__(self, *args, **kwargs):
+        super().__init__(model=User, *args, **kwargs)
 
     def get(self, request, user_pk):
         user = self.get_object(pk=user_pk)
@@ -135,15 +146,17 @@ class AllUserPermissions(TemplateAPIView):
 
 class UserGroups(TemplateAPIView):
     serializer_class = GroupMinimalSerializer
+    permission_classes = [IsAuthenticated, IsAdminUser]
 
-    def __init__(self):
-        super().__init__(model=User)
+    def __init__(self, *args, **kwargs):
+        super().__init__(model=User, *args, **kwargs)
 
     def get(self, request, user_pk):
         user = self.get_object(user_pk)
         user_groups = user.groups.all()
         serializer = self.serializer_class(instance=user_groups, many=True)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
+
 
 
 
