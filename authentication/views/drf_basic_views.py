@@ -1,16 +1,16 @@
 
 from django.utils.translation import gettext_lazy as _
 from drf_spectacular.utils import extend_schema
-from rest_framework import viewsets
-from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework import status
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 
 from services.pagination import CustomPageNumberPagination
+from services.views import TemplateViewSet, TemplateAPIView
 from ..models import CustomUser
 from ..serializers import UserSerializer, UserUpdateSerializer, UploadPhotoSerializer
-from ..permissions import IsAnonymous, UserViewSetPermission
+from ..permissions import IsAnonymous, IsOwner
 from ..documentations.basic_view_docs import (
     UserCreateDoc, UserListDoc, UserRetrieveDoc, UserDestroyDoc, UserUpdateDoc,
     ActiveAccountDoc, ActiveAccountByAdminDoc, DeactiveAccountByAdminDoc, UploadUserPhotoDoc,
@@ -18,9 +18,11 @@ from ..documentations.basic_view_docs import (
 )
 
 
-class UserViewSet(viewsets.ViewSet, CustomPageNumberPagination):
+class UserViewSet(TemplateViewSet, CustomPageNumberPagination):
     queryset = CustomUser.objects.all()
-    permission_classes = [UserViewSetPermission]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(model=CustomUser, *args, **kwargs)
 
     @extend_schema(responses=UserCreateDoc.responses,
                    parameters=UserCreateDoc.parameters)
@@ -162,14 +164,32 @@ class UserViewSet(viewsets.ViewSet, CustomPageNumberPagination):
         else:
             return UserSerializer
 
-    def get_object(self, pk):
-        user = CustomUser.objects.get_object_by_pk(pk)
-        self.check_object_permissions(request=self.request, obj=user)
-        return user
+    def get_permissions(self):
+        permissions = []
+        admin_only_views = ['destroy', 'activate_account', 'deactivate_account',
+                            'give_user_staff_permission', 'remove_user_staff_permission']
+        any_authenticated_user_views = ['list', 'retrieve', 'get_authenticated_user']
+
+        if self.action == 'create':
+            permissions += [AllowAny]
+        elif self.action in any_authenticated_user_views:
+            permissions += [IsAuthenticated]
+        elif self.action in admin_only_views:
+            permissions += [IsAuthenticated, IsAdminUser]
+        elif self.action in ['update', 'upload_photo']:
+            permissions += [IsAuthenticated, IsOwner]
+        return [permission() for permission in permissions]
 
 
-class ActiveAccount(APIView):
+
+
+
+
+class ActiveAccount(TemplateAPIView):
     permission_classes = [IsAnonymous]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(model=CustomUser, *args, **kwargs)
 
     @extend_schema(responses=ActiveAccountDoc.responses,
                    parameters=ActiveAccountDoc.parameters)
@@ -184,7 +204,3 @@ class ActiveAccount(APIView):
             return Response(data={"detail": _("Account Acivation Successful")}, status=status.HTTP_202_ACCEPTED)
         return Response(data={"detail": _("Invalid Token")}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
-    def get_object(self, encoded_pk):
-        user = CustomUser.objects.get_user_by_encoded_pk(encoded_pk)
-        self.check_object_permissions(request=self.request, obj=user)
-        return user
