@@ -21,11 +21,19 @@ class UserViewSetPermission(BasePermission):
         return True
 
 
+
 class IsAnonymous(BasePermission):
     def has_permission(self, request:Request, view):
         if request.method in SAFE_METHODS:
             if request.user.is_anonymous:
                 return True
+        return False
+
+
+class IsOwner(BasePermission):
+    def has_object_permission(self, request, view, obj):
+        if request.user == obj:
+            return True
         return False
 
 
