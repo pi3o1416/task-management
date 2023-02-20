@@ -11,6 +11,7 @@ class TemplateAPIView(APIView):
         assert self.model != None, "Initialize model before get object"
         obj = self.model.objects.get_object_by_pk(pk=pk)
         self.check_object_permissions(self.request, obj=obj)
+        return obj
 
 
 class TemplateViewSet(ViewSet):
@@ -21,6 +22,7 @@ class TemplateViewSet(ViewSet):
         assert self.model != None, "Initialize model before get object"
         obj = self.model.objects.get_object_by_pk(pk=pk)
         self.check_object_permissions(self.request, obj=obj)
+        return obj
 
 
 
