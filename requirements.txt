@@ -27,6 +27,7 @@ django-six==1.0.4
 django-stubs==1.13.0
 django-stubs-ext==0.7.0
 django-unused-media==0.2.2
+django_debug_toolbar==3.8.1
 djangorestframework==3.14.0
 djangorestframework-simplejwt==5.2.2
 drf-spectacular==0.24.2
