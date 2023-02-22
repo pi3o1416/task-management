@@ -16,6 +16,13 @@ class DepartmentMemberUpdateSerializer(serializers.ModelSerializer):
         fields = ['pk', 'member', 'department', 'designation', 'department_name', 'designation_title']
         read_only_fields = ['pk', 'member', 'department_name', 'designation_title']
 
+    def update(self):
+        assert self.validated_data, "Call is_valid method before update"
+        assert self.instance, "Initialize seirlaizer with department instance"
+        self.instance.update(**self.validated_data)
+
+
+
 
 class UserSerializer(serializers.Serializer):
     pk = serializers.IntegerField()
