@@ -111,6 +111,9 @@ class PermissionViewSet(ViewSet):
 
 
 class AssignGroup(APIView):
+    """
+    Assign group to a user
+    """
     serializer_class = GroupAssignSerializer
     permission_classes = [IsAuthenticated, IsAdminUser]
 
@@ -122,7 +125,23 @@ class AssignGroup(APIView):
         return Response(data={"field_errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
+class RemoveFromGroup(APIView):
+    """
+    Remove a user from a group
+    """
+    permission_classes = [IsAuthenticated, IsAdminUser]
+    model = Group
+
+    def delete(self, request, group_pk, user_pk):
+        group = get_group_by_pk(pk=group_pk)
+        group.user_set.remove(user_pk)
+        return Response(data={"detail": _("User with pk={} deleted from the group".format(user_pk))})
+
+
 class AllUserPermissions(TemplateAPIView):
+    """
+    List of all user permissions
+    """
     serializer_class = PermissionDetailSerializer
     permission_classes = [IsAuthenticated, IsAdminUser|IsOwner]
     model = User
@@ -141,6 +160,9 @@ class AllUserPermissions(TemplateAPIView):
 
 
 class UserGroups(TemplateAPIView):
+    """
+    List of all user groups
+    """
     serializer_class = GroupMinimalSerializer
     permission_classes = [IsAuthenticated, IsAdminUser]
     model = User
