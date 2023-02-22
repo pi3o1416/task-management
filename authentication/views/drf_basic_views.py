@@ -20,9 +20,7 @@ from ..documentations.basic_view_docs import (
 
 class UserViewSet(TemplateViewSet, CustomPageNumberPagination):
     queryset = CustomUser.objects.all()
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(model=CustomUser, *args, **kwargs)
+    model = CustomUser
 
     @extend_schema(responses=UserCreateDoc.responses,
                    parameters=UserCreateDoc.parameters)
@@ -187,9 +185,7 @@ class UserViewSet(TemplateViewSet, CustomPageNumberPagination):
 
 class ActiveAccount(TemplateAPIView):
     permission_classes = [IsAnonymous]
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(model=CustomUser, *args, **kwargs)
+    model = CustomUser
 
     @extend_schema(responses=ActiveAccountDoc.responses,
                    parameters=ActiveAccountDoc.parameters)
