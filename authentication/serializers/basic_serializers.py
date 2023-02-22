@@ -54,12 +54,7 @@ class UserUpdateSerializer(serializers.ModelSerializer):
     def update(self):
         assert self.validated_data, "call is_valid method before update an user"
         assert self.instance, "initialize serializer with user instance before update"
-        self.instance.username = self.validated_data.get('username')
-        self.instance.email = self.validated_data.get('email')
-        self.instance.first_name = self.validated_data.get('first_name')
-        self.instance.last_name = self.validated_data.get('last_name')
-        self.instance.save()
-        return self.instance
+        return self.instance.update(**self.validated_data)
 
 
 class PasswordForgetSerializer(serializers.Serializer):
