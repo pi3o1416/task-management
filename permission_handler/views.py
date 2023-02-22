@@ -4,12 +4,15 @@ from django.contrib.auth.models import Permission
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import Permission, Group
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.views import APIView
+from rest_framework.viewsets import ViewSet
 from rest_framework.response import Response
 from rest_framework import status
 
 from services.pagination import CustomPageNumberPagination
-from services.views import TemplateAPIView, TemplateViewSet
+from services.views import TemplateAPIView
 from authentication.permissions import IsOwner
+from .queries import get_group_by_pk, get_permission_by_pk
 from .serializers import (
     PermissionSerializer, GroupSerializer, GroupDetailSerializer,
     PermissionDetailSerializer, GroupAssignSerializer, GroupMinimalSerializer
@@ -19,11 +22,8 @@ from .serializers import (
 User = get_user_model()
 
 
-class GroupViewSet(TemplateViewSet, CustomPageNumberPagination):
+class GroupViewSet(ViewSet, CustomPageNumberPagination):
     permission_classes = [IsAuthenticated, IsAdminUser]
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(model=Group, *args, **kwargs)
 
     def create(self, request):
         """
@@ -48,7 +48,7 @@ class GroupViewSet(TemplateViewSet, CustomPageNumberPagination):
         """
         Group destroy view
         """
-        group = self.get_object(pk=pk)
+        group = get_group_by_pk(pk=pk)
         group.delete()
         return Response(data={"detail": [_("Group delete successful")]}, status=status.HTTP_202_ACCEPTED)
 
@@ -56,7 +56,7 @@ class GroupViewSet(TemplateViewSet, CustomPageNumberPagination):
         """
         Group retrieve view
         """
-        group = self.get_object(pk=pk)
+        group = get_group_by_pk(pk=pk)
         serializer = self.get_serializer_class()(instance=group)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
 
@@ -64,7 +64,7 @@ class GroupViewSet(TemplateViewSet, CustomPageNumberPagination):
         """
         Group udpate view
         """
-        group = self.get_object(pk=pk)
+        group = get_group_by_pk(pk=pk)
         serializer = self.get_serializer_class()(data=request.data, instance=group)
         if serializer.is_valid():
             serializer.save()
@@ -81,10 +81,8 @@ class GroupViewSet(TemplateViewSet, CustomPageNumberPagination):
             return GroupSerializer
 
 
-class PermissionViewSet(TemplateViewSet):
+class PermissionViewSet(ViewSet):
     permission_classes = [IsAuthenticated, IsAdminUser]
-    def __init__(self, *args, **kwargs):
-        super().__init__(model=Permission, *args, **kwargs)
 
     def list(self, request):
         """
@@ -98,7 +96,7 @@ class PermissionViewSet(TemplateViewSet):
         """
         Permission retrieve view
         """
-        permission = self.get_object(pk=pk)
+        permission = get_permission_by_pk(pk=pk)
         serializer = self.get_serializer_class()(instance=permission)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
 
@@ -112,7 +110,7 @@ class PermissionViewSet(TemplateViewSet):
             return PermissionSerializer
 
 
-class AssignGroup(TemplateAPIView):
+class AssignGroup(APIView):
     serializer_class = GroupAssignSerializer
     permission_classes = [IsAuthenticated, IsAdminUser]
 
@@ -127,9 +125,7 @@ class AssignGroup(TemplateAPIView):
 class AllUserPermissions(TemplateAPIView):
     serializer_class = PermissionDetailSerializer
     permission_classes = [IsAuthenticated, IsAdminUser|IsOwner]
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(model=User, *args, **kwargs)
+    model = User
 
     def get(self, request, user_pk):
         user = self.get_object(pk=user_pk)
@@ -147,9 +143,7 @@ class AllUserPermissions(TemplateAPIView):
 class UserGroups(TemplateAPIView):
     serializer_class = GroupMinimalSerializer
     permission_classes = [IsAuthenticated, IsAdminUser]
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(model=User, *args, **kwargs)
+    model = User
 
     def get(self, request, user_pk):
         user = self.get_object(user_pk)
