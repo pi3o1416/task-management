@@ -30,7 +30,9 @@ CELERY_RESULT_EXTENDED = True
 CELERY_BROKER_URL = 'redis://localhost:6379/'
 
 
-
+INTERNAL_IPS = [
+    "127.0.0.1",
+]
 
 
 
