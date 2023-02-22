@@ -1,7 +1,8 @@
 
 from django.urls import path, include
 from rest_framework import routers
-from .views import DesignationViewSet, DepartmentDesignationsView, DepartmentViewSet, DepartmentMemberViewSet, MembersOfDepartmentView
+from .views import (DesignationViewSet, DepartmentDesignationsView, DepartmentViewSet,
+                    DepartmentMemberViewSet, MembersOfDepartmentView)
 
 department_router = routers.DefaultRouter()
 department_router.register('', DepartmentViewSet, 'department')
