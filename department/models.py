@@ -1,18 +1,27 @@
 
 from django.db.models import Q, UniqueConstraint
 from django.db import models
-from django.db.models.deletion import RestrictedError
 from django.utils.translation import gettext_lazy as _
 from django.template.defaultfilters import slugify
 from django.contrib.auth import get_user_model
 from rest_framework.exceptions import ValidationError
+
+from services.mixins import ModelDeleteMixin, ModelUpdateMixin
 from .querysets import DepartmentMemberQuerySet, DepartmentQuerySet, DesignationQuerySet
-from .exceptions import RestrictedDeletionError
 
 User = get_user_model()
 
 
-class Department(models.Model):
+class Department(ModelDeleteMixin, ModelUpdateMixin, models.Model):
+    restricted_fields = ['pk', 'slug']
+    error_messages = {
+        "CREATE": "Department create failed.",
+        "UPDATE": "Department update failed.",
+        "DELETE": "Department delete failed.",
+        "RETRIEVE": "Department retrieve failed.",
+        "PATCH": "Department patch failed.",
+    }
+
     name = models.CharField(
         verbose_name=_("Department Name"),
         max_length=200,
@@ -39,22 +48,17 @@ class Department(models.Model):
         self.slug = slugify(self.name)
         return super().save(*args, **kwargs)
 
-    def update(self, **kwargs):
-        self._validate_field_names(kwargs.keys())
-        for key, value in kwargs.items():
-            setattr(self, key, value)
-        self.save()
 
-    def _validate_field_names(self, names):
-        read_only_fields = ['pk', 'slug', 'id']
-        fields = [field.name for field in self._meta.fields if field.name not in read_only_fields]
-        for name in names:
-            if name not in fields:
-                raise KeyError("{} is not an valid field".format(name))
-        return True
+class Designations(ModelDeleteMixin, ModelUpdateMixin, models.Model):
+    restricted_fields = ['pk']
+    error_messages = {
+        "CREATE": "Designation create failed.",
+        "UPDATE": "Designation update failed.",
+        "DELETE": "Designation delete failed.",
+        "RETRIEVE": "Designation retrieve failed.",
+        "PATCH": "Designation patch failed.",
+    }
 
-
-class Designations(models.Model):
     department = models.ForeignKey(
         to=Department,
         on_delete=models.CASCADE,
@@ -76,28 +80,19 @@ class Designations(models.Model):
     def __str__(self):
         return '{}-{}'.format(self.department, self.title)
 
-    def update(self, **kwargs):
-        self._validate_field_names(kwargs.keys())
-        for key, value in kwargs.items():
-            setattr(self, key, value)
-        self.save()
 
-    def _validate_field_names(self, names):
-        read_only_fields = ['id', 'pk']
-        fields = [field.name for field in self._meta.fields if field.name not in read_only_fields]
-        for name in names:
-            if name not in fields:
-                raise KeyError("{} is not an valid field".format(name))
-        return True
+class DepartmentMember(ModelDeleteMixin, ModelUpdateMixin, models.Model):
+    restricted_fields = ['pk', 'member', '']
+    error_messages = {
+        "CREATE": "Department create failed.",
+        "UPDATE": "Department update failed.",
+        "DELETE": "Department delete failed.",
+        "RETRIEVE": "Department retrieve failed.",
+        "PATCH": "Department patch failed.",
+        "DEPARTMENT_MISMATCH": "Member department and department designation did not match.",
+        "MULTIPLE_DEPARTMENT_HEAD": "Department Head of this department already exist"
+    }
 
-    def delete(self):
-        try:
-            super().delete()
-        except RestrictedError as exception:
-            raise RestrictedDeletionError({"detail": (_("Designation Delete failed due to database foreign key restriction"),)})
-
-
-class DepartmentMember(models.Model):
     member = models.OneToOneField(
         to=User,
         on_delete=models.CASCADE,
@@ -149,10 +144,6 @@ class DepartmentMember(models.Model):
     )
     objects = DepartmentMemberQuerySet.as_manager()
 
-    errors = {
-        "DEPARTMENT_MISMATCH": "Member department and department designation did not match.",
-        "MULTIPLE_DEPARTMENT_HEAD": "Department Head of this department already exist"
-    }
     class Meta:
         constraints = [
             UniqueConstraint(
@@ -166,7 +157,7 @@ class DepartmentMember(models.Model):
 
     def clean(self):
         if self.department != self.designation.department:
-            raise ValidationError({"detail": [""]})
+            raise ValidationError({"detail": [self.error_messages["DEPARTMENT_MISMATCH"]]})
 
 
 
