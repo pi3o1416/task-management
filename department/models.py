@@ -121,13 +121,6 @@ class DepartmentMember(ModelDeleteMixin, ModelUpdateMixin, models.Model):
         verbose_name=_("Department Head"),
         default=False,
     )
-    member_full_name = models.CharField(
-        verbose_name=_("Department Member Full name"),
-        max_length=200,
-        null=True,
-        blank=True,
-        default=None
-    )
     department_name = models.CharField(
         verbose_name=_("Department Name"),
         max_length=200,
