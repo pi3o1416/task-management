@@ -23,7 +23,6 @@ DepartmentMemberListDoc = Documentation(
         OpenApiParameter(name='page_size', type=int),
         OpenApiParameter(name='department_name', type=str),
         OpenApiParameter(name='designation_title', type=str),
-        OpenApiParameter(name='member_full_name', type=str),
         OpenApiParameter(name='department', type=int),
         OpenApiParameter(name='member', type=int),
         OpenApiParameter(name='designation', type=int)
@@ -59,7 +58,6 @@ MembersOfDepartmentDoc = Documentation(
         OpenApiParameter(name='page', type=int),
         OpenApiParameter(name='page_size', type=int),
         OpenApiParameter(name='designation_title', type=str),
-        OpenApiParameter(name='member_full_name', type=str),
         OpenApiParameter(name='member', type=int),
         OpenApiParameter(name='designation', type=int)
     ]
