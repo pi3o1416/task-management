@@ -1,12 +1,12 @@
 
-from django.db.models import Q, UniqueConstraint
 from django.db import models
-from django.utils.translation import gettext_lazy as _
-from django.template.defaultfilters import slugify
+from django.db.models import Q, UniqueConstraint
 from django.contrib.auth import get_user_model
+from django.template.defaultfilters import slugify
+from django.utils.translation import gettext_lazy as _
 from rest_framework.exceptions import ValidationError
-
 from services.mixins import ModelDeleteMixin, ModelUpdateMixin
+
 from .querysets import DepartmentMemberQuerySet, DepartmentQuerySet, DesignationQuerySet
 
 User = get_user_model()
