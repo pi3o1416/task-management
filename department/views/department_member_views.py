@@ -1,22 +1,30 @@
 
 from drf_spectacular.utils import extend_schema
-from rest_framework.viewsets import ViewSet
-from rest_framework.views import APIView
-from rest_framework.response import Response
 from rest_framework import status
-from ..models import DepartmentMember
+from rest_framework.permissions import DjangoModelPermissions, IsAuthenticated
+from rest_framework.response import Response
+
+from services.pagination import CustomPageNumberPagination
+from services.views import TemplateAPIView, TemplateViewSet
+
+from ..models import DepartmentMember, Department
 from ..serializers import DepartmentMemberSerializer, DepartmentMemberUpdateSerializer
-from ..pagination import CustomPageNumberPagination
 from ..documentations import department_member_docs as docs
 
 
-class DepartmentMemberViewSet(ViewSet, CustomPageNumberPagination):
+class DepartmentMemberViewSet(TemplateViewSet, CustomPageNumberPagination):
+    permission_classes = [DjangoModelPermissions]
+    queryset = DepartmentMember.objects.all()
+    model = DepartmentMember
 
     @extend_schema(
         responses=docs.DepartmentMemberCreateDoc.responses,
         parameters=docs.DepartmentMemberCreateDoc.parameters
     )
     def create(self, request):
+        """
+        Create a department member
+        """
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(data=request.data)
         if serializer.is_valid():
@@ -29,8 +37,11 @@ class DepartmentMemberViewSet(ViewSet, CustomPageNumberPagination):
         parameters=docs.DepartmentMemberListDoc.parameters
     )
     def list(self, request):
+        """
+        List of departments members
+        """
         serializer_class = self.get_serializer_class()
-        members = DepartmentMember.objects.filter_from_query_prams(request)
+        members = DepartmentMember.objects.filter_from_query_params(request)
         page = self.paginate_queryset(queryset=members, request=request)
         serializer = serializer_class(instance=page, many=True)
         return self.get_paginated_response(data=serializer.data)
@@ -40,8 +51,11 @@ class DepartmentMemberViewSet(ViewSet, CustomPageNumberPagination):
         parameters=docs.DepartmentMemberRetrieve.parameters
     )
     def retrieve(self, request, pk):
+        """
+        Detail of department members
+        """
         serializer_class = self.get_serializer_class()
-        member = DepartmentMember.objects.get_member(pk=pk)
+        member = self.get_object(pk=pk)
         serializer = serializer_class(instance=member)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
 
@@ -50,7 +64,10 @@ class DepartmentMemberViewSet(ViewSet, CustomPageNumberPagination):
         parameters=docs.DepartmentMemberDestroyDoc.parameters
     )
     def destroy(self, request, pk):
-        member = DepartmentMember.objects.get_member(pk=pk)
+        """
+        Remove a department member
+        """
+        member = self.get_object(pk=pk)
         member.delete()
         return Response(data={"detail": ["Department Member Delete Successful"]}, status=status.HTTP_202_ACCEPTED)
 
@@ -59,11 +76,14 @@ class DepartmentMemberViewSet(ViewSet, CustomPageNumberPagination):
         parameters=docs.DepartmentMemberUpdateDoc.parameters
     )
     def update(self, request, pk):
-        member = DepartmentMember.objects.get_member(pk=pk)
+        """
+        Update a department member
+        """
+        member = self.get_object(pk=pk)
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(instance=member, data=request.data)
         if serializer.is_valid():
-            serializer.update(instance=member, validated_data=serializer.validated_data)
+            serializer.update()
             return Response(data=serializer.data, status=status.HTTP_202_ACCEPTED)
         return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -73,16 +93,21 @@ class DepartmentMemberViewSet(ViewSet, CustomPageNumberPagination):
         return DepartmentMemberSerializer
 
 
-class MembersOfDepartmentView(APIView, CustomPageNumberPagination):
+class MembersOfDepartmentView(TemplateAPIView, CustomPageNumberPagination):
+    permission_classes = [IsAuthenticated]
+    model = Department
 
     @extend_schema(
         responses=docs.MembersOfDepartmentDoc.responses,
         parameters=docs.MembersOfDepartmentDoc.parameters
     )
     def get(self, request, department_pk):
-        department_members = DepartmentMember.objects.\
-            get_members_of_department(department_pk=department_pk).\
-            filter_from_query_prams(request=request)
+        """
+        Members of a department
+        """
+        department = self.get_object(pk=department_pk)
+        department_members = department.department_members.select_related('member')\
+            .filter_from_query_params(request=request)
         page = self.paginate_queryset(queryset=department_members, request=request)
         serializer = DepartmentMemberSerializer(instance=page, many=True)
         return self.get_paginated_response(data=serializer.data)
