@@ -1,16 +1,22 @@
 
-from rest_framework.viewsets import ViewSet
-from rest_framework.response import Response
-from rest_framework import status
 from drf_spectacular.utils import extend_schema
-from ..pagination import CustomPageNumberPagination
+from rest_framework import status
+from rest_framework.permissions import DjangoModelPermissions
+from rest_framework.response import Response
+
+from services.pagination import CustomPageNumberPagination
+from services.views import TemplateViewSet
+
+from ..documentations import department_docs as docs
 from ..models import Department
 from ..serializers import DepartmentSerializer
-from ..exceptions import DepartmentGetException
-from ..documentations import department_docs as docs
 
 
-class DepartmentViewSet(ViewSet, CustomPageNumberPagination):
+class DepartmentViewSet(TemplateViewSet, CustomPageNumberPagination):
+    model = Department
+    permission_classes = [DjangoModelPermissions]
+    queryset = Department.objects.all()
+
     @extend_schema(
         responses=docs.DepartmentViewSetCreateDoc.responses,
         parameters=docs.DepartmentViewSetCreateDoc.parameters
@@ -49,7 +55,7 @@ class DepartmentViewSet(ViewSet, CustomPageNumberPagination):
         Update department
         URL parameter: Department Primary key(pk)
         """
-        department = Department.objects.get_department(pk=pk)
+        department = self.get_object(pk=pk)
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(instance=department, data=request.data)
         if serializer.is_valid():
@@ -66,7 +72,7 @@ class DepartmentViewSet(ViewSet, CustomPageNumberPagination):
         Destroy Department
         URL Parameter: Department Primary Key(pk)
         """
-        department = Department.objects.get_department(pk=pk)
+        department = self.get_object(pk=pk)
         department.delete()
         return Response(data={"detail": ("Department delete successful",)}, status=status.HTTP_200_OK)
 
@@ -80,7 +86,7 @@ class DepartmentViewSet(ViewSet, CustomPageNumberPagination):
         URL Parameter: Department Primary Key(Pk)
         """
         serializer_class = self.get_serializer_class()
-        department = Department.objects.get_department(pk=pk)
+        department = self.get_object(pk=pk)
         serializer = serializer_class(instance=department)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
 
