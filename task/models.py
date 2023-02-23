@@ -1,19 +1,31 @@
 
-from io import DEFAULT_BUFFER_SIZE
 import os
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 
+from services.mixins import ModelDeleteMixin, ModelUpdateMixin
 from .querysets import TaskQuerySet, TaskAttachmentsQuerySet, TaskTreeQuerySet, UsersTasksQuerySet
 from .exceptions import DBOperationFailed, InvalidRequest
 
 User = get_user_model()
 
 
-class Task(models.Model):
+class Task(ModelDeleteMixin, ModelUpdateMixin, models.Model):
     #TODO: validate last_date
+    restricted_fields = ['pk', 'created_by', 'created_at']
+    error_messages = {
+        "CREATE": "Task create failed.",
+        "UPDATE": "Task update failed.",
+        "DELETE": "Task delete failed.",
+        "RETRIEVE": "Task retrieve failed.",
+        "PATCH": "Task patch failed.",
+        "SUBMIT_FIRST": "Submit the task first.",
+        "NOT_DUE": "This is not a due task.",
+        "NOT_PENDING": "This is not a pending task."
+    }
+
     class StatusChoices(models.TextChoices):
         PENDING = "PEN", _("Pending task")
         DUE = "DUE", _("Due task")
@@ -132,63 +144,47 @@ class Task(models.Model):
         except Exception as exception:
             raise DBOperationFailed(detail={"detail": _(exception.__str__())})
 
-    def delete(self):
-        if self.approval_status == self.ApprovalChoices.APPROVED:
-            raise InvalidRequest(detail={"detail": _("Task that is approved by department head can not be deleted")})
-        return super().delete()
-
     def approve_task(self):
-        if self.approval_status == self.ApprovalChoices.APPROVED:
-            raise InvalidRequest(detail={"detail": _("Task has already been approved by department head")})
-        self.approval_status = self.ApprovalChoices.APPROVED
-        self.save(update_fields=['approval_status'])
+        if self.approval_status != self.ApprovalChoices.APPROVED:
+            self.update(approval_status=self.ApprovalChoices.APPROVED)
         return True
 
     def reject_approval_request(self):
-        if self.approval_status == self.ApprovalChoices.REJECTED:
-            raise InvalidRequest(detail={"detail": _("Task has already been rejected by department head")})
-        self.approval_status = self.ApprovalChoices.REJECTED
-        self.save(update_fields=['approval_status'])
+        if self.approval_status != self.ApprovalChoices.REJECTED:
+            self.update(approval_status=self.ApprovalChoices.REJECTED)
         return True
-
-    def _change_task_status(self, status):
-        try:
-            if self.status == status:
-                return True
-            self.status = status
-            self.save()
-            return True
-        except Exception as exception:
-            raise DBOperationFailed(detail={"detail": exception.args})
-
-    def update_task_owner(self, user, commit=True):
-        assert type(user) is User, "Please Provide a valid user instance"
-        self.created_by = user
-        if commit:
-            self.save()
 
     def accept_task_submission(self):
         if self.status == self.StatusChoices.SUBMITTED:
-            return self._change_task_status(self.StatusChoices.COMPLETED)
-        raise InvalidRequest(detail={"detail": _("Submit the task before mark it as complete")})
+            return self.update(status=self.StatusChoices.COMPLETED)
+        raise InvalidRequest(detail={"detail": _(self.error_messages["SUBMIT_FIRST"])})
 
     def reject_task_submission(self):
         if self.status == self.StatusChoices.SUBMITTED:
-            return self._change_task_status(self.StatusChoices.DUE)
-        raise InvalidRequest(detail={"detail": _("Submit the task before reject it.")})
+            return self.update(status=self.StatusChoices.DUE)
+        raise InvalidRequest(detail={"detail": _(self.error_messages["SUBMIT_FIRST"])})
 
     def start_task(self):
         if self.status == self.StatusChoices.PENDING:
-            return self._change_task_status(self.StatusChoices.DUE)
-        raise InvalidRequest(detail={"detail": _("Cannot start a task that has been already started")})
+            return self.update(status=self.StatusChoices.DUE)
+        raise InvalidRequest(detail={"detail": _(self.error_messages["NOT_PENDING"])})
 
     def submit_task(self):
         if self.status == self.StatusChoices.DUE:
-            return self._change_task_status(self.StatusChoices.SUBMITTED)
-        raise InvalidRequest(detail={"detail": _("Start the task before submit it")})
+            return self.update(status=self.StatusChoices.SUBMITTED)
+        raise InvalidRequest(detail={"detail": _(self.error_messages["NOT_DUE"])})
 
 
-class UsersTasks(models.Model):
+class UsersTasks(ModelDeleteMixin, ModelUpdateMixin, models.Model):
+    restricted_fields = ['pk', 'task']
+    error_messages = {
+        "CREATE": "User task create failed.",
+        "UPDATE": "User task update failed.",
+        "DELETE": "User task delete failed.",
+        "RETRIEVE": "User task retrieve failed.",
+        "PATCH": "User task patch failed.",
+    }
+
     assigned_to = models.ForeignKey(
         to=User,
         on_delete=models.CASCADE,
@@ -247,7 +243,15 @@ def task_attachment_upload_path(instance, filename):
     return file_path
 
 
-class TaskAttachments(models.Model):
+class TaskAttachments(ModelDeleteMixin, models.Model):
+    error_messages = {
+        "CREATE": "Task attachment create failed.",
+        "UPDATE": "Task attachment update failed.",
+        "DELETE": "Task attachment delete failed.",
+        "RETRIEVE": "Task attachment retrieve failed.",
+        "PATCH": "Task attachment patch failed.",
+    }
+
     task = models.ForeignKey(
         to=Task,
         on_delete=models.CASCADE,
@@ -289,12 +293,6 @@ class TaskAttachments(models.Model):
             breakpoint()
             raise InvalidRequest(detail={"detail": _(exception.__str__())})
 
-    def delete(self):
-        try:
-            super().delete()
-            return True
-        except Exception as exception:
-            raise DBOperationFailed(detail={"detail": _(exception.__str__())})
 
 class TaskTree(models.Model):
     parent = models.ForeignKey(
@@ -324,13 +322,6 @@ class TaskTree(models.Model):
             raise InvalidRequest(detail={"detail": _(exception.__str__())})
         except Exception as exception:
             raise InvalidRequest(detail={"detail": _(exception.__str__())})
-
-
-
-
-
-
-
 
 
 
