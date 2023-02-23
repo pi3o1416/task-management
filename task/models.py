@@ -7,6 +7,7 @@ from django.utils.translation import gettext_lazy as _
 
 from services.mixins import ModelDeleteMixin, ModelUpdateMixin
 from .querysets import TaskQuerySet, TaskAttachmentsQuerySet, TaskTreeQuerySet, UsersTasksQuerySet
+from .validators import validate_task_submission_last_date
 from .exceptions import DBOperationFailed, InvalidRequest
 
 User = get_user_model()
@@ -56,10 +57,8 @@ class Task(ModelDeleteMixin, ModelUpdateMixin, models.Model):
     created_by = models.ForeignKey(
         verbose_name=_("Task created by user"),
         to=User,
-        on_delete=models.SET_NULL,
+        on_delete=models.RESTRICT,
         related_name='user_created_tasks',
-        null=True,
-        blank=True,
     )
     title = models.CharField(
         verbose_name=_("Task title"),
@@ -73,7 +72,8 @@ class Task(ModelDeleteMixin, ModelUpdateMixin, models.Model):
         auto_now_add=True,
     )
     last_date = models.DateTimeField(
-        verbose_name=_("Task submission dadeline")
+        verbose_name=_("Task submission dadeline"),
+        validators=[validate_task_submission_last_date]
     )
     approval_status = models.CharField(
         verbose_name=_("Task approval by department head"),
