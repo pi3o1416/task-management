@@ -37,7 +37,8 @@ class DepartmentMemberDetailSerializer(serializers.ModelSerializer):
     member = UserSerializer()
     class Meta:
         model = DepartmentMember
-        fields = '__all__'
+        fields = ['pk', 'member', 'department', 'designation', 'department_name', 'designation_title']
+        read_only_fields = ['pk', 'department_name', 'designation_title']
 
 
 class DepartmentMemberPaginatedSerializer(serializers.Serializer):
