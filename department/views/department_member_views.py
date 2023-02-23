@@ -8,7 +8,7 @@ from services.pagination import CustomPageNumberPagination
 from services.views import TemplateAPIView, TemplateViewSet
 
 from ..models import DepartmentMember, Department
-from ..serializers import DepartmentMemberSerializer, DepartmentMemberUpdateSerializer
+from ..serializers import DepartmentMemberSerializer, DepartmentMemberUpdateSerializer, DepartmentMemberDetailSerializer
 from ..documentations import department_member_docs as docs
 
 
@@ -88,13 +88,16 @@ class DepartmentMemberViewSet(TemplateViewSet, CustomPageNumberPagination):
         return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def get_serializer_class(self):
+        if self.action == 'create':
+            return DepartmentMemberSerializer
         if self.action == 'update':
             return DepartmentMemberUpdateSerializer
-        return DepartmentMemberSerializer
+        return DepartmentMemberDetailSerializer
 
 
 class MembersOfDepartmentView(TemplateAPIView, CustomPageNumberPagination):
     permission_classes = [IsAuthenticated]
+    serializer_class = DepartmentMemberDetailSerializer
     model = Department
 
     @extend_schema(
@@ -109,7 +112,7 @@ class MembersOfDepartmentView(TemplateAPIView, CustomPageNumberPagination):
         department_members = department.department_members.select_related('member')\
             .filter_from_query_params(request=request)
         page = self.paginate_queryset(queryset=department_members, request=request)
-        serializer = DepartmentMemberSerializer(instance=page, many=True)
+        serializer = self.serializer_class(instance=page, many=True)
         return self.get_paginated_response(data=serializer.data)
 
 
