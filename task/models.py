@@ -107,18 +107,6 @@ class Task(ModelDeleteMixin, ModelUpdateMixin, models.Model):
         verbose_name=_("Task has any subtask"),
         default=False,
     )
-    created_by_user_username = models.CharField(
-        verbose_name = _("Created by user  username"),
-        max_length=100,
-        blank=True,
-        null=True,
-    )
-    created_by_user_fullname = models.CharField(
-        verbose_name=_("Created by user full name"),
-        max_length=200,
-        blank=True,
-        null=True
-    )
     objects = TaskQuerySet.as_manager()
 
     class Meta:
