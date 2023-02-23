@@ -185,18 +185,6 @@ class UsersTasks(ModelDeleteMixin, ModelUpdateMixin, models.Model):
         related_name='task_assigned_to',
         verbose_name=_("Task"),
     )
-    user_username = models.CharField(
-        verbose_name=_("User username"),
-        max_length=200,
-        blank=True,
-        null=True,
-    )
-    user_full_name = models.CharField(
-        verbose_name=_("User fullname"),
-        max_length=200,
-        blank=True,
-        null=True,
-    )
     objects = UsersTasksQuerySet.as_manager()
 
     class Meta:
