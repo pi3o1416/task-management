@@ -1,8 +1,9 @@
 
+from django.db.models.deletion import RestrictedError
 from django.utils.translation import gettext_lazy as _
 from django.db import models
 
-from .exceptions import InvalidRequest, DBOperationFailed
+from .exceptions import TableEntityDeleteRestricted, InvalidFieldName, UpdateProhabitedField
 
 
 class ModelUpdateMixin(models.Model):
@@ -10,24 +11,27 @@ class ModelUpdateMixin(models.Model):
     Model mixin to Update a model instance
     declare error_messages with UPDATE key and restricted_fields on your model.
     """
+    _error_messages = {
+        "INVALID_KEY": "{} update faield. {} is an invalid field.",
+        "RESTRICTED_FIELD": "{} update failed. {} is restricted field."
+    }
+    restricted_fields = ['pk']
+
     class Meta:
         abstract=True
 
     def update(self, commit=True, **kwargs):
-        assert hasattr(self, 'error_messages'), "Create error_messages field on your model"
-        assert hasattr(self, 'restricted_fields'), "Add restricted_fields field on your model"
-        assert type(self.error_messages) is type(dict()), "error_messages field should be an dict"
-        assert "UPDATE" in self.error_messages, "UPDATE key is absent from error_messages dictionary"
+        model_name = self.__class__.__name__
         fields = [field.name for field in self._meta.fields]
         for key, value in kwargs.items():
             if key not in fields:
-                raise InvalidRequest(detail={
-                    "detail": _("{} {} is an invalid field".format(self.error_messages["UPDATE"], key))
-                })
+                raise InvalidFieldName(
+                    detail=_(self._error_messages["INVALID_KEY"].format(model_name, key))
+                )
             if key in self.restricted_fields:
-                raise InvalidRequest(detail={
-                    "detail": _("{} {} is prohabited from any update".format(self.error_messages["UPDATE"], key))
-                })
+                raise UpdateProhabitedField(
+                    detail=_(self._error_messages["RESTRICTED_FIELD"].format(model_name, key))
+                )
             setattr(self, key, value)
         if commit == True:
             if self.pk == None:
@@ -46,16 +50,13 @@ class ModelDeleteMixin(models.Model):
         abstract=True
 
     def delete(self):
-        assert hasattr(self, 'error_messages'), "Create error_messages field on your model"
-        assert type(self.error_messages) is type(dict()), "error_messages field should be an dict"
-        assert "DELETE" in self.error_messages, "UPDATE key is absent from error_messages dictionary"
         try:
             super().delete()
             return True
-        except Exception as exception:
-            raise DBOperationFailed(detail={
-                "detail": _(self.error_messages["DELETE"] + exception.__str__())
-            })
+        except RestrictedError:
+            raise TableEntityDeleteRestricted(
+                detail=_("{} table entity delete restricted".format(self.__class__.__name__))
+            )
 
 
 
