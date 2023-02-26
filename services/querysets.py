@@ -2,10 +2,10 @@
 from operator import __and__
 from functools import reduce
 from django.utils.translation import gettext_lazy as _
-from django.db.models import CharField, Q, QuerySet, Model, TextField
+from django.db.models import CharField, Q, QuerySet, TextField
 from rest_framework.request import Request
-from rest_framework.exceptions import NotFound
-from .exceptions import InvalidRequest
+
+from .exceptions import InvalidDataType, ObjectNotFound
 
 
 class TemplateQuerySet(QuerySet):
@@ -15,21 +15,15 @@ class TemplateQuerySet(QuerySet):
     def get_object_by_pk(self, pk):
         """
         Get model object with primary key
-        Parameter:
-            pk  : primary key of object
-        Return:
-            object
         """
         model_name = self.model._meta.model_name
         try:
             obj = self.get(pk=pk)
             return obj
         except self.model.DoesNotExist:
-            raise NotFound(detail={"detail": _("{} Ojbect with pk={} does not exist".format(model_name, pk))})
-        except ValueError as exception:
-            raise NotFound(detail={"detail": _("{} Object primary key shoud be integer".format(model_name))})
-        except Exception as exception:
-            raise NotFound(detail={"detail": _(exception.__str__())})
+            raise ObjectNotFound(model_name=model_name)
+        except ValueError:
+            raise InvalidDataType(expected_dtype=int, find_dtype=type(pk), model_name=model_name)
 
     def filter_from_query_params(self, request: Request, FieldModel=None, related_field=None):
         """
@@ -42,15 +36,12 @@ class TemplateQuerySet(QuerySet):
             Filtered queryset
         """
         assert not ((related_field != None) ^ (FieldModel != None)), "If related_field is True, Provide a Model."
-        try:
-            if not FieldModel:
-                FieldModel = self.model
-            q_objects = generate_q_objects_from_query_params(FieldModel, request, related_field)
-            if q_objects:
-                return self.filter(reduce(__and__, q_objects))
-            return self.all()
-        except Exception as exception:
-            raise InvalidRequest(detail={"detail": exception.args})
+        if not FieldModel:
+            FieldModel = self.model
+        q_objects = generate_q_objects_from_query_params(FieldModel, request, related_field)
+        if q_objects:
+            return self.filter(reduce(__and__, q_objects))
+        return self.all()
 
 
 def generate_q_objects_from_query_params(ModelName, request: Request, related_field=None):
