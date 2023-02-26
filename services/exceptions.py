@@ -16,4 +16,29 @@ class InvalidRequest(APIException):
     default_code = 'invalid_request'
 
 
+class TableEntityDeleteRestricted(APIException):
+    status_code = status.HTTP_409_CONFLICT
+    default_detail = _("Database table entity delete restricted")
+    default_code = 'entity_delete_restricted'
+
+
+class InvalidDataType(APIException):
+    status_code = status.HTTP_406_NOT_ACCEPTABLE
+    default_detail = _("Invalid datatype")
+    default_code = 'invalid_datatype'
+
+
+class InvalidFieldName(APIException):
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_code = _("Invalid field name passed for update")
+    default_code = 'invalid_field_name'
+
+
+class UpdateProhabitedField(APIException):
+    status_code = status.HTTP_406_NOT_ACCEPTABLE
+    default_code = _("Field is restricted for any update")
+    default_code = 'update_prohabited_field'
+
+
+
 
