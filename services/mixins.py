@@ -22,17 +22,14 @@ class ModelUpdateMixin(models.Model):
 
     def update(self, commit=True, **kwargs):
         model_name = self.__class__.__name__
-        fields = [field.name for field in self._meta.fields]
-        for key, value in kwargs.items():
-            if key not in fields:
-                raise InvalidFieldName(
-                    detail=_(self._error_messages["INVALID_KEY"].format(model_name, key))
-                )
-            if key in self.restricted_fields:
-                raise UpdateProhabitedField(
-                    detail=_(self._error_messages["RESTRICTED_FIELD"].format(model_name, key))
-                )
-            setattr(self, key, value)
+        fields = {field.name for field in self._meta.fields} - {'id', 'pk'}
+        breakpoint()
+        for field_name, field_value in kwargs.items():
+            if field_name not in fields:
+                raise InvalidFieldName(model_name=model_name, field_name=field_name)
+            if field_name in self.restricted_fields:
+                raise UpdateProhabitedField(model_name=model_name, field_name=field_name)
+            setattr(self, field_name, field_value)
         if commit == True:
             if self.pk == None:
                 self.save()
@@ -54,9 +51,7 @@ class ModelDeleteMixin(models.Model):
             super().delete()
             return True
         except RestrictedError:
-            raise TableEntityDeleteRestricted(
-                detail=_("{} table entity delete restricted".format(self.__class__.__name__))
-            )
+            raise TableEntityDeleteRestricted(self.__class__.__name__)
 
 
 
