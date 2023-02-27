@@ -7,7 +7,7 @@ from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 
 from services.mixins import ModelDeleteMixin, ModelUpdateMixin
-from .exceptions import TaskCreateFailed, UserTasksCreateFailed, TaskAttachmentCreateFailed, TaskTreeCreateFailed
+from .exceptions import TaskCreateFailed, UserTasksCreateFailed, TaskAttachmentCreateFailed, TaskTreeCreateFailed, TaskDeleteRestricted
 from .querysets import TaskQuerySet, TaskAttachmentsQuerySet, TaskTreeQuerySet, UsersTasksQuerySet
 from .validators import validate_task_submission_last_date
 
@@ -164,6 +164,13 @@ class Task(ModelDeleteMixin, ModelUpdateMixin, models.Model):
             self.save()
         return self
 
+    def delete(self):
+        if self.approval_status == self.ApprovalChoices.APPROVED or self.status != self.StatusChoices.PENDING:
+            raise TaskDeleteRestricted()
+        return super().delete()
+
+    def force_delete(self):
+        return super(Task, self).delete()
 
 
 class UsersTasks(ModelDeleteMixin, ModelUpdateMixin, models.Model):
