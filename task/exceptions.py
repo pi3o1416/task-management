@@ -28,6 +28,13 @@ class TaskTreeCreateFailed(APIException):
     default_code = 'task_tree_create_failed'
 
 
+class TaskDeleteRestricted(APIException):
+    status_code = status.HTTP_403_FORBIDDEN
+    default_detail = _("Task can not be deleted once it has already been started or approved")
+    default_code = 'task_delete_restricted'
+
+
+
 
 
 
