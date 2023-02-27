@@ -1,19 +1,41 @@
 
 from django.utils.translation import gettext_lazy as _
-from rest_framework.exceptions import APIException
 from rest_framework import status
+from rest_framework.exceptions import APIException
 
 
-class DBOperationFailed(APIException):
-    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-    default_detail = _("Database operation failed")
-    default_code = 'db_operation_failed'
+class TaskCreateFailed(APIException):
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = _("Task create failed")
+    default_code = 'task_create_failed'
 
 
-class InvalidRequest(APIException):
-    status_code = status.HTTP_409_CONFLICT
-    default_detail = _("Invalid request, does not match with current state")
-    default_code = 'invalid_request'
+class UserTasksCreateFailed(APIException):
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = _("User task create failed")
+    default_code = 'user_task_create_failed'
+
+
+class TaskAttachmentCreateFailed(APIException):
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = _("Task attachment create failed")
+    default_code = 'user_task_create_failed'
+
+
+class TaskTreeCreateFailed(APIException):
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = _("Task tree create failed")
+    default_code = 'task_tree_create_failed'
+
+
+
+
+
+
+
+
+
+
 
 
 
