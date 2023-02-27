@@ -1,31 +1,21 @@
 
 import os
 from django.db import models
+from django.db import IntegrityError
 from django.contrib.auth import get_user_model
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 
 from services.mixins import ModelDeleteMixin, ModelUpdateMixin
+from .exceptions import TaskCreateFailed, UserTasksCreateFailed, TaskAttachmentCreateFailed, TaskTreeCreateFailed
 from .querysets import TaskQuerySet, TaskAttachmentsQuerySet, TaskTreeQuerySet, UsersTasksQuerySet
 from .validators import validate_task_submission_last_date
-from .exceptions import DBOperationFailed, InvalidRequest
 
 User = get_user_model()
 
 
 class Task(ModelDeleteMixin, ModelUpdateMixin, models.Model):
-    #TODO: validate last_date
-    restricted_fields = ['pk', 'created_by', 'created_at']
-    error_messages = {
-        "CREATE": "Task create failed.",
-        "UPDATE": "Task update failed.",
-        "DELETE": "Task delete failed.",
-        "RETRIEVE": "Task retrieve failed.",
-        "PATCH": "Task patch failed.",
-        "SUBMIT_FIRST": "Submit the task first.",
-        "NOT_DUE": "This is not a due task.",
-        "NOT_PENDING": "This is not a pending task."
-    }
+    restricted_fields = ['created_by', 'created_at']
 
     class StatusChoices(models.TextChoices):
         PENDING = "PEN", _("Pending task")
@@ -117,7 +107,7 @@ class Task(ModelDeleteMixin, ModelUpdateMixin, models.Model):
         return self.title
 
     @classmethod
-    def create_factory(cls, commit, **kwargs):
+    def create_factory(cls, commit=True, **kwargs):
         try:
             assert kwargs.get("title") != None, "Task title is required"
             assert kwargs.get("description") != None, "Task description is required"
@@ -128,9 +118,15 @@ class Task(ModelDeleteMixin, ModelUpdateMixin, models.Model):
                 task.save()
             return task
         except AssertionError as exception:
-            raise InvalidRequest(detail={"detail": _(exception.__str__())})
-        except Exception as exception:
-            raise DBOperationFailed(detail={"detail": _(exception.__str__())})
+            raise TaskCreateFailed(detail=exception.__str__())
+        except IntegrityError as exception:
+            raise TaskCreateFailed(
+                detail="Task create faield due to table data integrity error"
+            )
+        except TypeError as exception:
+            raise TaskCreateFailed(
+                detail="Table create faield due to invalid table field name"
+            )
 
     def approve_task(self):
         if self.approval_status != self.ApprovalChoices.APPROVED:
@@ -145,33 +141,33 @@ class Task(ModelDeleteMixin, ModelUpdateMixin, models.Model):
     def accept_task_submission(self):
         if self.status == self.StatusChoices.SUBMITTED:
             return self.update(status=self.StatusChoices.COMPLETED)
-        raise InvalidRequest(detail={"detail": _(self.error_messages["SUBMIT_FIRST"])})
+        return True
 
     def reject_task_submission(self):
         if self.status == self.StatusChoices.SUBMITTED:
             return self.update(status=self.StatusChoices.DUE)
-        raise InvalidRequest(detail={"detail": _(self.error_messages["SUBMIT_FIRST"])})
+        return True
 
     def start_task(self):
         if self.status == self.StatusChoices.PENDING:
             return self.update(status=self.StatusChoices.DUE)
-        raise InvalidRequest(detail={"detail": _(self.error_messages["NOT_PENDING"])})
+        return True
 
     def submit_task(self):
         if self.status == self.StatusChoices.DUE:
             return self.update(status=self.StatusChoices.SUBMITTED)
-        raise InvalidRequest(detail={"detail": _(self.error_messages["NOT_DUE"])})
+        return True
+
+    def set_task_owner(self, created_by, commit=True):
+        self.created_by = created_by
+        if commit == True:
+            self.save()
+        return self
+
 
 
 class UsersTasks(ModelDeleteMixin, ModelUpdateMixin, models.Model):
-    restricted_fields = ['pk', 'task']
-    error_messages = {
-        "CREATE": "User task create failed.",
-        "UPDATE": "User task update failed.",
-        "DELETE": "User task delete failed.",
-        "RETRIEVE": "User task retrieve failed.",
-        "PATCH": "User task patch failed.",
-    }
+    restricted_fields = ['task']
 
     assigned_to = models.ForeignKey(
         to=User,
@@ -193,7 +189,7 @@ class UsersTasks(ModelDeleteMixin, ModelUpdateMixin, models.Model):
 
 
     @classmethod
-    def create_factory(cls, commit=False, **kwargs):
+    def create_factory(cls, commit=True, **kwargs):
         try:
             assert kwargs.get("task") != None, "Task should not be empty"
             assert kwargs.get("assigned_to") != None, "Task assigned_to field should not be empty"
@@ -202,9 +198,15 @@ class UsersTasks(ModelDeleteMixin, ModelUpdateMixin, models.Model):
                 user_task.save()
             return user_task
         except AssertionError as exception:
-            raise InvalidRequest(detail={"detail": _(exception.__str__())})
-        except Exception as exception:
-            raise InvalidRequest(detail={"detail": _(exception.__str__())})
+            raise UserTasksCreateFailed(detail=exception.__str__())
+        except IntegrityError as exception:
+            raise TaskCreateFailed(
+                detail="user tasks create faield due to table data integrity error"
+            )
+        except TypeError as exception:
+            raise TaskCreateFailed(
+                detail="user tasks create faield due to invalid table field name"
+            )
 
 
 def task_attachment_upload_path(instance, filename):
@@ -253,7 +255,7 @@ class TaskAttachments(ModelDeleteMixin, models.Model):
     objects = TaskAttachmentsQuerySet.as_manager()
 
     @classmethod
-    def create_factory(cls, commit=False, **kwargs):
+    def create_factory(cls, commit=True, **kwargs):
         try:
             assert kwargs.get("task") != None, "Task should not be empty"
             assert kwargs.get("attachment") != None, "Attachment should not be empty"
@@ -263,11 +265,16 @@ class TaskAttachments(ModelDeleteMixin, models.Model):
                 task_attachment.save()
             return task_attachment
         except AssertionError as exception:
-            breakpoint()
-            raise InvalidRequest(detail={"detail": _(exception.__str__())})
-        except Exception as exception:
-            breakpoint()
-            raise InvalidRequest(detail={"detail": _(exception.__str__())})
+            raise TaskAttachmentCreateFailed(detail=exception.__str__())
+        except IntegrityError as exception:
+            raise TaskAttachmentCreateFailed(
+                detail="task attachment create faield due to table data integrity error"
+            )
+        except TypeError as exception:
+            raise TaskAttachmentCreateFailed(
+                detail="task attachment create faield due to invalid table field name"
+            )
+
 
 
 class TaskTree(models.Model):
@@ -295,9 +302,15 @@ class TaskTree(models.Model):
                 task_tree.save()
             return task_tree
         except AssertionError as exception:
-            raise InvalidRequest(detail={"detail": _(exception.__str__())})
-        except Exception as exception:
-            raise InvalidRequest(detail={"detail": _(exception.__str__())})
+            raise TaskTreeCreateFailed(detail=exception.__str__())
+        except IntegrityError as exception:
+            raise TaskTreeCreateFailed(
+                detail="task tree create faield due to table data integrity error"
+            )
+        except TypeError as exception:
+            raise TaskTreeCreateFailed(
+                detail="task tree create faield due to invalid table field name"
+            )
 
 
 
