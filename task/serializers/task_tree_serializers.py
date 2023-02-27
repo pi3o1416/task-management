@@ -4,17 +4,14 @@ from rest_framework import serializers
 
 from .task_serializers import TaskSerializer
 from ..models import TaskTree, Task
-from ..exceptions import DBOperationFailed
 
 
 class SubTaskCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
         fields = ['pk', 'created_by', 'title', 'description', 'created_at', 'last_date',
-                  'approval_status', 'status', 'priority', 'created_by_user_username',
-                  'created_by_user_fullname']
-        read_only_fields = ['pk', 'created_by', 'created_at', 'created_by_user_username',
-                            'created_by_user_fullname', 'approval_status', 'status']
+                  'approval_status', 'status', 'priority']
+        read_only_fields = ['pk', 'created_by', 'created_at', 'approval_status', 'status']
 
     def create(self, user, commit=True):
         assert self.validated_data != None, "Validate serializer before create instance"

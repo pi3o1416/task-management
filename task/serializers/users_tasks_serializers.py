@@ -3,9 +3,8 @@ from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
-from task.exceptions import DBOperationFailed
+from services.exceptions import DBOperationFailed
 from ..models import UsersTasks, Task
-from ..exceptions import DBOperationFailed
 from .task_serializers import TaskSerializer
 
 
@@ -16,7 +15,6 @@ class UsersTasksSerializers(serializers.ModelSerializer):
     class Meta:
         model = UsersTasks
         fields = '__all__'
-        read_only_fields = ['user_username', 'user_full_name']
 
 
 class UsersTasksDetailSerializer(serializers.ModelSerializer):
@@ -24,7 +22,7 @@ class UsersTasksDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = UsersTasks
         fields = '__all__'
-        read_only_fields = ['assigned_to', 'task', 'user_username', 'user_full_name']
+        read_only_fields = ['assigned_to', 'task']
 
 
 class UsersTasksCreateAndAssignSerializer(serializers.ModelSerializer):
