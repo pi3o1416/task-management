@@ -23,7 +23,6 @@ class ModelUpdateMixin(models.Model):
     def update(self, commit=True, **kwargs):
         model_name = self.__class__.__name__
         fields = {field.name for field in self._meta.fields} - {'id', 'pk'}
-        breakpoint()
         for field_name, field_value in kwargs.items():
             if field_name not in fields:
                 raise InvalidFieldName(model_name=model_name, field_name=field_name)
