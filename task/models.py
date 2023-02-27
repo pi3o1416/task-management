@@ -1,5 +1,7 @@
 
 import os
+from django.forms import model_to_dict
+from django.db import connection
 from django.db import models
 from django.db import IntegrityError
 from django.contrib.auth import get_user_model
@@ -164,13 +166,32 @@ class Task(ModelDeleteMixin, ModelUpdateMixin, models.Model):
             self.save()
         return self
 
-    def delete(self):
+    def safe_delete(self):
         if self.approval_status == self.ApprovalChoices.APPROVED or self.status != self.StatusChoices.PENDING:
             raise TaskDeleteRestricted()
-        return super().delete()
+        return self.delete()
 
-    def force_delete(self):
-        return super(Task, self).delete()
+    @property
+    def parent_tasks(self):
+        try:
+            parents = []
+            sql = """WITH RECURSIVE parent_nodes AS (
+                      SELECT parent_node.child_id, parent_node.parent_id
+                      FROM task_tasktree parent_node
+                      WHERE parent_node.child_id = {}
+                      UNION ALL
+                      SELECT parent_node.child_id, parent_node.parent_id
+                      FROM task_tasktree parent_node
+                      JOIN parent_nodes child_node ON child_node.parent_id = parent_node.child_id
+                    )
+                    SELECT parent_id
+                    FROM parent_nodes;""".format(self.pk)
+            with connection.cursor() as cursor:
+                cursor.execute(sql)
+                parents = [parent[0] for parent in cursor.fetchall()]
+            return parents
+        except Exception:
+            return [model_to_dict(self).get('created_by')]
 
 
 class UsersTasks(ModelDeleteMixin, ModelUpdateMixin, models.Model):
@@ -229,14 +250,6 @@ def task_attachment_upload_path(instance, filename):
 
 
 class TaskAttachments(ModelDeleteMixin, models.Model):
-    error_messages = {
-        "CREATE": "Task attachment create failed.",
-        "UPDATE": "Task attachment update failed.",
-        "DELETE": "Task attachment delete failed.",
-        "RETRIEVE": "Task attachment retrieve failed.",
-        "PATCH": "Task attachment patch failed.",
-    }
-
     task = models.ForeignKey(
         to=Task,
         on_delete=models.CASCADE,
