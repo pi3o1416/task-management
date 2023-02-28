@@ -31,6 +31,25 @@ class HasPermissionToApproveTask(BasePermission):
     pass
 
 
+@has_kperms(['task.can_view_inter_department_task'])
+class CanViewInterDepartmentTask(BasePermission):
+    pass
+
+
+@has_kperms(['task.add_userstasks'])
+class CanCreateUsersTasks(BasePermission):
+    pass
+
+
+class IsUserTaskOwner(BasePermission):
+    @is_authenticated
+    def has_object_permission(self, request, view, user_task:UsersTasks):
+        created_by = model_to_dict(user_task.task).get('created_by')
+        if request.user.pk == created_by:
+            return True
+        return False
+
+
 class IsTaskOwner(BasePermission):
     @is_authenticated
     def has_object_permission(self, request, view, task:Task):
