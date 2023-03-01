@@ -25,6 +25,24 @@ class TemplateQuerySet(QuerySet):
         except ValueError:
             raise InvalidDataType(expected_dtype=int, find_dtype=type(pk), model_name=model_name)
 
+    def filter_with_related_fields(self, request, related_fields:list):
+        """
+        Filter objects with foreign key references.
+        """
+        #Default filter
+        filtered_tasks = self.filter_from_query_params(request=request)
+        #Filter for foreignkey relation
+        for field in get_model_foreignkey_fields(self.model):
+            FieldModel = field.remote_field.model
+            field_name = field.name
+            if field_name in related_fields:
+                filtered_tasks = self.select_related(field_name).filter_from_query_params(
+                    request=request,
+                    FieldModel=FieldModel,
+                    related_field=field_name
+                )
+        return filtered_tasks
+
     def filter_from_query_params(self, request: Request, FieldModel=None, related_field=None):
         """
         Filter queryset from request query parameters.
