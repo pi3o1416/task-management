@@ -1,19 +1,35 @@
 
 import os
+from operator import __and__
+
 from django.forms import model_to_dict
 from django.db import connection
 from django.db import models
 from django.db import IntegrityError
+from django.db.models import Count, OuterRef, Subquery
+from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 
+from department.models import DepartmentMember
+from services.querysets import get_model_foreignkey_fields
+from services.querysets import TemplateQuerySet
 from services.mixins import ModelDeleteMixin, ModelUpdateMixin
 from .exceptions import TaskCreateFailed, UserTasksCreateFailed, TaskAttachmentCreateFailed, TaskTreeCreateFailed, TaskDeleteRestricted
-from .querysets import TaskQuerySet, TaskAttachmentsQuerySet, TaskTreeQuerySet, UsersTasksQuerySet
 from .validators import validate_task_submission_last_date
 
+
 User = get_user_model()
+
+
+class TaskQuerySet(TemplateQuerySet):
+    def get_task_count(self):
+        return self.count()
+
+    def get_task_status_statistics(self):
+        statistics = self.values('status').annotate(count=Count('status'))
+        return statistics
 
 
 class Task(ModelDeleteMixin, ModelUpdateMixin, models.Model):
@@ -172,6 +188,12 @@ class Task(ModelDeleteMixin, ModelUpdateMixin, models.Model):
         return self.delete()
 
     @property
+    def child_tasks(self):
+        subquery = TaskTree.objects.values('child').filter(parent=self)
+        sub_tasks = Task.objects.filter(pk__in=subquery)
+        return sub_tasks
+
+    @property
     def parent_tasks(self):
         try:
             parents = []
@@ -192,6 +214,28 @@ class Task(ModelDeleteMixin, ModelUpdateMixin, models.Model):
             return parents
         except Exception:
             return [model_to_dict(self).get('created_by')]
+
+
+class UsersTasksQuerySet(TemplateQuerySet):
+    def department_based_tasks(self, department_pk):
+        department_members = DepartmentMember.objects.filter(department=department_pk, member=OuterRef('assigned_to'))
+        members_tasks = self.filter(assigned_to=Subquery(department_members.values('member')))
+        return members_tasks
+
+    def filter_with_related_fields(self, request):
+        #TODO: Update name to filter with foreignkey field
+        #Default filter
+        filtered_tasks = self.filter_from_query_params(request=request)
+        #Filter for foreignkey relation
+        for field in get_model_foreignkey_fields(self.model):
+            FieldModel = field.remote_field.model
+            field_name = field.name
+            filtered_tasks = self.select_related(field_name).filter_from_query_params(
+                request=request,
+                FieldModel=FieldModel,
+                related_field=field_name
+            )
+        return filtered_tasks
 
 
 class UsersTasks(ModelDeleteMixin, ModelUpdateMixin, models.Model):
@@ -215,6 +259,11 @@ class UsersTasks(ModelDeleteMixin, ModelUpdateMixin, models.Model):
         permissions = (("can_view_inter_department_task", _("Can View Inter Department Tasks")),
                        ("can_view_all_users_tasks", _("Can View All Users Tasks")))
 
+    def clean(self):
+        task_owner_pk = model_to_dict(self.task.created_by).get('id')
+        department_members = DepartmentMember.objects.filter(member__in=[task_owner_pk, self.assigned_to.pk])
+        if not department_members.is_members_department_same():
+            raise ValidationError("Task assignee and assignor department is not same.")
 
     @classmethod
     def create_factory(cls, commit=True, **kwargs):
@@ -247,6 +296,10 @@ def task_attachment_upload_path(instance, filename):
         desired_path = os.path.join(settings.MEDIA_ROOT, file_path)
         counter += 1
     return file_path
+
+
+class TaskAttachmentsQuerySet(TemplateQuerySet):
+    pass
 
 
 class TaskAttachments(ModelDeleteMixin, models.Model):
@@ -296,6 +349,9 @@ class TaskAttachments(ModelDeleteMixin, models.Model):
             )
 
 
+class TaskTreeQuerySet(TemplateQuerySet):
+    pass
+
 
 class TaskTree(models.Model):
     parent = models.ForeignKey(
@@ -311,6 +367,17 @@ class TaskTree(models.Model):
         on_delete=models.CASCADE
     )
     objects = TaskTreeQuerySet.as_manager()
+
+    def clean(self):
+        #TODO: Add department_task type, project_task type, team_task type
+        if self.parent == self.child:
+            raise ValidationError("Parent task and child task can not be equal")
+        if self.parent.task_type == Task.TaskType.USER_TASK:
+            assigned_to = UsersTasks.objects.values_list('assigned_to', flat=True).get(task=self.parent)
+            if assigned_to != self.child.created_by.pk:
+                raise ValidationError("Parent task assignee did not match child task owner")
+        return True
+
 
     @classmethod
     def create_factory(cls, commit=False, **kwargs):
