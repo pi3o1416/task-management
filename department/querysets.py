@@ -20,7 +20,7 @@ class DepartmentMemberQuerySet(TemplateQuerySet):
         return self.filter(Q(department=department_pk))
 
     def is_members_department_same(self):
-        department_count = self.values('department').count()
+        department_count = self.values('department').distinct().count()
         if department_count == 1:
             return True
         return False
