@@ -141,13 +141,16 @@ class Task(ModelDeleteMixin, ModelUpdateMixin, models.Model):
                 )
 
     @classmethod
-    def create_factory(cls, commit=True, **kwargs):
+    def create_factory(cls, created_by, commit=True, **kwargs):
         try:
             assert kwargs.get("title") != None, "Task title is required"
             assert kwargs.get("description") != None, "Task description is required"
             assert kwargs.get("last_date") != None, "Task submission last date is required"
             assert kwargs.get("priority") != None, "Task priority is required"
             task = cls(**kwargs)
+            if created_by.has_perm("task.can_approve_disapprove_task"):
+                task.approval_status = cls.ApprovalChoices.APPROVED
+                task.created_by = created_by
             if commit == True:
                 task.save()
             return task
