@@ -1,48 +1,56 @@
 
 from django.utils.translation import gettext_lazy as _
-from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 
-from ..permissions import IsAssignedUponUser
-from ..serializers import SubTaskCreateSerializer, TaskTreeDetailSerializer, TaskSerializer
-from ..models import Task
+from services.views import TemplateAPIView
+from ..permissions import IsTaskOwner, IsTaskAssignee
+from ..serializers import SubTaskCreateSerializer, TaskTreeDetailSerializer, TaskSerializer, TaskStatusStatisticsSerializer
+from ..models import Task, TaskTree
 
 
-class CreateSubTask(APIView):
+class CreateSubTask(TemplateAPIView):
+    model = Task
     serializer_class = SubTaskCreateSerializer
-    permission_classes = [IsAuthenticated, IsAssignedUponUser]
+    permission_classes = [IsTaskAssignee]
 
     def post(self, request, task_pk):
         user = request.user
         parent_task = self.get_object(pk=task_pk)
-        self.check_object_permissions(request=request, obj=parent_task)
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
-            child_task = serializer.create(user=user, commit=True)
-            task_tree = serializer.create_task_tree(child=child_task, parent=parent_task, commit=True)
-            detail_serializer = TaskTreeDetailSerializer(instance=task_tree)
-            return Response(data=detail_serializer.data, status=status.HTTP_201_CREATED)
+            tree_edge = serializer.create(created_by=user, parent_task=parent_task, commit=True)
+            response_serializer = TaskTreeDetailSerializer(instance=tree_edge)
+            return Response(data=response_serializer.data, status=status.HTTP_201_CREATED)
         return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def get_object(self, pk):
-        task = Task.objects.get_task_by_pk(pk=pk)
-        return task
 
-
-class GetSubTasks(APIView):
+class GetSubTasks(TemplateAPIView):
+    model = Task
     serializer_class = TaskSerializer
+    permission_classes = [IsTaskOwner, IsTaskAssignee]
 
     def get(self, request, task_pk):
         task = self.get_object(pk=task_pk)
-        subtasks = Task.objects.get_subtasks(parent_task=task)
+        subquery = TaskTree.objects.values('child').filter(parent=task)
+        subtasks = Task.objects.filter(pk__in=subquery)
         serializer = self.serializer_class(instance=subtasks, many=True)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
 
-    def get_object(self, pk):
-        task = Task.objects.get_task_by_pk(pk=pk)
-        return task
+
+class TaskSubTasksStats(TemplateAPIView):
+    model = Task
+    serializer_class = TaskStatusStatisticsSerializer
+
+    def get(self, request, task_pk):
+        task = self.get_object(pk=task_pk)
+        subtasks = task.child_tasks
+        subtasks_stats = subtasks.get_task_status_statistics()
+        return Response(data=subtasks_stats, status=status.HTTP_200_OK)
+
+
+
+
 
 
 
