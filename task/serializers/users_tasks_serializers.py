@@ -47,9 +47,8 @@ class UsersTasksCreateAndAssignSerializer(serializers.ModelSerializer):
         return user_task
 
     def _create_task(self, task_data, user):
-        task = Task.create_factory(commit=False, **task_data)
-        task.update(is_assigned=True, commit=False)
-        task.set_task_owner(created_by=user, commit=True)
+        task = Task.create_factory(created_by=user, commit=False, **task_data)
+        task.update(is_assigned=True, commit=True)
         return task
 
     def _assign_task(self, task, assigned_to_pk):

@@ -13,8 +13,7 @@ class TaskSerializer(serializers.ModelSerializer):
 
     def create(self, created_by, commit=True):
         assert self.validated_data != None, "Validated serialzier before create object"
-        task = Task(**self.validated_data)
-        task = task.set_task_owner(created_by=created_by, commit=commit)
+        task = Task.create_factory(created_by=created_by, commit=commit, **self.validated_data)
         return task
 
     def update(self, instance, commit = True):
