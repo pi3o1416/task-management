@@ -344,11 +344,9 @@ class TaskAttachments(ModelDeleteMixin, models.Model):
     )
     attached_by = models.ForeignKey(
         to=User,
-        on_delete=models.SET_NULL,
+        on_delete=models.RESTRICT,
         related_name='user_files',
         verbose_name=_("Attached by"),
-        blank=True,
-        null=True,
     )
     attachment = models.FileField(
         verbose_name=_("Task attachment"),
