@@ -74,7 +74,9 @@ class Task(ModelDeleteMixin, ModelUpdateMixin, models.Model):
         max_length=200,
     )
     description = models.TextField(
-        verbose_name=_("Task description")
+        verbose_name=_("Task description"),
+        null=True,
+        blank=True,
     )
     created_at = models.DateTimeField(
         verbose_name=_("Task creation time"),
