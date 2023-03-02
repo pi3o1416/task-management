@@ -16,6 +16,7 @@ from department.models import DepartmentMember
 from services.querysets import get_model_foreignkey_fields
 from services.querysets import TemplateQuerySet
 from services.mixins import ModelDeleteMixin, ModelUpdateMixin
+from services.exceptions import InvalidRequest
 from .exceptions import TaskCreateFailed, UserTasksCreateFailed, TaskAttachmentCreateFailed, TaskTreeCreateFailed, TaskDeleteRestricted
 from .validators import validate_task_submission_last_date
 
@@ -124,6 +125,21 @@ class Task(ModelDeleteMixin, ModelUpdateMixin, models.Model):
     def __str__(self):
         return self.title
 
+    def clean(self):
+        #Validate task status should be pending until approval
+        if self.approval_status != self.ApprovalChoices.APPROVED and self.status != self.StatusChoices.PENDING:
+            raise ValidationError(
+                "Task status should be pending untill approval."
+            )
+        #Validate task can not be submitted or completed until all child tasks are completed
+        if self.has_subtask == True and self.status in [self.StatusChoices.SUBMITTED, self.StatusChoices.COMPLETED]:
+            child_tasks = self.child_tasks
+            incomplete_task_status = [self.StatusChoices.PENDING, self.StatusChoices.DUE, self.StatusChoices.SUBMITTED]
+            if child_tasks.filter(status__in=incomplete_task_status).exists():
+                raise ValidationError(
+                    "Task submit or complete is not possible until all child tasks are complete"
+                )
+
     @classmethod
     def create_factory(cls, commit=True, **kwargs):
         try:
@@ -149,32 +165,45 @@ class Task(ModelDeleteMixin, ModelUpdateMixin, models.Model):
     def approve_task(self):
         if self.approval_status != self.ApprovalChoices.APPROVED:
             self.update(approval_status=self.ApprovalChoices.APPROVED)
-        return True
+        raise InvalidRequest(
+            detail=_("Task is already approved")
+        )
 
     def reject_approval_request(self):
         if self.approval_status != self.ApprovalChoices.REJECTED:
             self.update(approval_status=self.ApprovalChoices.REJECTED)
-        return True
+        raise InvalidRequest(
+            detail=_("Task is already rejected")
+        )
 
     def accept_task_submission(self):
         if self.status == self.StatusChoices.SUBMITTED:
             return self.update(status=self.StatusChoices.COMPLETED)
-        return True
+        raise InvalidRequest(
+            detail=_("Task is not submitted yet")
+        )
 
     def reject_task_submission(self):
         if self.status == self.StatusChoices.SUBMITTED:
             return self.update(status=self.StatusChoices.DUE)
-        return True
+        raise InvalidRequest(
+            detail=_("Task is not submitted yet")
+        )
 
     def start_task(self):
         if self.status == self.StatusChoices.PENDING:
             return self.update(status=self.StatusChoices.DUE)
-        return True
+        raise InvalidRequest(
+            detail=_("Task is not pending")
+        )
 
     def submit_task(self):
         if self.status == self.StatusChoices.DUE:
             return self.update(status=self.StatusChoices.SUBMITTED)
-        return True
+        raise InvalidRequest(
+            detail=_("Task is not due")
+        )
+
 
     def set_task_owner(self, created_by, commit=True):
         self.created_by = created_by
@@ -260,10 +289,14 @@ class UsersTasks(ModelDeleteMixin, ModelUpdateMixin, models.Model):
                        ("can_view_all_users_tasks", _("Can View All Users Tasks")))
 
     def clean(self):
+        #Validate task asssignee and assignor department
         task_owner_pk = model_to_dict(self.task.created_by).get('id')
         department_members = DepartmentMember.objects.filter(member__in=[task_owner_pk, self.assigned_to.pk])
         if not department_members.is_members_department_same():
             raise ValidationError("Task assignee and assignor department is not same.")
+        #Validate task status should be pending before assignment
+        if self.task.status != Task.StatusChoices.PENDING:
+            raise ValidationError("Task status should be pending before assignment")
 
     @classmethod
     def create_factory(cls, commit=True, **kwargs):
@@ -327,6 +360,13 @@ class TaskAttachments(ModelDeleteMixin, models.Model):
     )
     objects = TaskAttachmentsQuerySet.as_manager()
 
+    def clean(self):
+        #Validate task assignor and assignee can only attach failes
+        task_created_by_pk = model_to_dict(self.task).get('created_by')
+        task_assigned_to_pk = model_to_dict(self.task.task_assigned_to).get('assigned_to')
+        if self.attached_by.pk != task_created_by_pk and self.attached_by.pk != task_assigned_to_pk:
+            raise ValidationError("Attachment can only be attached by task assignee or assignor")
+
     @classmethod
     def create_factory(cls, commit=True, **kwargs):
         try:
@@ -369,14 +409,19 @@ class TaskTree(models.Model):
     objects = TaskTreeQuerySet.as_manager()
 
     def clean(self):
-        #TODO: Add department_task type, project_task type, team_task type
+        #Validate task parent and child can not be equal
         if self.parent == self.child:
             raise ValidationError("Parent task and child task can not be equal")
+        #Validate task tree chain
+        #TODO: Add department_task type, project_task type, team_task type
         if self.parent.task_type == Task.TaskType.USER_TASK:
             assigned_to = UsersTasks.objects.values_list('assigned_to', flat=True).get(task=self.parent)
-            if assigned_to != self.child.created_by.pk:
+            if assigned_to != model_to_dict(self.child).get('id'):
                 raise ValidationError("Parent task assignee did not match child task owner")
-        return True
+        #Validate parent task cannot be complete or submitted.
+        invalid_statuses = [Task.StatusChoices.COMPLETED, Task.StatusChoices.SUBMITTED]
+        if self.parent.status in invalid_statuses:
+            raise ValidationError("Parent task can not be submitted or completed")
 
 
     @classmethod
