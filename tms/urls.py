@@ -26,6 +26,7 @@ urlpatterns = [
     path('goals/', include('goal.urls')),
     path('authorization/', include('permission_handler.urls')),
     path('tasks/', include('task.urls')),
+    path('department-tasks/', include('department_task.urls')),
     path('team/', include('team.urls')),
     path('project/', include('project.urls')),
     path('schema/', SpectacularAPIView.as_view(), name='schema'),
