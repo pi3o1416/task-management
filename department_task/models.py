@@ -1,9 +1,11 @@
 
 from django.contrib.auth import get_user_model
+from django.forms import model_to_dict
 from django.utils.translation import gettext_lazy as _
 from django.core.exceptions import ValidationError
 from django.db import models
 
+from services.mixins import ModelUpdateMixin, ModelDeleteMixin
 from services.querysets import TemplateQuerySet
 from department.models import Department
 from task.models import Task
@@ -14,10 +16,16 @@ User = get_user_model()
 
 
 class DepartmentTaskQuerySet(TemplateQuerySet):
-    pass
+    def user_department_tasks(self, user):
+        return self.select_related('task').filter(
+            task__created_by=user,
+            task__task_type=Task.TaskType.DEPARTMENT_TASK
+        )
 
 
-class DepartmentTask(models.Model):
+class DepartmentTask(ModelUpdateMixin, ModelDeleteMixin, models.Model):
+    restricted_fields = ['task', 'pk']
+
     task = models.OneToOneField(
         to=Task,
         on_delete=models.CASCADE,
@@ -30,25 +38,34 @@ class DepartmentTask(models.Model):
         related_name='department_tasks',
         verbose_name=_("Department"),
     )
+    objects = DepartmentTaskQuerySet.as_manager()
     class Meta:
         permissions = (('can_create_department_task', _("Can Create Department Task")),
                        ('can_manage_departmnet_task', _("Can Manage Department Task")))
 
     def clean(self):
-        #Validate user has permission to create department task
         user = self.task.created_by
+        #Validate user has permission to create department task
         if not user.has_perm('department_task.can_create_department_task'):
             raise ValidationError("Task assignor does not have permission to create department task")
         #Validate task status should be pending before assignment
         if not self.task.status == Task.StatusChoices.PENDING:
             raise ValidationError("Task status should be pending before assignment")
+        #Validate task type should be none before assignment
+        if not self.task.pk and not self.task.task_type == Task.TaskType.NONE:
+            raise ValidationError("Task type should be none before assignment")
+        #Validate user can not assign task to own department
+        if model_to_dict(user.user_department).get('department') == self.department.pk:
+            raise ValidationError("Department member can not assign task to his own department")
+
 
     @classmethod
-    def create_factory(cls, commit=True, **kwargs):
+    def create_factory(cls, task, department, commit=True):
         try:
-            assert kwargs.get('task') != None, "Task should not be empty"
-            assert kwargs.get('department') != None, "Department should not be empty"
-            department_task = cls(**kwargs)
+            department_task = cls(
+                task=task,
+                department=department
+            )
             if commit == True:
                 department_task.save()
             return department_task
