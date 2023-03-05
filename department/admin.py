@@ -11,6 +11,7 @@ class DesignationsAdmin(admin.ModelAdmin):
 @admin.register(Department)
 class DepartmentAdmin(admin.ModelAdmin):
     list_display = [field.name for field in Department._meta.fields]
+    readonly_fields = ['slug']
 
 
 @admin.register(DepartmentMember)
