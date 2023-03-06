@@ -142,6 +142,10 @@ class Task(ModelDeleteMixin, ModelUpdateMixin, models.Model):
                     "Task submit or complete is not possible until all child tasks are complete"
                 )
 
+    def save(self, **kwargs):
+        self.clean()
+        return super(Task, self).save(**kwargs)
+
     @classmethod
     def create_factory(cls, created_by, commit=True, **kwargs):
         try:
@@ -303,6 +307,10 @@ class UsersTasks(ModelDeleteMixin, ModelUpdateMixin, models.Model):
         if self.task.status != Task.StatusChoices.PENDING:
             raise ValidationError("Task status should be pending before assignment")
 
+    def save(self, **kwargs):
+        self.clean()
+        return super(UsersTasks, self).save(**kwargs)
+
     @classmethod
     def create_factory(cls, commit=True, **kwargs):
         try:
@@ -370,6 +378,10 @@ class TaskAttachments(ModelDeleteMixin, models.Model):
         if self.attached_by.pk != task_created_by_pk and self.attached_by.pk != task_assigned_to_pk:
             raise ValidationError("Attachment can only be attached by task assignee or assignor")
 
+    def save(self, **kwargs):
+        self.clean()
+        return super(TaskAttachments, self).save(**kwargs)
+
     @classmethod
     def create_factory(cls, commit=True, **kwargs):
         try:
@@ -425,6 +437,10 @@ class TaskTree(models.Model):
         invalid_statuses = [Task.StatusChoices.COMPLETED, Task.StatusChoices.SUBMITTED]
         if self.parent.status in invalid_statuses:
             raise ValidationError("Parent task can not be submitted or completed")
+
+    def save(self, **kwargs):
+        self.clean()
+        return super(TaskTree, self).save(**kwargs)
 
 
     @classmethod
