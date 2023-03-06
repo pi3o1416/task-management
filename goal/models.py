@@ -75,7 +75,7 @@ class Goal(ModelUpdateMixin, models.Model):
         permissions = (("can_change_status", _("Can Change Status")),)
 
     def clean(self, update_fields=None):
-        #Validate updated goals can not be updated
+        #Validate rejected goals can not be updated
         if update_fields != None and 'status' not in update_fields and self.status == self.ReviewStatusChoices.REJECTED:
             raise ValidationError("Rejecte goal can not be updated")
         #Validate completion should be 0 untill review status is not updated to accepted
