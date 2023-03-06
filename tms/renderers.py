@@ -16,6 +16,8 @@ class CustomJSONRenderer(JSONRenderer):
                 "detail": None,
                 "field_errors": None
             }
+            if not type(data) is dict:
+                data = {"detail": data}
             detail = data.get("detail")
             field_errors = data.get("field_errors")
             if detail:
