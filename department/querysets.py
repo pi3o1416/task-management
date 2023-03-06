@@ -25,6 +25,9 @@ class DepartmentMemberQuerySet(TemplateQuerySet):
             return True
         return False
 
+    def member_department(self, member_pk):
+        return self.values_list('department', flat=True).get(member__pk=member_pk)
+
 
 
 
