@@ -46,6 +46,7 @@ class Department(ModelDeleteMixin, ModelUpdateMixin, models.Model):
 
     def save(self, *args, **kwargs):
         self.slug = slugify(self.name)
+        self.clean()
         return super().save(*args, **kwargs)
 
 
