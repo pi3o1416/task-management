@@ -53,6 +53,12 @@ class GoalUpdateSerializer(serializers.ModelSerializer):
         fields = '__all__'
         read_only_fields = ['pk', 'created_by', 'department', 'status', 'completion']
 
+    def update(self):
+        assert self.instance != None, "Initialize serializer with an instance before update"
+        assert self.validated_data != None, "Validate serializer before update"
+        goal = self.instance.update(**self.validated_data)
+        return goal
+
 
 class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
