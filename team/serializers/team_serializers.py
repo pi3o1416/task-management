@@ -10,9 +10,9 @@ class TeamSerializer(serializers.ModelSerializer):
         fields = ['pk', 'title', 'description', 'department', 'team_lead', 'team_lead_full_name']
         read_only_fields = ['pk', 'department', 'team_lead_full_name']
 
-    def create(self, commit=True):
+    def create(self, department, commit=True):
         assert self.validated_data != None, "Validate serializer before create team instance"
-        team_instance = Team.create_factory(**self.validated_data, commit=commit)
+        team_instance = Team.create_factory(**self.validated_data, department=department, commit=commit)
         return team_instance
 
 
