@@ -45,7 +45,7 @@ class IsGoalAndUserDepartmentSame(BasePermission):
     @is_authenticated
     def has_object_permission(self, request, view, goal):
         user = request.user
-        user_department_pk = DepartmentMember.objects.member_department(member=user)
+        user_department_pk = DepartmentMember.objects.member_department(member_pk=user.pk)
         goal_department_pk = model_to_dict(goal).get('department')
         if user_department_pk != goal_department_pk:
             return False
