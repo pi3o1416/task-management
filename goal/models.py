@@ -1,6 +1,7 @@
 
 from django.db import models
 from django.db.utils import IntegrityError
+from django.core.exceptions import ObjectDoesNotExist
 from django.forms import model_to_dict
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
@@ -118,10 +119,14 @@ class Goal(ModelUpdateMixin, models.Model):
             return True
         raise InvalidRequest("Goal completion percentage already set to {}".format(percentage))
 
-
-
     def __str__(self):
         return self.title
+
+    def get_edit_history(self):
+        try:
+            return self.edit_history
+        except ObjectDoesNotExist:
+            return None
 
 
     @classmethod
