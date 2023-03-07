@@ -72,7 +72,8 @@ class Goal(ModelUpdateMixin, models.Model):
     )
     objects = GoalQuerySet().as_manager()
     class Meta:
-        permissions = (("can_change_status", _("Can Change Status")),)
+        permissions = (("can_change_status", _("Can Change Status")),
+                       ("cna_view_all_goals", _("Can View All Goals")),)
 
     def clean(self, update_fields=None):
         #Validate rejected goals can not be updated
