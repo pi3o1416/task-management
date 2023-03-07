@@ -11,7 +11,8 @@ from ..querysets import TeamQuerySet
 
 User = get_user_model()
 
-class Team(models.Model):
+class Team(ModelUpdateMixin, ModelDeleteMixin, models.Model):
+    restricted_fields = ['pk', 'department']
 
     title = models.CharField(
         verbose_name=_("Team title"),
@@ -54,21 +55,6 @@ class Team(models.Model):
     def save(self, **kwargs):
         self.clean(**kwargs)
         return super().save(**kwargs)
-
-    def delete(self):
-        try:
-            super().delete()
-            return True
-        except Exception as exception:
-            raise DBOperationFailed(detail={"detail":_(exception.__str__())})
-
-    def update(self, **kwargs):
-        valid_fields_for_update = ['title', 'description', 'team_lead']
-        for key, value in kwargs.items():
-            if key not in valid_fields_for_update:
-                raise InvalidRequest(detail={"detail": _("{} is not a valid field of team model for update".format(self.pk))})
-            setattr(self, key, value)
-        self.save(update_fields=kwargs.keys())
 
     @classmethod
     def create_factory(cls, commit=False, **kwargs):
