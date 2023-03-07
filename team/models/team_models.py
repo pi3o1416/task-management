@@ -42,6 +42,11 @@ class Team(models.Model):
         null=True,
         blank=True
     )
+    members = models.ManyToManyField(
+        to=User,
+        related_name='teams',
+        verbose_name=_("Members")
+    )
     objects = TeamQuerySet.as_manager()
 
     class Meta:
