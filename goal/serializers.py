@@ -2,7 +2,7 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from .models import Goal, Review
+from .models import Goal, Review, GoalLastEdit
 
 
 User = get_user_model()
@@ -61,8 +61,7 @@ class GoalUpdateSerializer(serializers.ModelSerializer):
     def update(self):
         assert self.instance != None, "Initialize serializer with an instance before update"
         assert self.validated_data != None, "Validate serializer before update"
-        goal = self.instance.update(**self.validated_data)
-        return goal
+        return self.instance.update(**self.validated_data)
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -81,27 +80,33 @@ class ReviewSerializer(serializers.ModelSerializer):
         return review
 
 
+class GoalLastEditSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GoalLastEdit
+        fields = '__all__'
 
 
 class GoalDetailSerializer(serializers.ModelSerializer):
     reviews = serializers.SerializerMethodField()
+    edit_history = serializers.SerializerMethodField()
     class Meta:
         model = Goal
         fields = ['pk', 'created_by', 'department', 'title', 'description', 'year', 'quarter',
-                  'status', 'completion', 'reviews']
+                  'status', 'completion', 'reviews', 'edit_history']
         read_only_fields = ['pk', 'created_by', 'department', 'title', 'description', 'year',
-                            'quarter', 'status', 'completion', 'reviews']
+                            'quarter', 'status', 'completion', 'reviews', 'edit_history']
 
     def get_reviews(self, goal):
         goal_reviews = goal.reviews.all()
         review_serializer = ReviewSerializer(instance=goal_reviews, many=True)
         return review_serializer.data
 
-
-
-
-
-
+    def get_edit_history(self, goal):
+        edit_history = goal.get_edit_history()
+        if edit_history:
+            serializer = GoalLastEditSerializer(instance=edit_history)
+            return serializer.data
+        return None
 
 
 
