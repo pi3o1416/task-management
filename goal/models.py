@@ -82,11 +82,13 @@ class Goal(ModelUpdateMixin, models.Model):
         if self.status != self.ReviewStatusChoices.PENDING and self.completion != 0:
             raise ValidationError("Goal completion should be 0 when review status pending")
         #Validate created by user department and goal department need to be same
-        member_pk = model_to_dict(self).get('created_by')
-        member_department_pk = DepartmentMember.objects.member_department(member_pk=member_pk)
-        goal_department_pk = model_to_dict(self).get('department')
-        if goal_department_pk != member_department_pk:
-            raise ValidationError("Goal department and created by user department did not match")
+        if update_fields == None or 'department' in update_fields:
+            breakpoint()
+            member_pk = model_to_dict(self).get('created_by')
+            member_department_pk = DepartmentMember.objects.member_department(member_pk=member_pk)
+            goal_department_pk = model_to_dict(self).get('department')
+            if goal_department_pk != member_department_pk:
+                raise ValidationError("Goal department and created by user department did not match")
 
     def delete(self):
         if self.status != self.ReviewStatusChoices.PENDING:
@@ -132,11 +134,11 @@ class Goal(ModelUpdateMixin, models.Model):
                 goal.save()
             return goal
         except AssertionError as exception:
-            raise ReviewCreateFailed(detail="Goal create faield. " + exception.__str__())
+            raise GoalCreateFailed(detail="Goal create faield. " + exception.__str__())
         except IntegrityError as exception:
-            raise ReviewCreateFailed(detail="Goal create failed due to integrigy error")
+            raise GoalCreateFailed(detail="Goal create failed due to integrigy error")
         except Exception as exception:
-            raise ReviewCreateFailed(detail="Goal create faield. " + exception.__str__())
+            raise GoalCreateFailed(detail="Goal create faield. " + exception.__str__())
 
 
 class GoalLastEdit(models.Model):
@@ -214,31 +216,4 @@ class Review(models.Model):
             raise ReviewCreateFailed(detail="Review create failed due to integrigy error")
         except Exception as exception:
             raise ReviewCreateFailed(detail="Review creaate faield" + exception.__str__())
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
