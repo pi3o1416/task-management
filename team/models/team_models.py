@@ -25,22 +25,8 @@ class Team(models.Model):
     )
     team_lead = models.ForeignKey(
         to=User,
-        on_delete=models.SET_NULL,
+        on_delete=models.RESTRICT,
         related_name='leading_teams',
-        null=True,
-        blank=True,
-    )
-    team_lead_full_name = models.CharField(
-        verbose_name=_("Team Lead Username"),
-        max_length=200,
-        null=True,
-        blank=True
-    )
-    team_lead_username = models.CharField(
-        verbose_name=_("Team Lead Username"),
-        max_length=200,
-        null=True,
-        blank=True
     )
     members = models.ManyToManyField(
         to=User,
