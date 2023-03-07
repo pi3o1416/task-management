@@ -10,6 +10,12 @@ class DBOperationFailed(APIException):
     default_code = 'db_operation_failed'
 
 
+class ModelCleanValidationFailed(APIException):
+    status_code = status.HTTP_406_NOT_ACCEPTABLE
+    default_detail = _("Model clean validation faield")
+    default_code = 'model_clean_failed'
+
+
 class InvalidRequest(APIException):
     status_code = status.HTTP_400_BAD_REQUEST
     default_detail = _("Invalid request, does not match with current state")
