@@ -44,7 +44,7 @@ class Team(ModelUpdateMixin, ModelDeleteMixin, models.Model):
     def __str__(self):
         return '{}-({})'.format(self.title, self.department)
 
-    def clean(self):
+    def clean(self, **kwargs):
         #Validate team lead department and team department should be equal
         team_department_pk = model_to_dict(self).get('department')
         team_lead_pk = model_to_dict(self).get('team_lead')
