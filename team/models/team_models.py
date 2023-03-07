@@ -1,16 +1,18 @@
 
+from django.forms import model_to_dict
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ValidationError, ObjectDoesNotExist
 
-from department.models import Department
-from services.exceptions import DBOperationFailed, InvalidRequest
+from department.models import Department, DepartmentMember
+from services.exceptions import DBOperationFailed, InvalidRequest, ModelCleanValidationFailed
+from services.mixins import ModelUpdateMixin, ModelDeleteMixin
 from ..querysets import TeamQuerySet
 
 User = get_user_model()
 
 class Team(models.Model):
+
     title = models.CharField(
         verbose_name=_("Team title"),
         max_length=500,
@@ -42,15 +44,16 @@ class Team(models.Model):
         return '{}-({})'.format(self.title, self.department)
 
     def clean(self):
-        try:
-            team_department = self.department
-            team_lead_department = self.team_lead.user_department.department
-            if team_department != team_lead_department:
-                raise ValidationError(message=_("Team lead should be in same department as team"))
-        except ValidationError as exception:
-            raise ValidationError(message=_(exception.__str__()))
-        except ObjectDoesNotExist as exception:
-            raise ValidationError(message=_("Team lead is not assigned to any department"))
+        #Validate team lead department and team department should be equal
+        team_department_pk = model_to_dict(self).get('department')
+        team_lead_pk = model_to_dict(self).get('team_lead')
+        team_lead_department_pk = DepartmentMember.objects.member_department(member_pk=team_lead_pk)
+        if team_lead_department_pk != team_department_pk:
+            raise ModelCleanValidationFailed(detail=_("Team department and Team Lead department should be same"))
+
+    def save(self, **kwargs):
+        self.clean(**kwargs)
+        return super().save(**kwargs)
 
     def delete(self):
         try:
