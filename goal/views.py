@@ -10,8 +10,9 @@ from department.models import Department
 from department.permissions import IsBelongToDepartment
 from .models import Goal
 from .serializers import GoalDetailSerializer, GoalSerializer, EmptySerializer, GoalReviewSerializer
-from .serializers import GoalUpdateSerializer, GoalPercentageSerializer
-from .permissions import CanCreateGoal, CanViewGoal
+from .serializers import GoalUpdateSerializer, GoalPercentageSerializer, ReviewSerializer
+from .permissions import CanCreateGoal, CanViewGoal, CanViewAllGoals, IsGoalAndUserDepartmentSame
+from .permissions import CanChangeGoal, CanDeleteGoal, CanChangeGoalStatus, CanAddReview
 
 class GoalViewSet(TemplateViewSet, CustomPageNumberPagination):
     model = Goal
@@ -74,8 +75,17 @@ class GoalViewSet(TemplateViewSet, CustomPageNumberPagination):
         permissions = []
         if self.action == 'create':
             permissions += [CanCreateGoal]
-        if self.action == 'list':
-            pass
+        elif self.action == 'list':
+            permissions += [CanViewAllGoals]
+        elif self.action == 'retrieve':
+            permissions += [CanViewAllGoals|(IsGoalAndUserDepartmentSame&CanViewGoal)]
+        elif self.action == 'destroy':
+            permissions += [CanDeleteGoal, IsGoalAndUserDepartmentSame]
+        elif self.action in ['accept_goal', 'reject_goal']:
+            permissions += [CanChangeGoalStatus, CanViewAllGoals]
+        elif self.action in ['update_achivement_percentage', 'update']:
+            permissions += [CanChangeGoal, IsGoalAndUserDepartmentSame]
+        return [permission() for permission in permissions]
 
     def get_serializer_class(self):
         if self.action in ['reject_goal', 'accept_goal']:
@@ -94,7 +104,7 @@ class GoalViewSet(TemplateViewSet, CustomPageNumberPagination):
 class DepartmentGoals(TemplateAPIView, CustomPageNumberPagination):
     model = Department
     serializer_class = GoalSerializer
-    permission_classes = [(IsBelongToDepartment&CanViewGoal)]
+    permission_classes = [CanViewAllGoals|(IsBelongToDepartment&CanViewGoal)]
 
     def get(self, request, department_pk):
         department = self.get_object(pk=department_pk)
@@ -103,4 +113,5 @@ class DepartmentGoals(TemplateAPIView, CustomPageNumberPagination):
         page = self.paginate_queryset(queryset=filtered_department_goals, request=request)
         serializer = self.serializer_class(instance=page, many=True)
         return self.get_paginated_response(data=serializer.data)
+
 
