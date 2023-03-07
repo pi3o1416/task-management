@@ -115,3 +115,18 @@ class DepartmentGoals(TemplateAPIView, CustomPageNumberPagination):
         return self.get_paginated_response(data=serializer.data)
 
 
+class AddReviewView(TemplateAPIView):
+    model = Goal
+    serializer_class = ReviewSerializer
+    permission_classes = [CanAddReview|(IsGoalAndUserDepartmentSame&CanViewGoal)]
+
+    def post(self, request, goal_pk):
+        goal = self.get_object(pk=goal_pk)
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            review = serializer.create(reviewed_by=request.user, goal=goal)
+            response_serializer = self.serializer_class(instance=review)
+            return Response(data=response_serializer.data, status=status.HTTP_201_CREATED)
+        return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
