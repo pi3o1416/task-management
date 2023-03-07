@@ -1,11 +1,16 @@
 
+from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
 from .models import Goal, Review
 
 
+User = get_user_model()
+
+
 class EmptySerializer(serializers.Serializer):
     pass
+
 
 class GoalSerializer(serializers.ModelSerializer):
     class Meta:
@@ -64,7 +69,16 @@ class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
         fields = ['pk', 'goal', 'review', 'reviewed_by', 'reviewed_at']
-        read_only_fields = ['pk', 'reviewed_at', 'reviewed_by']
+        read_only_fields = ['pk', 'reviewed_at', 'reviewed_by', 'goal']
+
+    def create(self, reviewed_by:User, goal:Goal, commit=True):
+        assert self.validated_data != None, "Validate serializer before add review"
+        review = Review.create_factory(
+            commit=commit,
+            reviewed_by=reviewed_by,
+            goal=goal, **self.validated_data
+        )
+        return review
 
 
 
