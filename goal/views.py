@@ -1,4 +1,5 @@
 
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from rest_framework import status
 from rest_framework.response import Response
@@ -8,7 +9,7 @@ from services.views import TemplateViewSet, TemplateAPIView
 from services.pagination import CustomPageNumberPagination
 from department.models import Department
 from department.permissions import IsBelongToDepartment
-from .models import Goal
+from .models import Goal, GoalLastEdit
 from .serializers import GoalDetailSerializer, GoalSerializer, EmptySerializer, GoalReviewSerializer
 from .serializers import GoalUpdateSerializer, GoalPercentageSerializer, ReviewSerializer
 from .permissions import CanCreateGoal, CanViewGoal, CanViewAllGoals, IsGoalAndUserDepartmentSame
@@ -42,6 +43,13 @@ class GoalViewSet(TemplateViewSet, CustomPageNumberPagination):
         serializer = self.get_serializer_class()(instance=goal, data=request.data)
         if serializer.is_valid():
             serializer.update()
+            GoalLastEdit.objects.update_or_create(
+                goal=goal,
+                defaults={
+                    "edited_by": request.user,
+                    "edited_at": timezone.now()
+                }
+            )
             return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
         return Response({"field_errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
