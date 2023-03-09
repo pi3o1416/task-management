@@ -6,7 +6,8 @@ from services.querysets import TemplateQuerySet, get_model_foreignkey_fields
 
 
 class TeamQuerySet(TemplateQuerySet):
-    pass
+    def member_teams(self, member):
+        return self.select_related('department').filter(members=member)
 
 
 class TeamMemberQuerySet(TemplateQuerySet):
