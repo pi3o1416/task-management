@@ -1,29 +1,24 @@
 
+from django.forms import model_to_dict
 from django.dispatch import receiver
-from django.db.models.signals import pre_save, post_save
+from django.db.models.signals import post_save, m2m_changed
+
+from .exceptions import TeamLeadDeleteProhabited
 from .models import Team
-
-
-@receiver(signal=pre_save, sender=Team)
-def fill_team_lead_info(sender, instance, update_fields, **kwargs):
-    if not update_fields:
-        team_lead = instance.team_lead
-        instance.team_lead_full_name = team_lead.full_name
-        instance.team_lead_username = team_lead.username
-    return  instance
-
-
-@receiver(signal=pre_save, sender=Team)
-def update_team_lead_info(sender, instance, update_fields, **kwargs):
-    if update_fields and 'team_lead' in update_fields:
-        team_lead = instance.team_lead
-        instance.team_lead_full_name = team_lead.member_full_name
-    return instance
 
 
 @receiver(signal=post_save, sender=Team)
 def add_team_lead_as_team_member(sender, instance:Team, update_fields, **kwargs):
     if not update_fields or 'team_lead' in update_fields:
+        breakpoint()
         team_lead = instance.team_lead
         instance.members.add(team_lead)
+
+
+@receiver(signal=m2m_changed, sender=Team.members.through)
+def protect_team_lead_delete(sender, instance, action, pk_set, **kwargs):
+    if action == 'pre_remove':
+        team_lead = model_to_dict(instance).get('team_lead')
+        if team_lead in pk_set:
+            raise TeamLeadDeleteProhabited()
 
