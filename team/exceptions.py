@@ -21,6 +21,18 @@ class TeamLeadDeleteProhabited(APIException):
     default_detail = 'Team lead can not be deleted'
 
 
+class TeamCreateFailed(APIException):
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_code = 'team_create_failed'
+    default_detail = 'Team create failed'
+
+
+class TeamTaskCreateFailed(APIException):
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_code = 'team_task_create_failed'
+    default_detail = 'Team task create failed'
+
+
 
 
 
