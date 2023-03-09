@@ -8,6 +8,7 @@ from department.models import Department, DepartmentMember
 from services.exceptions import DBOperationFailed, ModelCleanValidationFailed
 from services.mixins import ModelUpdateMixin, ModelDeleteMixin
 from ..querysets import TeamQuerySet
+from ..exceptions import TeamCreateFailed
 
 User = get_user_model()
 
@@ -65,7 +66,7 @@ class Team(ModelDeleteMixin, ModelUpdateMixin, models.Model):
                 team_instance.save()
             return team_instance
         except Exception as exception:
-            raise DBOperationFailed(detail={"detail":_(exception.__str__())})
+            raise TeamCreateFailed(detail=_(exception.__str__()))
 
 
 
