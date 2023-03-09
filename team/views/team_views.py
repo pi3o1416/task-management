@@ -2,12 +2,14 @@
 from django.utils.translation import gettext_lazy as _
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
 
 from services.pagination import CustomPageNumberPagination
 from services.views import TemplateViewSet, TemplateAPIView
 from department.models import Department
+from department.permissions import IsBelongToDepartment
 from ..serializers import TeamSerializer, TeamUpdateSerializer
+from ..permissions import CanViewAllTeams, CanCreateTeam
+from ..permissions import CanDeleteTeam, CanChangeTeam
 from ..models import Team
 
 
@@ -49,9 +51,18 @@ class TeamViewSet(TemplateViewSet, CustomPageNumberPagination):
         return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def get_permissions(self):
-        permission_classes = [IsAuthenticated]
-        return [permission() for permission in permission_classes]
-
+        permissions = []
+        if self.action == 'create':
+            permissions += [CanCreateTeam]
+        elif self.action == 'list':
+            permissions += [CanViewAllTeams]
+        elif self.action == 'retrieve':
+            permissions += [CanViewAllTeams]
+        elif self.action == 'destroy':
+            permissions += [CanDeleteTeam]
+        elif self.action == 'update':
+            permissions += [CanChangeTeam]
+        return [permission() for permission in permissions]
 
     def get_serializer_class(self):
         if self.action == 'update':
@@ -62,11 +73,12 @@ class TeamViewSet(TemplateViewSet, CustomPageNumberPagination):
 class DepartmentTeams(TemplateAPIView, CustomPageNumberPagination):
     model = Department
     serializer_class = TeamSerializer
+    permission_classes = [IsBelongToDepartment, CanCreateTeam]
 
     def get(self, request, department_pk):
         department = self.get_object(pk=department_pk)
-        department_teams = department.departmetn_teams.all()
-        page = self.paginate_queryset(queryset=department_teams, request=request)
+        dept_teams = department.departmetn_teams.all().filter_from_query_params(request=request)
+        page = self.paginate_queryset(queryset=dept_teams, request=request)
         serializer = self.serializer_class(instance=page, many=True)
         return self.get_paginated_response(data=serializer.data)
 
