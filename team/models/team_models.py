@@ -5,13 +5,13 @@ from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model
 
 from department.models import Department, DepartmentMember
-from services.exceptions import DBOperationFailed, InvalidRequest, ModelCleanValidationFailed
+from services.exceptions import DBOperationFailed, ModelCleanValidationFailed
 from services.mixins import ModelUpdateMixin, ModelDeleteMixin
 from ..querysets import TeamQuerySet
 
 User = get_user_model()
 
-class Team(ModelUpdateMixin, ModelDeleteMixin, models.Model):
+class Team(ModelDeleteMixin, ModelUpdateMixin, models.Model):
     restricted_fields = ['pk', 'department']
 
     title = models.CharField(
@@ -46,8 +46,8 @@ class Team(ModelUpdateMixin, ModelDeleteMixin, models.Model):
 
     def clean(self, **kwargs):
         #Validate team lead department and team department should be equal
-        team_department_pk = model_to_dict(self).get('department')
-        team_lead_pk = model_to_dict(self).get('team_lead')
+        team_department_pk = model_to_dict(self, fields=['department']).get('department')
+        team_lead_pk = model_to_dict(self, fields=['team_lead']).get('team_lead')
         team_lead_department_pk = DepartmentMember.objects.member_department(member_pk=team_lead_pk)
         if team_lead_department_pk != team_department_pk:
             raise ModelCleanValidationFailed(detail=_("Team department and Team Lead department should be same"))
