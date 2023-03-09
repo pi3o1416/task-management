@@ -33,6 +33,11 @@ class TeamTaskCreateFailed(APIException):
     default_detail = 'Team task create failed'
 
 
+class TeamInternalTaskCreateFailed(APIException):
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_code = 'team_internal_task_create_failed'
+    default_detail = 'Team internal task create failed'
+
 
 
 
