@@ -7,8 +7,8 @@ from ..models import Team
 class TeamSerializer(serializers.ModelSerializer):
     class Meta:
         model = Team
-        fields = ['pk', 'title', 'description', 'department', 'team_lead', 'team_lead_full_name']
-        read_only_fields = ['pk', 'department', 'team_lead_full_name']
+        fields = ['pk', 'title', 'description', 'department', 'team_lead']
+        read_only_fields = ['pk', 'department']
 
     def create(self, department, commit=True):
         assert self.validated_data != None, "Validate serializer before create team instance"
@@ -19,8 +19,8 @@ class TeamSerializer(serializers.ModelSerializer):
 class TeamUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Team
-        fields = ['pk', 'title', 'description', 'department', 'team_lead', 'team_lead_full_name']
-        read_only_fields = ['pk', 'department', 'team_lead_full_name']
+        fields = ['pk', 'title', 'description', 'department', 'team_lead']
+        read_only_fields = ['pk', 'department']
 
     def update(self):
         assert self.validated_data != None, "Validate serializer before update"
