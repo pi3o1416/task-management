@@ -40,6 +40,7 @@ class Team(ModelDeleteMixin, ModelUpdateMixin, models.Model):
 
     class Meta:
         unique_together = [['department', 'title']]
+        permissions = (("can_view_all_teams", _("Can View All Teams")),)
 
     def __str__(self):
         return '{}-({})'.format(self.title, self.department)
