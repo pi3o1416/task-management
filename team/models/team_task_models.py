@@ -22,7 +22,13 @@ class TeamTasks(ModelDeleteMixin, ModelUpdateMixin, models.Model):
         related_name='task_team',
         verbose_name=_("Task")
     )
+    #Internal task are team taskes that is created by team leader and assign to a team member
+    internal_task = models.BooleanField(
+        verbose_name=_("Internal Task"),
+        default=True,
+    )
     objects = TeamTasksQuerySet.as_manager()
+
     @classmethod
     def create_factory(cls, commit=False, **kwargs):
         try:
