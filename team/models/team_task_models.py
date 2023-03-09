@@ -1,14 +1,15 @@
 
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-from services.exceptions import InvalidRequest
 
+from services.exceptions import InvalidRequest
+from services.mixins import ModelDeleteMixin, ModelUpdateMixin
 from task.models import Task
 from .team_models import Team
 from ..querysets import TeamTasksQuerySet
 
 
-class TeamTasks(models.Model):
+class TeamTasks(ModelDeleteMixin, ModelUpdateMixin, models.Model):
     team = models.ForeignKey(
         to=Team,
         on_delete=models.CASCADE,
@@ -35,6 +36,15 @@ class TeamTasks(models.Model):
             raise InvalidRequest(detail={"detail": _(exception.__str__())})
         except Exception as exception:
             raise InvalidRequest(detail={"detail": _(exception.__str__())})
+
+    def create_subtask(self, commit=False, **kwargs):
+        try:
+            task = Task(**kwargs)
+            if commit==True:
+                task.save()
+            return task
+        except:
+            pass
 
 
 
