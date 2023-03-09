@@ -323,11 +323,11 @@ class UsersTasks(ModelDeleteMixin, ModelUpdateMixin, models.Model):
         except AssertionError as exception:
             raise UserTasksCreateFailed(detail=exception.__str__())
         except IntegrityError as exception:
-            raise TaskCreateFailed(
+            raise UserTasksCreateFailed(
                 detail="user tasks create faield due to table data integrity error"
             )
         except TypeError as exception:
-            raise TaskCreateFailed(
+            raise UserTasksCreateFailed(
                 detail="user tasks create faield due to invalid table field name"
             )
 
