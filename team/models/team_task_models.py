@@ -2,11 +2,11 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from services.exceptions import InvalidRequest
 from services.mixins import ModelDeleteMixin, ModelUpdateMixin
 from task.models import Task
 from .team_models import Team
 from ..querysets import TeamTasksQuerySet
+from ..exceptions import TeamTaskCreateFailed
 
 
 class TeamTasks(ModelDeleteMixin, ModelUpdateMixin, models.Model):
@@ -32,10 +32,8 @@ class TeamTasks(ModelDeleteMixin, ModelUpdateMixin, models.Model):
             if commit == True:
                 team_task.save()
             return team_task
-        except AssertionError as exception:
-            raise InvalidRequest(detail={"detail": _(exception.__str__())})
         except Exception as exception:
-            raise InvalidRequest(detail={"detail": _(exception.__str__())})
+            raise TeamTaskCreateFailed(detail=_(exception.__str__()))
 
     def create_subtask(self, commit=False, **kwargs):
         try:
