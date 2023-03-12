@@ -88,7 +88,7 @@ class PermissionViewSet(ViewSet):
         """
         Permission list view
         """
-        permissions = Permission.objects.all()
+        permissions = Permission.objects.all().select_related('content_type')
         serializer = self.get_serializer_class()(instance=permissions, many=True)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
 
@@ -104,10 +104,7 @@ class PermissionViewSet(ViewSet):
         """
         Get serializer class by action
         """
-        if self.action in ['retrieve']:
-            return PermissionDetailSerializer
-        else:
-            return PermissionSerializer
+        return PermissionDetailSerializer
 
 
 class AssignGroup(APIView):
