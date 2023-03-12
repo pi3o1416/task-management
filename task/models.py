@@ -7,10 +7,10 @@ from django.db import connection
 from django.db import models
 from django.db import IntegrityError
 from django.db.models import Count, OuterRef, Subquery
-from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
+from rest_framework.exceptions import ValidationError
 
 from department.models import DepartmentMember
 from services.querysets import get_model_foreignkey_fields
@@ -33,7 +33,7 @@ class TaskQuerySet(TemplateQuerySet):
         return statistics
 
 
-class Task(ModelDeleteMixin, ModelUpdateMixin, models.Model):
+class Task(ModelUpdateMixin, models.Model):
     restricted_fields = ['created_by', 'created_at']
 
     class StatusChoices(models.TextChoices):
@@ -220,8 +220,8 @@ class Task(ModelDeleteMixin, ModelUpdateMixin, models.Model):
             self.save()
         return self
 
-    def safe_delete(self):
-        if self.approval_status == self.ApprovalChoices.APPROVED or self.status != self.StatusChoices.PENDING:
+    def delete(self):
+        if self.is_assigned == True or self.status != self.StatusChoices.PENDING:
             raise TaskDeleteRestricted()
         return self.delete()
 
@@ -424,15 +424,21 @@ class TaskTree(models.Model):
     objects = TaskTreeQuerySet.as_manager()
 
     def clean(self):
+        #Validate task tree update prohabited
+        if self.pk != None:
+            raise ValidationError("Task tree update prohabited.")
         #Validate task parent and child can not be equal
         parent_pk = model_to_dict(self, fields=['parent']).get('parent')
         child_pk = model_to_dict(self, fields=['child']).get('child')
         if parent_pk == child_pk:
-            raise ValidationError("Parent task and child task can not be equal")
+            raise ValidationError("Parent task and child task can not be equal.")
         #Validate parent task cannot be complete or submitted.
         invalid_statuses = [Task.StatusChoices.COMPLETED, Task.StatusChoices.SUBMITTED]
         if self.parent.status in invalid_statuses:
-            raise ValidationError("Parent task can not be submitted or completed")
+            raise ValidationError("Parent task can not be submitted or completed.")
+        #Validate parent task and child task type should be equal
+        if self.parent.task_type != self.child.task_type:
+            raise ValidationError("Parent task type and child task type should be same.")
 
     def save(self, **kwargs):
         self.clean()
