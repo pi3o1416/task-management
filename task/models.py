@@ -425,14 +425,10 @@ class TaskTree(models.Model):
 
     def clean(self):
         #Validate task parent and child can not be equal
-        if self.parent == self.child:
+        parent_pk = model_to_dict(self, fields=['parent']).get('parent')
+        child_pk = model_to_dict(self, fields=['child']).get('child')
+        if parent_pk == child_pk:
             raise ValidationError("Parent task and child task can not be equal")
-        #Validate task tree chain
-        #TODO: Add department_task type, project_task type, team_task type
-        if self.parent.task_type == Task.TaskType.USER_TASK:
-            assigned_to = UsersTasks.objects.values_list('assigned_to', flat=True).get(task=self.parent)
-            if assigned_to != model_to_dict(self.child).get('id'):
-                raise ValidationError("Parent task assignee did not match child task owner")
         #Validate parent task cannot be complete or submitted.
         invalid_statuses = [Task.StatusChoices.COMPLETED, Task.StatusChoices.SUBMITTED]
         if self.parent.status in invalid_statuses:
