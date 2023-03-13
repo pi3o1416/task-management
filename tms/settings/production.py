@@ -33,6 +33,19 @@ CELERY_CACHE_BACKEND = 'django-cache'
 CELERY_RESULT_EXTENDED = True
 CELERY_BROKER_URL = 'redis://dev1.aamarpay.xyz:6379/'
 
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://dev1.aamarpay.xyz:6379/1',
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient'
+        },
+        'KEY_PREFIX': 'tms'
+    }
+}
+
+
 # Configuration for sentry
 sentry_sdk.init(
     dsn="https://a1ff75fa9a95483693c31dea9957c4f3@o1182560.ingest.sentry.io/4504327056850944",
