@@ -6,10 +6,9 @@ from rest_framework.response import Response
 
 from services.pagination import CustomPageNumberPagination
 from services.views import TemplateViewSet, TemplateAPIView
-
 from ..documentations import designation_docs as docs
 from ..models import Designations
-from ..serializers import DesignationSerializer
+from ..serializers import DesignationSerializer, DesignationDetailSerializer
 
 
 class DesignationViewSet(TemplateViewSet, CustomPageNumberPagination):
@@ -90,6 +89,8 @@ class DesignationViewSet(TemplateViewSet, CustomPageNumberPagination):
         return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def get_serializer_class(self):
+        if self.action in ['retrieve', 'list']:
+            return DesignationDetailSerializer
         return DesignationSerializer
 
 
