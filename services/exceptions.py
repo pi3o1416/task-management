@@ -69,6 +69,27 @@ class InvalidDataType(APIException):
     default_code = 'invalid_datatype'
 
 
+class CacheDoesNotExist(APIException):
+    def __init__(self, model_name, *args, **kwargs):
+        self.default_detail = "Cache for {} does not exist".format(model_name)
+        super().__init__(*args, **kwargs)
+
+    status_code = status.HTTP_410_GONE
+    default_code = 'cache_does_not_exist'
+    default_detail = _("Cache Does not exist")
+
+
+class CacheExistButObjectDoesNotExist(APIException):
+    def __init__(self, model_name, object_pk, *args, **kwargs):
+        self.default_detail = _("Cache for model {} exist but object with pk={} not found"
+                                .format( model_name, object_pk))
+
+    status_code = status.HTTP_404_NOT_FOUND
+    default_code = 'cache_exist_but_object_not_found'
+    default_detail = _("Cache Exist but object not found")
+
+
+
 class ObjectNotFound(APIException):
     def __init__(self, model_name, *args, **kwargs):
         self.default_detail = _("{} object does not exist".format(model_name))
