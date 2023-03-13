@@ -6,6 +6,8 @@ from services.querysets import TemplateQuerySet, get_model_foreignkey_fields
 
 
 class TeamQuerySet(TemplateQuerySet):
+    cache_name = 'teams'
+
     def member_teams(self, member):
         return self.select_related('department').filter(members=member)
 
