@@ -221,7 +221,7 @@ class Task(ModelUpdateMixin, models.Model):
         return self
 
     def delete(self):
-        if self.is_assigned == True or self.status != self.StatusChoices.PENDING:
+        if self.status != self.StatusChoices.PENDING:
             raise TaskDeleteRestricted()
         return self.delete()
 
