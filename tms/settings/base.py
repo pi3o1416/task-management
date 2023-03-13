@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django_unused_media',
     'django_cleanup.apps.CleanupConfig',
     'debug_toolbar',
+    'django_celery_beat',
 
     # Local apps
     'authentication.apps.AuthenticationConfig',
