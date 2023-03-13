@@ -4,6 +4,13 @@ from rest_framework.exceptions import ValidationError
 from rest_framework import serializers
 from ..models import Department
 
+
+class DepartmentMinimalSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Department
+        fields = ['pk', 'name', 'description']
+
+
 class DepartmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Department
