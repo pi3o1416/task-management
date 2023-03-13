@@ -1,14 +1,17 @@
 
 from operator import __and__
 from functools import reduce
+from django.core.cache import cache
 from django.utils.translation import gettext_lazy as _
 from django.db.models import CharField, Q, QuerySet, TextField
 from rest_framework.request import Request
 
-from .exceptions import InvalidDataType, ObjectNotFound
+from .exceptions import InvalidDataType, ObjectNotFound, CacheDoesNotExist, CacheExistButObjectDoesNotExist
 
 
 class TemplateQuerySet(QuerySet):
+    cache_name = ""
+
     def filter_objects_by_pk(self, pks:list):
         return self.filter(pk__in=pks)
 
@@ -24,6 +27,25 @@ class TemplateQuerySet(QuerySet):
             raise ObjectNotFound(model_name=model_name)
         except ValueError:
             raise InvalidDataType(expected_dtype=int, find_dtype=type(pk), model_name=model_name)
+
+    def get_object_from_cache(self, pk, raise_exception=True):
+        """
+        Retrieve an object from cache if exist or
+        return from database if raise_exception == False or
+        raise exception
+        """
+        assert len(self.cache_name) > 0, "No cache name has been set for this model"
+        model_name = self.model._meta.model_name
+        cached_data = cache.get(self.cache_name)
+        if cached_data:
+            if pk in cached_data:
+                return cached_data[pk]
+            if raise_exception:
+                raise CacheExistButObjectDoesNotExist(model_name=model_name, object_pk=pk)
+            return self.get_object_by_pk(pk)
+        raise CacheDoesNotExist(model_name=model_name)
+
+
 
     def filter_with_related_fields(self, request, related_fields:list):
         """
