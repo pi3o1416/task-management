@@ -7,10 +7,12 @@ from services.querysets import TemplateQuerySet
 
 
 class DepartmentQuerySet(TemplateQuerySet):
-    pass
+    cache_name = 'departments'
 
 
 class DesignationQuerySet(TemplateQuerySet):
+    cache_name = 'designations'
+
     def get_department_designations(self, department_pk=None):
         return self.filter(Q(department=department_pk))
 
