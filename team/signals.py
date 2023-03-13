@@ -5,6 +5,7 @@ from django.db.models.signals import post_save, m2m_changed
 
 from .exceptions import TeamLeadDeleteProhabited
 from .models import Team
+from . import tasks
 
 
 @receiver(signal=post_save, sender=Team)
@@ -22,3 +23,7 @@ def protect_team_lead_delete(sender, instance, action, pk_set, **kwargs):
         if team_lead in pk_set:
             raise TeamLeadDeleteProhabited()
 
+
+@receiver(signal=post_save, sender=Team)
+def cache_team_data(sender, instance, **kwargs):
+    tasks.cache_teams.delay()
