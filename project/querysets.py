@@ -3,6 +3,7 @@ from services.querysets import TemplateQuerySet, get_model_foreignkey_fields
 
 
 class ProjectQuerySet(TemplateQuerySet):
+    cache_name = 'projects'
     def filter_with_reverse_related_fields(self, request):
         filtered_projects = self.select_related('schemaless_data').filter_from_query_params(request=request)
         for related_object in self.model._meta.related_objects:
