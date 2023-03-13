@@ -5,6 +5,7 @@ from django.db.models.signals import post_save
 
 from services.exceptions import DBOperationFailed, InvalidRequest
 from .models import Project, ProjectSchemaLessData
+from . import tasks
 
 
 @receiver(signal=post_save, sender=Project)
@@ -47,11 +48,7 @@ def add_project_manager_as_project_member(sender, instance:Project, created=None
         instance.members.add(project_manager)
 
 
-
-
-
-
-
-
-
+@receiver(signal=post_save, sender=Project)
+def cache_projects_data(sender, instance, **kwargs):
+    tasks.cache_projects.delay()
 
