@@ -18,6 +18,9 @@ class CustomUserManager(UserManager):
     def get_object_by_pk(self, pk):
         return self.get_queryset().get_object_by_pk(pk=pk)
 
+    def get_object_from_cache(self, pk):
+        return self.get_queryset().get_object_from_cache(pk=pk)
+
     def filter_from_query_params(self, request:Request):
         return self.get_queryset().filter_from_query_params(request=request)
 
@@ -27,6 +30,8 @@ class CustomUserManager(UserManager):
 
 
 class CustomUserQuerySet(TemplateQuerySet):
+    cache_name = 'users'
+
     def get_user_by_encoded_pk(self, encoded_pk):
         try:
             pk_bytes = urlsafe_base64_decode(encoded_pk)
