@@ -2,8 +2,8 @@
 from django.contrib.auth import get_user_model
 from django.forms import model_to_dict
 from django.utils.translation import gettext_lazy as _
-from django.core.exceptions import ValidationError
 from django.db import models
+from rest_framework.exceptions import ValidationError
 
 from services.mixins import ModelUpdateMixin, ModelDeleteMixin
 from services.querysets import TemplateQuerySet
@@ -40,13 +40,12 @@ class DepartmentTask(ModelUpdateMixin, ModelDeleteMixin, models.Model):
     )
     objects = DepartmentTaskQuerySet.as_manager()
     class Meta:
-        permissions = (('can_create_department_task', _("Can Create Department Task")),
-                       ('can_manage_departmnet_task', _("Can Manage Department Task")))
+        permissions = (('can_manage_departmnet_task', _("Can Manage Department Task")),)
 
     def clean(self):
         user = self.task.created_by
         #Validate user has permission to create department task
-        if not user.has_perm('department_task.can_create_department_task'):
+        if not user.has_perm('department_task.add_departmenttask'):
             raise ValidationError("Task assignor does not have permission to create department task")
         #Validate task status should be pending before assignment
         if not self.task.status == Task.StatusChoices.PENDING:
