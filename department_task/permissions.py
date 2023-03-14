@@ -6,7 +6,7 @@ from services.decorators import has_kperms, is_authenticated
 from .models import DepartmentTask
 
 
-@has_kperms(['department_task.can_create_department_task'])
+@has_kperms(['department_task.add_departmenttask'])
 class CanCreateDepartmentTask(BasePermission):
     pass
 
