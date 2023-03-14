@@ -9,13 +9,13 @@ from .models import DepartmentTask
 def update_task_type_to_dept_task(sender, instance:DepartmentTask, created, **kwargs):
     if created:
         task = instance.task
-        task.update(task_type=Task.TaskType.DEPARTMENT_TASK)
+        task.update(task_type=Task.TaskType.DEPARTMENT_TASK, is_assigned=True)
 
 
 @receiver(signal=post_delete, sender=DepartmentTask)
 def update_task_type_to_undermine(sender, instance:DepartmentTask, **kwargs):
     task = instance.task
-    task.update(task_type=Task.TaskType.NONE)
+    task.update(task_type=Task.TaskType.NONE, is_assigned=False)
 
 
 

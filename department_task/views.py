@@ -6,8 +6,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework import status
 
-from department.models import Department
-from department.permissions import IsBelongToDepartment
+from department.models import DepartmentMember
 from task.permissions import IsTaskOwner, CanViewAllTasks
 from task.models import Task
 from services.views import TemplateAPIView, TemplateViewSet
@@ -35,7 +34,7 @@ class DepartmentTaskAssign(TemplateAPIView):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
             department_task = serializer.create(task=task, commit=True)
-            response_serializer = self.serializer_class(instance=department_task)
+            response_serializer = DepartmentTaskDetailSerializer(instance=department_task)
             return Response(data=response_serializer.data, status=status.HTTP_201_CREATED)
         return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -50,47 +49,67 @@ class DepartmentTaskCreateAssign(TemplateAPIView):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
             department_task = serializer.create(commit=True, created_by=request.user)
-            response_serializer = self.serializer_class(instance=department_task)
+            response_serializer = DepartmentTaskDetailSerializer(instance=department_task)
             return Response(data=response_serializer.data, status=status.HTTP_201_CREATED)
         return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class AssignedOnDepartmentTaskList(TemplateAPIView, CustomPageNumberPagination):
+class AllDepartmentTaskList(TemplateAPIView, CustomPageNumberPagination):
     """
-    Assigned on department task list
+    List of all department tasks
     """
-    model = Department
     serializer_class = DepartmentTaskDetailSerializer
-    permission_classes = [CanViewAllTasks|(IsBelongToDepartment&CanManageDepartmentTask)]
+    permission_classes = [CanViewAllTasks]
 
-    def get(self, request, department_pk):
-        department = self.get_object(pk=department_pk)
-        department_tasks = department.department_tasks.select_related('task').\
-            filter_from_query_params(request=request)
+    def get(self, request):
+        department_tasks = DepartmentTask.objects.filter_with_related_fields(
+            request=request,
+            related_fields = ['task']
+        )
         page = self.paginate_queryset(queryset=department_tasks, request=request)
         serializer = self.serializer_class(instance=page, many=True)
         return self.get_paginated_response(data=serializer.data)
 
 
-class AssignedToDepartmentTaskList(TemplateAPIView, CustomPageNumberPagination):
+class AuthUserDepartmentTasksList(TemplateAPIView, CustomPageNumberPagination):
+    """
+    Authenticated user's department's department task.
+    """
+    serializer_class = DepartmentTaskDetailSerializer
+    permission_classes = [IsAuthenticated, CanManageDepartmentTask]
+
+    def get(self, request):
+        user = request.user
+        user_department_pk = DepartmentMember.objects.member_department(member_pk=user.pk)
+        department_task = DepartmentTask.objects.filter(department=user_department_pk)
+        filtered_department_task = department_task.filter_with_related_fields(
+            request=request,
+            related_fields = ['task']
+        )
+        page = self.paginate_queryset(queryset=filtered_department_task, request=request)
+        serializer = self.serializer_class(instance=page, many=True)
+        return self.get_paginated_response(data=serializer.data)
+
+
+class UserAssignedToDepartmentTaskList(TemplateAPIView, CustomPageNumberPagination):
     """
     User assigned to department task list
     """
     model = User
     serializer_class = DepartmentTaskDetailSerializer
-    permission_classes = [CanViewAllTasks|IsAuthenticated]
+    permission_classes = [CanViewAllTasks]
 
     def get(self, request, user_pk):
         user = self.get_object(pk=user_pk)
         department_tasks = DepartmentTask.objects.user_department_tasks(
             user=user
-        ).filter_from_query_params(request=request)
+        ).filter_with_related_fields(request=request, related_fields=['task'])
         page = self.paginate_queryset(queryset=department_tasks, request=request)
         serializer = self.serializer_class(instance=page, many=True)
         return self.get_paginated_response(data=serializer.data)
 
 
-class AuthUserAssignedToDepartmentTasks(TemplateAPIView, CustomPageNumberPagination):
+class AuthUserAssignedToDepartmentTasksList(TemplateAPIView, CustomPageNumberPagination):
     """
     Authenticated user assigned to department task list
     """
@@ -100,7 +119,7 @@ class AuthUserAssignedToDepartmentTasks(TemplateAPIView, CustomPageNumberPaginat
     def get(self, request):
         department_tasks = DepartmentTask.objects.user_department_tasks(
             user=request.user
-        ).filter_from_query_params()
+        ).filter_with_related_fields(request=request, related_fields=['task'])
         page = self.paginate_queryset(queryset=department_tasks, request=request)
         serializer = self.serializer_class(instance=page, many=True)
         return self.get_paginated_response(data=serializer.data)

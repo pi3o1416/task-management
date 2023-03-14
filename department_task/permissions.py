@@ -8,11 +8,13 @@ from .models import DepartmentTask
 
 @has_kperms(['department_task.add_departmenttask'])
 class CanCreateDepartmentTask(BasePermission):
+    message = 'You do not have permission to create department task.'
     pass
 
 
 @has_kperms(['department_task.can_manage_departmnet_task'])
 class CanManageDepartmentTask(BasePermission):
+    message = 'You do not have permission to manage department task.'
     pass
 
 
