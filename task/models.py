@@ -156,7 +156,7 @@ class Task(ModelUpdateMixin, models.Model):
             task = cls(**kwargs)
             if created_by.has_perm("task.can_approve_disapprove_task"):
                 task.approval_status = cls.ApprovalChoices.APPROVED
-                task.created_by = created_by
+            task.created_by = created_by
             if commit == True:
                 task.save()
             return task
