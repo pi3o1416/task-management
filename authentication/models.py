@@ -4,6 +4,7 @@ from django.template.loader import render_to_string
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.tokens import default_token_generator
+from django.conf import settings
 from django.utils.http import urlsafe_base64_encode
 from django.utils.translation import gettext_lazy as _
 
@@ -22,6 +23,11 @@ def user_photo_upload_path(instance, file):
 
 
 class CustomUser(ModelUpdateMixin, ModelDeleteMixin, AbstractUser):
+    try:
+        CACHED_FIELDS = settings.USER_CACHED_FIELDS
+    except AttributeError:
+        CACHED_FIELDS = ['pk', 'username', 'email', 'first_name', 'last_name', 'photo']
+
     restricted_fields = ['pk']
     error_messages = {
         "CREATE": "User create failed.",
