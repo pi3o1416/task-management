@@ -5,7 +5,7 @@ from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model
 
 from department.models import Department, DepartmentMember
-from services.exceptions import DBOperationFailed, ModelCleanValidationFailed
+from services.exceptions import ModelCleanValidationFailed
 from services.mixins import ModelUpdateMixin, ModelDeleteMixin
 from ..querysets import TeamQuerySet
 from ..exceptions import TeamCreateFailed

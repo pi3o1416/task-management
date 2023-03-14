@@ -1,13 +1,15 @@
 
+from django.db import transaction
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from ..models import TeamTasks, Team
-from services.exceptions import DBOperationFailed
 from task.serializers import TaskSerializer
-from task.models import Task
+from task.models import Task, UsersTasks
+from task.exceptions import TaskCreateFailed, UserTasksCreateFailed
+from ..models import TeamTasks, Team
+from ..exceptions import TeamTaskCreateFailed, TeamInternalTaskCreateFailed
 
 
 User = get_user_model()
@@ -29,42 +31,46 @@ class TeamInternalTaskCreateSerializer(serializers.ModelSerializer):
         except User.DoesNotExist:
             raise ValidationError(detail="Assigned to user does not exist")
 
-
+    @transaction.atomic
     def create(self, team:Team, created_by):
-        assert self.validated_data != None, "Validate serializer before create instance"
-        assigned_to = self.validated_data.pop('assigned_to')
-        task_data = self.validated_data.pop('task')
-        task = Task.create_factory(
-            created_by=created_by,
-            task_type=Task.TaskType.TEAM_TASK,
-            **task_data
-        )
-
-
-
-        task = Task.create_factory(created_by=created_by)
-        task.update(task_type = Task.TaskType.TEAM_TASK, commit=True)
-        team_task = TeamTasks.create_factory( commit=True, task=task, team=team)
-        return team_task
+        try:
+            assert self.validated_data != None, "Validate serializer before create instance"
+            assigned_to = self.validated_data.pop('assigned_to')
+            task_data = self.validated_data.pop('task')
+            task = Task.create_factory(
+                created_by=created_by,
+                task_type=Task.TaskType.TEAM_TASK,
+                is_assigned=True,
+                **task_data
+            )
+            team_task = TeamTasks.create_factory(
+                commit=True,
+                task=task,
+                team=team,
+                internal_task=True
+            )
+            user_task = UsersTasks.create_factory(commit=True, user=assigned_to, task=task)
+            return user_task
+        except (TaskCreateFailed, UserTasksCreateFailed, TeamTaskCreateFailed) as exception:
+            raise TeamInternalTaskCreateFailed(detail=exception.__str__())
 
 
 class TeamTasksCreateAssignSerializer(TaskSerializer):
-    def create(self, team:Team, user):
-        assert self.validated_data != None, "Validate serializer before create instance"
-        task = super(created_by=user).create(commit=False)
-        task.task_type=Task.TaskType.TEAM_TASK
-        task.save()
-        team_task = TeamTasks.create_factory(commit=True, task=task, team=team)
-        return team_task
-
-    def _create_task(self, task_data, user):
+    @transaction.atomic
+    def create(self, team:Team, created_by):
         try:
-            task = Task.create_factory(commit=False, **task_data)
-            task.created_by = user
-            task.save()
-            return task
-        except Exception as exception:
-            raise DBOperationFailed(detail={"detail": _(exception.__str__())})
+            assert self.validated_data != None, "Validate serializer before create instance"
+            task = Task.create_factory(
+                commit=True,
+                created_by=created_by,
+                is_assigned=True,
+                task_type=Task.TaskType.TEAM_TASK,
+                **self.validated_data
+            )
+            team_task = TeamTasks.create_factory(commit=True, task=task, team=team)
+            return team_task
+        except (TaskCreateFailed, TeamTaskCreateFailed) as exception:
+            raise TeamTaskCreateFailed(detail=exception.__str__())
 
 
 class TeamTasksSerializer(serializers.ModelSerializer):
@@ -78,5 +84,8 @@ class TeamTasksDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = TeamTasks
         fields = ['pk', 'team', 'task']
+
+
+
 
 
