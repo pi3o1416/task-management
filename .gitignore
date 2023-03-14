@@ -20,3 +20,5 @@
 .env
 dev.env
 .idea
+celerybeat-schedule
+
