@@ -13,6 +13,7 @@ User = get_user_model()
 
 
 class Department(ModelDeleteMixin, ModelUpdateMixin, models.Model):
+    CACHED_FIELDS = ['pk', 'name', 'description']
     restricted_fields = ['pk', 'slug']
     error_messages = {
         "CREATE": "Department create failed.",
@@ -51,6 +52,7 @@ class Department(ModelDeleteMixin, ModelUpdateMixin, models.Model):
 
 
 class Designations(ModelDeleteMixin, ModelUpdateMixin, models.Model):
+    CACHED_FIELDS = ['pk', 'department', 'title']
     restricted_fields = ['pk']
     error_messages = {
         "CREATE": "Designation create failed.",
@@ -152,6 +154,10 @@ class DepartmentMember(ModelDeleteMixin, ModelUpdateMixin, models.Model):
     def clean(self):
         if self.department != self.designation.department:
             raise ValidationError({"detail": [self.error_messages["DEPARTMENT_MISMATCH"]]})
+
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
 
 
 
