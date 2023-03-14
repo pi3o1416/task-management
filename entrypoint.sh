@@ -21,4 +21,4 @@ python manage.py cachedepartmentdata
 python manage.py cachedesignationdata
 python manage.py cacheteamdata
 python manage.py cacheprojectdata
-
+#python manage.py remove_stale_contenttypes --noinput
