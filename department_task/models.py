@@ -57,6 +57,10 @@ class DepartmentTask(ModelUpdateMixin, ModelDeleteMixin, models.Model):
         if model_to_dict(user.user_department).get('department') == self.department.pk:
             raise ValidationError("Department member can not assign task to his own department")
 
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
+
 
     @classmethod
     def create_factory(cls, task, department, commit=True):
