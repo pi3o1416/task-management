@@ -20,9 +20,9 @@ class IsSameDepartment(BasePermission):
 
 class IsBelongToDepartment(BasePermission):
     @is_authenticated
-    def has_object_permission(self, request, view, obj:Department):
+    def has_object_permission(self, request, view, department:Department):
         user = request.user
-        if user.user_department == obj:
+        if DepartmentMember.objects.member_department(member_pk=user.pk) == department.pk:
             return True
         return False
 
