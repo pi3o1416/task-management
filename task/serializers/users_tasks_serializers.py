@@ -1,4 +1,5 @@
 
+from django.db import transaction
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
@@ -32,24 +33,25 @@ class UsersTasksDetailSerializer(serializers.ModelSerializer):
         read_only_fields = ['assigned_to', 'task']
 
 
-class UsersTasksCreateAndAssignSerializer(serializers.ModelSerializer):
+class UsersTasksCreateAssignSerializer(serializers.ModelSerializer):
     task = TaskSerializer()
     assigned_to = serializers.IntegerField()
     class Meta:
         model = UsersTasks
         fields = ['task', 'assigned_to']
 
-    def create(self, validated_data, user):
+    @transaction.atomic
+    def create(self, created_by):
+        assert self.validated_data != None, "Validate serializer before create"
         task_data = validated_data.pop('task')
         assigned_to = validated_data.pop('assigned_to')
-        task = self._create_task(task_data=task_data, user=user)
+        task = Task.create_factory(
+            commit=True,
+            created_by=created_by,
+            **task_data
+        )
         user_task = self._assign_task(task, assigned_to)
         return user_task
-
-    def _create_task(self, task_data, user):
-        task = Task.create_factory(created_by=user, commit=False, **task_data)
-        task.update(is_assigned=True, commit=True)
-        return task
 
     def _assign_task(self, task, assigned_to_pk):
         assigned_to_user = User.objects.get_object_by_pk(assigned_to_pk)

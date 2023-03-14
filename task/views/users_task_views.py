@@ -8,7 +8,7 @@ from rest_framework import status
 from services.pagination import CustomPageNumberPagination
 from services.views import TemplateViewSet, TemplateAPIView
 from department.permissions import IsSameDepartment
-from ..serializers import UsersTasksSerializers, UsersTasksDetailSerializer, UsersTasksCreateAndAssignSerializer
+from ..serializers import UsersTasksSerializers, UsersTasksDetailSerializer, UsersTasksCreateAssignSerializer
 from ..models import UsersTasks, Task
 from ..permissions import IsTaskOwner, CanViewInterDepartmentTask, CanCreateTask, CanViewAllTasks
 from ..permissions import CanCreateUsersTasks, IsUserTaskOwner
@@ -75,14 +75,14 @@ class UsersTasksCreateAndAssign(TemplateAPIView):
     """
     Create a new task and assign it to a user.
     """
-    serializer_class = UsersTasksCreateAndAssignSerializer
+    serializer_class = UsersTasksCreateAssignSerializer
     permission_classes = [CanCreateTask]
 
     def post(self, request):
         user = request.user
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
-            user_task = serializer.create(serializer.validated_data, user)
+            user_task = serializer.create(created_by=user)
             response_serializer = UsersTasksDetailSerializer(instance=user_task)
             return Response(data=response_serializer.data, status=status.HTTP_201_CREATED)
         return Response(data={"field_errors": serializer.errors})

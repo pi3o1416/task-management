@@ -433,9 +433,9 @@ class TaskTree(models.Model):
         if parent_pk == child_pk:
             raise ValidationError("Parent task and child task can not be equal.")
         #Validate parent task cannot be complete or submitted.
-        invalid_statuses = [Task.StatusChoices.COMPLETED, Task.StatusChoices.SUBMITTED]
+        invalid_statuses = [Task.StatusChoices.COMPLETED, Task.StatusChoices.SUBMITTED, Task.StatusChoices.PENDING]
         if self.parent.status in invalid_statuses:
-            raise ValidationError("Parent task can not be submitted or completed.")
+            raise ValidationError("Parent task can not be submitted, completed or pending.")
         #Validate parent task and child task type should be equal
         if self.parent.task_type != self.child.task_type:
             raise ValidationError("Parent task type and child task type should be same.")

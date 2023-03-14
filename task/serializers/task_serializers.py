@@ -1,7 +1,11 @@
 
+from django.contrib.auth import get_user_model
+from django.forms import model_to_dict
 from rest_framework import serializers
 
 from ..models import Task, TaskAttachments
+
+User = get_user_model()
 
 
 class TaskSerializer(serializers.ModelSerializer):
@@ -39,4 +43,23 @@ class TaskAttachmentsSerializer(serializers.ModelSerializer):
         model = TaskAttachments
         fields = ['pk', 'task', 'attached_by', 'attachment', 'attached_at']
         read_only_fields = ['pk', 'attached_by', 'attached_at', 'task']
+
+
+class UserMinimalSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = User.CACHED_FIELDS
+
+class TaskDetailSerializer(serializers.ModelSerializer):
+    created_by = serializers.SerializerMethodField()
+    class Meta:
+        model = Task
+        fields = ['pk', 'created_by', 'title', 'description', 'created_at', 'last_date',
+                  'approval_status', 'status', 'priority']
+
+    def get_created_by(self, task):
+        created_by_pk = model_to_dict(task, fields=['created_by']).get('created_by')
+        created_by = User.objects.get_object_from_cache(pk=created_by_pk)
+        serializer = UserMinimalSerializer(instance=created_by)
+        return serializer.data
 

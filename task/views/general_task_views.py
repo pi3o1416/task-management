@@ -56,7 +56,7 @@ class TaskViewSet(TemplateViewSet, CustomPageNumberPagination):
         Delete task with maintaining proper restriction
         """
         task = self.get_object(pk)
-        task.safe_delete()
+        task.delete()
         return Response(
             data={"detail": [_("Task delete successful")]},
             status=status.HTTP_202_ACCEPTED

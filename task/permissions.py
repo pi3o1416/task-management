@@ -8,43 +8,43 @@ from .models import Task, UsersTasks
 
 @has_kperms(['task.can_view_all_tasks'])
 class CanViewAllTasks(BasePermission):
-    pass
+    message = 'You do not have permission to view all tasks'
 
 
 @has_kperms(['task.add_task'])
 class CanCreateTask(BasePermission):
-    pass
+    message = 'You do not have permission to add task'
 
 
 @has_kperms(['task.delete_task'])
 class CanDeleteTask(BasePermission):
-    pass
+    message = 'You do not have permission to delete task'
 
 
 @has_kperms(['task.change_task'])
 class CanUpdateTask(BasePermission):
-    pass
+    message = 'You do not have permission to change task'
 
 
 @has_kperms(['task.can_approve_disapprove_task'])
 class HasPermissionToApproveTask(BasePermission):
-    pass
+    message = 'You do not have permission to approve or disapprove task'
 
 
 @has_kperms(['task.can_view_inter_department_task'])
 class CanViewInterDepartmentTask(BasePermission):
-    pass
+    message = 'You do not have permission to view inter department task'
 
 
 @has_kperms(['task.add_userstasks'])
 class CanCreateUsersTasks(BasePermission):
-    pass
+    message = 'You do not have permission to assign user any task'
 
 
 class IsUserTaskOwner(BasePermission):
     @is_authenticated
     def has_object_permission(self, request, view, user_task:UsersTasks):
-        created_by = model_to_dict(user_task.task).get('created_by')
+        created_by = model_to_dict(user_task.task, fields=['created_by']).get('created_by')
         if request.user.pk == created_by:
             return True
         return False
@@ -54,7 +54,8 @@ class IsTaskOwner(BasePermission):
     @is_authenticated
     def has_object_permission(self, request, view, task:Task):
         user = request.user
-        if task.created_by == user:
+        task_created_by_pk = model_to_dict(task, fields=['created_by']).get('created_by')
+        if task_created_by_pk == user.pk:
             return True
         return False
 
