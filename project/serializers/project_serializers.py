@@ -1,7 +1,13 @@
 
+from django.forms import model_to_dict
+from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from ..models import Project, ProjectSchemaLessData, ProjectAttachment
+from department.models import Department
+from ..models import Project, ProjectAttachment
+
+
+User = get_user_model()
 
 
 class ProjectSerializer(serializers.ModelSerializer):
@@ -18,24 +24,48 @@ class ProjectSerializer(serializers.ModelSerializer):
         return self.instance
 
 
-class ProjectSchemaLessDataSerializer(serializers.ModelSerializer):
+class DepartmentMinimalSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ProjectSchemaLessData
-        fields = ['department_title', 'project_owner_username', 'project_owner_fullname',
-                  'project_manager_username', 'project_manager_fullname']
-        read_only_fields = ['department_title', 'project_owner_username', 'project_owner_fullname',
-                  'project_manager_username', 'project_manager_fullname']
+        model = Department
+        fields = Department.CACHED_FIELDS
+
+
+class UserMinimalSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = User.CACHED_FIELDS
+
 
 
 class ProjectDetailSerializer(serializers.ModelSerializer):
-    schemaless_data = ProjectSchemaLessDataSerializer()
+    project_manager = serializers.SerializerMethodField()
+    department = serializers.SerializerMethodField()
+    project_owner = serializers.SerializerMethodField()
 
     class Meta:
         model = Project
         fields = ['pk', 'title', 'description', 'deadline', 'budget', 'project_manager',
-                  'project_owner', 'department', 'status', 'schemaless_data']
+                  'project_owner', 'department', 'status']
         read_only_fields = ['pk', 'title', 'description', 'deadline', 'budget', 'project_manager',
-                  'project_owner', 'department', 'status', 'schemaless_data']
+                  'project_owner', 'department', 'status']
+
+    def get_project_manager(self, project):
+        project_manager_pk = model_to_dict(instance=project, fields=['project_manager']).get('project_manager')
+        project_manager = User.objects.get_object_from_cache(pk=project_manager_pk)
+        serializer = UserMinimalSerializer(instance=project_manager)
+        return serializer.data
+
+    def get_department(self, project):
+        department_pk = model_to_dict(instance=project, fields=['department']).get('department')
+        department = Department.objects.get_object_from_cache(pk=department_pk)
+        serializer = DepartmentMinimalSerializer(instance=department)
+        return serializer.data
+
+    def get_project_owner(self, project):
+        project_owner_pk = model_to_dict(instance=project, fields=['project_manager']).get('project_manager')
+        project_owner = User.objects.get_object_from_cache(pk=project_owner_pk)
+        serializer = UserMinimalSerializer(instance=project_owner)
+        return serializer.data
 
 
 class ProjectAttachmentSerializer(serializers.ModelSerializer):
