@@ -134,13 +134,6 @@ class Project(models.Model):
             })
 
     @property
-    def extended_data(self):
-        try:
-            return self.schemaless_data
-        except ObjectDoesNotExist:
-            return None
-
-    @property
     def project_manager_pk(self):
         return model_to_dict(self).get("project_manager")
 
@@ -196,58 +189,6 @@ class Project(models.Model):
             raise InvalidRequest(detail={
                 "detail": "{} {}".format(self.error_messages["MEMBER_DELETE"], exception.__str__())
             })
-
-
-class ProjectSchemaLessData(models.Model):
-    error_messages = {
-        "CREATE": "Project schemaless data create failed.",
-        "UPDATE": "Project schemaless data update failed.",
-        "DELETE": "Project schemaless data delete failed.",
-        "RETRIEVE": "Project schemaless data retrieve failed.",
-        "PATCH": "Project schemaless data patch failed.",
-    }
-
-    project = models.OneToOneField(
-        to=Project,
-        on_delete=models.CASCADE,
-        related_name='schemaless_data',
-        verbose_name=_("Schemaless Data".title())
-    )
-    department_title = models.CharField(
-        verbose_name=_("Department Title".title()),
-        max_length=200
-    )
-    project_owner_fullname = models.CharField(
-        verbose_name=_("Project Owner Fullname".title()),
-        max_length=200,
-    )
-    project_owner_username = models.CharField(
-        verbose_name=_("Project Owner Username".title()),
-        max_length=200,
-    )
-    project_manager_fullname = models.CharField(
-        verbose_name=_("Project Manager Fullname".title()),
-        max_length=200,
-    )
-    project_manager_username = models.CharField(
-        verbose_name=_("Project Manager Username".title()),
-        max_length=200,
-    )
-
-    @classmethod
-    def create_factory(cls, commit=True, **kwargs):
-        try:
-            project_schemaless_data = cls(
-                **kwargs
-            )
-            if commit == True:
-                project_schemaless_data.save()
-            return project_schemaless_data
-        except Exception as exception:
-            raise InvalidRequest(
-                detail={"detail": _(
-                    cls.error_messages["CREATE"] + exception.__str__())}
-            )
 
 
 def project_attachment_upload_path(instance, filename):

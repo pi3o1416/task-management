@@ -1,7 +1,7 @@
 
 from django.contrib import admin
 
-from .models import Project, ProjectSchemaLessData, ProjectAttachment, ProjectTask
+from .models import Project, ProjectAttachment, ProjectTask
 
 
 @admin.register(Project)
@@ -14,13 +14,6 @@ class ProjectAdmin(admin.ModelAdmin):
         if project_members:
             return [member.username for member in project_members]
         return project.title
-
-
-@admin.register(ProjectSchemaLessData)
-class ProjectSchemaLessDataAdmin(admin.ModelAdmin):
-    list_display = ['pk', 'project', 'department_title', 'project_owner_fullname',
-                    'project_owner_username', 'project_manager_fullname',
-                    'project_manager_username']
 
 
 @admin.register(ProjectAttachment)
