@@ -1,44 +1,12 @@
 
 from django.utils.translation import gettext_lazy as _
 from django.dispatch import receiver
-from django.db.models.signals import post_save
+from django.forms import model_to_dict
+from django.db.models.signals import post_save, post_delete
 
-from services.exceptions import DBOperationFailed, InvalidRequest
-from .models import Project, ProjectSchemaLessData
+from task.models import Task
+from .models import Project, ProjectTask
 from . import tasks
-
-
-@receiver(signal=post_save, sender=Project)
-def create_project_schemaless_data(sender, instance:Project, created=None, **kwargs):
-    if created:
-        try:
-            ProjectSchemaLessData.create_factory(
-                commit=True,
-                project = instance,
-                department_title = instance.department.name,
-                project_owner_fullname = instance.project_owner.full_name,
-                project_owner_username = instance.project_owner.username,
-                project_manager_fullname = instance.project_manager.full_name,
-                project_manager_username = instance.project_manager.username,
-            )
-        except InvalidRequest:
-            instance.delete()
-            raise DBOperationFailed(detail={"detail":_("Project create cancled due to Project optional data update filed")})
-
-
-@receiver(signal=post_save, sender=Project)
-def update_project_schemaless_data(sender, instance:Project, created=None, update_fields=None, **kwargs):
-    if update_fields:
-        schemaless_data = ProjectSchemaLessData.objects.get(project=instance)
-        if 'department' in update_fields:
-            schemaless_data.department_title = instance.department.name
-        if 'project_manager' in update_fields:
-            schemaless_data.project_manager_username = instance.project_manager.username
-            schemaless_data.project_manager_fullname = instance.project_manager.full_name
-        if 'project_owner' in update_fields:
-            schemaless_data.project_owner_username = instance.project_owner.username
-            schemaless_data.project_onwer_fullname = instance.project_owner.full_name
-        schemaless_data.save()
 
 
 @receiver(signal=post_save, sender=Project)
@@ -51,4 +19,17 @@ def add_project_manager_as_project_member(sender, instance:Project, created=None
 @receiver(signal=post_save, sender=Project)
 def cache_projects_data(sender, instance, **kwargs):
     tasks.cache_projects.delay()
+
+
+@receiver(signal=post_save, sender=ProjectTask)
+def update_task_type_to_project_task(sender, instance, created, **kwargs):
+    if created:
+        task_pk = model_to_dict(instance=instance, fields=['task']).get('task')
+        Task.objects.filter(pk=task_pk).update(task_type=Task.TaskType.PROJECT_TASK)
+
+
+@receiver(signal=post_delete, sender=ProjectTask)
+def update_task_type_to_user_task(sender, instance, **kwargs):
+    task_pk = model_to_dict(instance=instance, fields=['task']).get('task')
+    Task.objects.filter(pk=task_pk).update(task_type=Task.TaskType.USER_TASK)
 
