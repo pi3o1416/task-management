@@ -1,11 +1,9 @@
 
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model
-from django.db.utils import IntegrityError
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from services.exceptions import InvalidRequest
 from ..models import Project
 
 User = get_user_model()
