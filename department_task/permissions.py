@@ -2,6 +2,7 @@
 from django.forms import model_to_dict
 from rest_framework.permissions import BasePermission
 
+from department.models import DepartmentMember
 from services.decorators import has_kperms, is_authenticated
 from .models import DepartmentTask
 
@@ -31,7 +32,9 @@ class IsBelongToDepartmentTaskDepartment(BasePermission):
     @is_authenticated
     def has_object_permission(self, request, view, obj:DepartmentTask):
         user = request.user
-        if model_to_dict(obj).get('department') == user.user_department.pk:
+        user_department = DepartmentMember.objects.member_department(member_pk=user.pk)
+        department_task_department = model_to_dict(obj, fields=['department']).get('department')
+        if department_task_department == user_department:
             return True
         return False
 
