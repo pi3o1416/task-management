@@ -1,11 +1,12 @@
 
 from django.db import transaction
+from django.forms import model_to_dict
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 from ..models import UsersTasks, Task
-from .task_serializers import TaskSerializer
+from .task_serializers import TaskSerializer, TaskDetailSerializer, UserMinimalSerializer
 
 
 User = get_user_model()
@@ -26,11 +27,18 @@ class UsersTasksSerializers(serializers.ModelSerializer):
 
 
 class UsersTasksDetailSerializer(serializers.ModelSerializer):
-    task = TaskSerializer()
+    task = TaskDetailSerializer()
+    assigned_to = serializers.SerializerMethodField()
     class Meta:
         model = UsersTasks
         fields = '__all__'
         read_only_fields = ['assigned_to', 'task']
+
+    def get_assigned_to(self, user_task):
+        assigned_to_user_pk = model_to_dict(user_task, fields=['assigned_to']).get('assigned_to')
+        assigned_to = User.objects.get_object_from_cache(pk=assigned_to_user_pk)
+        serializer = UserMinimalSerializer(instance=assigned_to)
+        return serializer.data
 
 
 class UsersTasksCreateAssignSerializer(serializers.ModelSerializer):
