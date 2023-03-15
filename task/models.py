@@ -57,7 +57,6 @@ class Task(ModelUpdateMixin, models.Model):
 
 
     class TaskType(models.TextChoices):
-        NONE = "NON", _("Type not yet fixed")
         USER_TASK = "RGT", _("Regular task")
         DEPARTMENT_TASK = "DPT", _("Department task")
         PROJECT_TASK = "PRT", _("Project task")
@@ -108,7 +107,7 @@ class Task(ModelUpdateMixin, models.Model):
         verbose_name=_("Task type"),
         max_length=3,
         choices=TaskType.choices,
-        default=TaskType.NONE
+        default=TaskType.USER_TASK
     )
     is_assigned = models.BooleanField(
         verbose_name=_("Is task already assigned"),
