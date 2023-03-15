@@ -9,12 +9,15 @@ from rest_framework import status
 from department.models import DepartmentMember
 from task.permissions import IsTaskOwner, CanViewAllTasks
 from task.models import Task
+from team.serializers import TeamTasksDetailSerializer
 from services.views import TemplateAPIView, TemplateViewSet
 from services.pagination import CustomPageNumberPagination
+from task.serializers.users_tasks_serializers import UsersTasksDetailSerializer
 from .permissions import CanCreateDepartmentTask, CanManageDepartmentTask, IsDepartmentTaskOwner
 from .permissions import IsBelongToDepartmentTaskDepartment
 from .serializers import DepartmentTaskSerializer, DepartmentTaskCreateAssignSerializer
 from .serializers import DepartmentTaskDetailSerializer, DepartmentTaskUpdateSerializer
+from .serializers import DepartmentSubTaskSerializer
 from .models import DepartmentTask
 
 
@@ -128,6 +131,32 @@ class AuthUserAssignedToDepartmentTasksList(TemplateAPIView, CustomPageNumberPag
 class DepartmentTaskOperationsViewSet(TemplateViewSet):
     model = DepartmentTask
 
+    @action(methods=['post'], detail=True, url_path='create-subtask-and-assign-to-user')
+    def create_subtask_assign_to_user(self, request, pk):
+        """
+        Create subtask from department task and assign to user
+        """
+        department_task = self.get_object(pk=pk)
+        serializer = self.get_serializer_class()(action='user_subtask', data=request.data)
+        if serializer.is_valid():
+            user_task = serializer.create(created_by=request.user, department_task=department_task)
+            response_serializer = UsersTasksDetailSerializer(instance=user_task)
+            return Response(data=response_serializer.data, status=status.HTTP_200_OK)
+        return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(methods=['post'], detail=True, url_path='create-subtask-and-assign-to-team')
+    def create_subtask_assign_to_team(self, request, pk):
+        """
+        Create subtask from department task and assign to team
+        """
+        department_task = self.get_object(pk=pk)
+        serializer = self.get_serializer_class()(action='team_subtask', data=request.data)
+        if serializer.is_valid():
+            team_task = serializer.create(created_by=request.user, department_task=department_task)
+            response_serializer = TeamTasksDetailSerializer(instance=team_task)
+            return Response(data=response_serializer.data, status=status.HTTP_200_OK)
+        return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
     @action(methods=['put'], detail=True, url_path='update')
     def update_task(self, request, pk):
         """
@@ -182,6 +211,10 @@ class DepartmentTaskOperationsViewSet(TemplateViewSet):
         return Response(data=_("Department task submission rejected"))
 
     def get_serializer_class(self):
+        if self.action == 'create_subtask_assign_to_user':
+            return DepartmentSubTaskSerializer
+        if self.action == 'create_subtask_assign_to_team':
+            return DepartmentSubTaskSerializer
         return DepartmentTaskUpdateSerializer
 
     def get_permissions(self):
