@@ -1,11 +1,20 @@
 
 from django.db import transaction
 from django.forms import model_to_dict
+from django.contrib.auth import get_user_model
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
+from services.exceptions import ObjectNotFound
+from team.models import TeamTasks, Team
 from task.serializers import TaskSerializer, TaskDetailSerializer
+from task.serializers import TaskSerializer
+from task.models import UsersTasks, TaskTree
 from department.models import Department
 from .models import DepartmentTask, Task
+
+
+User = get_user_model()
 
 
 class DepartmentTaskSerializer(serializers.ModelSerializer):
@@ -80,4 +89,60 @@ class DepartmentTaskUpdateSerializer(serializers.ModelSerializer):
         department = self.validated_data.pop('department')
         self.instance.update(department=department)
         return self.instance
+
+
+class DepartmentSubTaskSerializer(serializers.Serializer):
+    task = TaskSerializer()
+    assigned_to = serializers.IntegerField()
+    team = serializers.IntegerField()
+
+    def __init__(self, action=None, *args, **kwargs):
+        self.action = action
+        super().__init__(*args, **kwargs)
+
+    def validate_assigned_to(self, value):
+        try:
+            user = User.objects.get_object_by_pk(pk=value)
+            return user
+        except ObjectNotFound as exception:
+            raise ValidationError(exception.__str__())
+
+    def validate_team(self, value):
+        try:
+            team = Team.objects.get_object_by_pk(pk=value)
+            return team
+        except ObjectNotFound as exception:
+            raise ValidationError(exception.__str__())
+
+    def get_fields(self):
+        assert self.action == None, "Stupid"
+        fields = super().get_fields()
+        if self.action == 'user_subtask':
+            fields.pop('team')
+        if self.action == 'team_subtask':
+            fields.pop('assigned_to')
+        return fields
+
+
+    @transaction.atomic
+    def create(self, created_by, department_task):
+        assert self.action in ['user_subtask', 'team_subtask'], "Initialize serializer with action 'user_subtask' or 'team_subtask'"
+        assert self.validated_data != None, "Validate serializer before create subtask."
+        assert isinstance(created_by, User), "Created by should be an user instance"
+        assert isinstance(department_task, DepartmentTask), "Department task should be an DepartmentTask instance"
+        task_data = self.validated_data.pop('task')
+        #Create child task instance
+        child_task = Task.create_factory(commit=True, created_by=created_by, **task_data)
+        parent_task = department_task.task
+        #Add new task tree instance with parent task and child task
+        TaskTree.create_factory(parent=parent_task, child=child_task)
+        if self.action == 'user_subtask':
+            assigned_to = self.validated_data.pop('assigned_to')
+            user_task = UsersTasks.create_factory(assigned_to=assigned_to, task=child_task)
+            return user_task
+        else:
+            team = self.validated_data.pop('team')
+            team_task = TeamTasks.create_factory(team=team, task=child_task)
+            return team_task
+
 
