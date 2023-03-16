@@ -297,6 +297,14 @@ class UsersTasks(ModelDeleteMixin, ModelUpdateMixin, models.Model):
                        ("can_view_all_users_tasks", _("Can View All Users Tasks")))
 
     def clean(self):
+        #Validate if task type team task and not an team internal task.
+        if self.task.task_type == Task.TaskType.TEAM_TASK:
+            internal_task = self.task.task_team.internal_task
+            if internal_task == False:
+                raise ValidationError("This is not an internal task")
+        #Validate task type not department task
+        if self.task.task_type == Task.TaskType.DEPARTMENT_TASK:
+            raise ValidationError("Department task can not be assign to user")
         #Validate task asssignee and assignor department
         task_owner_pk = model_to_dict(self.task.created_by).get('id')
         department_members = DepartmentMember.objects.filter(member__in=[task_owner_pk, self.assigned_to.pk])
@@ -306,9 +314,9 @@ class UsersTasks(ModelDeleteMixin, ModelUpdateMixin, models.Model):
         if self.task.status != Task.StatusChoices.PENDING:
             raise ValidationError("Task status should be pending before assignment")
 
-    def save(self, **kwargs):
+    def save(self, *args, **kwargs):
         self.clean()
-        return super(UsersTasks, self).save(**kwargs)
+        return super(UsersTasks, self).save(*args, **kwargs)
 
     @classmethod
     def create_factory(cls, commit=True, **kwargs):
