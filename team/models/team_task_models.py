@@ -1,12 +1,14 @@
 
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from rest_framework.exceptions import ValidationError
 
 from services.mixins import ModelDeleteMixin, ModelUpdateMixin
 from task.models import Task
+from department.models import DepartmentMember
 from .team_models import Team
 from ..querysets import TeamTasksQuerySet
-from ..exceptions import TeamTaskCreateFailed
+from ..exceptions import TeamTaskCreateFailed, TeamTaskDeleteFailed
 
 
 class TeamTasks(ModelDeleteMixin, ModelUpdateMixin, models.Model):
@@ -28,6 +30,34 @@ class TeamTasks(ModelDeleteMixin, ModelUpdateMixin, models.Model):
         default=True,
     )
     objects = TeamTasksQuerySet.as_manager()
+    class Meta:
+        permissions = (('can_manage_team_tasks', _("Can Manage Team tasks"))),
+
+    def clean(self, *args, **kwargs):
+        #Validate team task can not be updated
+        if self.pk:
+            raise ValidationError("Team task can not be updated")
+        #Validate if task is not internal task team member can not assign task to his own team
+        if self.task.internal_task == False and self.team.members.filter(pk=self.task.created_by_id).exist():
+            raise ValidationError("Team member can not assign task to his own team")
+        #Validate task assignor has permission to create team task
+        task_assignor = self.task.created_by
+        if task_assignor.has_perm("team.add_teamtasks") != True:
+            raise ValidationError("Task assignor does not have permission to create team task")
+        #Validate task assignor department and team department should be equal
+        task_assignor_department = DepartmentMember.objects.member_department(member_pk=self.task.created_by_id)
+        team_department = self.team.department_id
+        if task_assignor_department != team_department:
+            raise ValidationError("Task assignor department and team department should be equal")
+
+    def delete(self, *args, **kwargs):
+        if self.task.status != Task.StatusChoices.PENDING:
+            raise TeamTaskDeleteFailed("Task is already started by team members")
+        super().delete(*args, **kwargs)
+
+    def save(self, *args, **kwargs):
+        self.clean(*args, **kwargs)
+        super().save(*args, **kwargs)
 
     @classmethod
     def create_factory(cls, commit=False, **kwargs):
