@@ -1,5 +1,4 @@
 
-from django.forms import model_to_dict
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model
@@ -14,6 +13,7 @@ User = get_user_model()
 
 class Team(ModelDeleteMixin, ModelUpdateMixin, models.Model):
     restricted_fields = ['pk', 'department']
+    CACHED_FIELDS = ['pk', 'title', 'description', 'department', 'team_lead']
 
     title = models.CharField(
         verbose_name=_("Team title"),
@@ -48,10 +48,8 @@ class Team(ModelDeleteMixin, ModelUpdateMixin, models.Model):
 
     def clean(self, **kwargs):
         #Validate team lead department and team department should be equal
-        team_department_pk = model_to_dict(self, fields=['department']).get('department')
-        team_lead_pk = model_to_dict(self, fields=['team_lead']).get('team_lead')
-        team_lead_department_pk = DepartmentMember.objects.member_department(member_pk=team_lead_pk)
-        if team_lead_department_pk != team_department_pk:
+        team_lead_department_pk = DepartmentMember.objects.member_department(member_pk=self.team_lead_id)
+        if team_lead_department_pk != self.department_id:
             raise ModelCleanValidationFailed(detail=_("Team department and Team Lead department should be same"))
 
     def save(self, **kwargs):
