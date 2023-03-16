@@ -1,9 +1,13 @@
 
+from django.contrib.auth import get_user_model
 from django.forms import model_to_dict
 from rest_framework.permissions import BasePermission
 
 from services.decorators import is_authenticated, has_kperms
 from .models import Task, UsersTasks
+
+
+User = get_user_model()
 
 
 @has_kperms(['task.can_view_all_tasks'])
@@ -89,6 +93,34 @@ class IsAttachmentOwner(BasePermission):
             return True
         return False
 
+
+class CanManageExistingTask(BasePermission):
+    message = "You do not have permission to manage this task"
+    @is_authenticated
+    def has_object_permission(self, request, view, task):
+        if task.task_type == Task.TaskType.USER_TASK and task.created_by_id == request.user.pk:
+            return True
+        if task.task_type == Task.TaskType.DEPARTMENT_TASK:
+            if request.user.has_perm('department_task.can_manage_department_task'):
+                task_dept = task.assigned_to_dept.department_id
+                user_dept = request.user.user_department.department_id
+                if task_dept == user_dept:
+                    return True
+        if task.task_type == Task.TaskType.PROJECT_TASK:
+            if task.created_by_id == request.user.pk:
+                return True
+            task_project = task.task_project
+            user_in_task_project = request.user.user_projects.filter(pk=task_project.pk).exists()
+            if user_in_task_project == True and request.user.has_perm('project.can_maintain_project'):
+                return True
+        if task.task_type == Task.TaskType.TEAM_TASK:
+            if task.created_by_id == request.user.pk:
+                return True
+            task_team = task.task_team
+            user_in_task_team = request.user.teams.filter(pk=task_team.pk).exists()
+            if user_in_task_team == True and request.user.has_perm('team.can_manage_team_tasks'):
+                return True
+        return False
 
 
 
