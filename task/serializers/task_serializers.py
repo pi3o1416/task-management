@@ -55,7 +55,7 @@ class TaskDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
         fields = ['pk', 'created_by', 'title', 'description', 'created_at', 'last_date',
-                  'approval_status', 'status', 'priority']
+                  'approval_status', 'status', 'priority', 'task_type']
 
     def get_created_by(self, task):
         created_by_pk = model_to_dict(task, fields=['created_by']).get('created_by')
