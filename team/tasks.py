@@ -6,7 +6,7 @@ from .models import Team
 
 @shared_task(name='cache_teams')
 def cache_teams():
-    teams = Team.objects.all().values('pk', 'title', 'description', 'department', 'team_lead')
+    teams = Team.objects.all().values(*Team.CACHED_FIELDS)
     team_data = {team['pk']: team for team in teams}
     cache.set('teams', team_data, timeout=3600*6.5)
 
