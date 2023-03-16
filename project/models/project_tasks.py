@@ -17,7 +17,6 @@ class ProjectTask(models.Model):
         "RETRIEVE": "Project task retrieve failed.",
         "PATCH": "Project task patch failed.",
     }
-
     project = models.ForeignKey(
         to=Project,
         on_delete=models.CASCADE,
@@ -30,6 +29,10 @@ class ProjectTask(models.Model):
         related_name='task_project',
         verbose_name=_("Task"),
         validators=[validate_project_task_type]
+    )
+    root_task = models.BooleanField(
+        verbose_name=_("Created by Project maintainer"),
+        default=False
     )
 
     @classmethod
