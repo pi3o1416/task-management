@@ -219,7 +219,7 @@ class DepartmentTaskOperationsViewSet(TemplateViewSet):
 
     def get_permissions(self):
         permissions = []
-        if self.action in ['submit_task', 'start_task']:
+        if self.action in ['submit_task', 'start_task', 'create_subtask_assign_to_team', 'create_subtask_assign_to_user']:
             permissions += [IsBelongToDepartmentTaskDepartment, CanManageDepartmentTask]
         elif self.action in ['accept_submission', 'reject_submission', 'update']:
             permissions += [IsDepartmentTaskOwner]
