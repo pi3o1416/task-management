@@ -33,6 +33,12 @@ class TeamTaskCreateFailed(APIException):
     default_detail = 'Team task create failed'
 
 
+class TeamTaskDeleteFailed(APIException):
+    status_code = status.HTTP_409_CONFLICT
+    default_code = 'team_task_delete_failed'
+    default_detail = 'Team task delete failed'
+
+
 class TeamInternalTaskCreateFailed(APIException):
     status_code = status.HTTP_400_BAD_REQUEST
     default_code = 'team_internal_task_create_failed'
