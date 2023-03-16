@@ -34,11 +34,8 @@ class TeamTasks(ModelDeleteMixin, ModelUpdateMixin, models.Model):
         permissions = (('can_manage_team_tasks', _("Can Manage Team tasks"))),
 
     def clean(self, *args, **kwargs):
-        #Validate team task can not be updated
-        if self.pk:
-            raise ValidationError("Team task can not be updated")
         #Validate if task is not internal task team member can not assign task to his own team
-        if self.task.internal_task == False and self.team.members.filter(pk=self.task.created_by_id).exist():
+        if self.internal_task == False and self.team.members.filter(pk=self.task.created_by_id).exists():
             raise ValidationError("Team member can not assign task to his own team")
         #Validate task assignor has permission to create team task
         task_assignor = self.task.created_by
@@ -68,7 +65,7 @@ class TeamTasks(ModelDeleteMixin, ModelUpdateMixin, models.Model):
             if commit == True:
                 team_task.save()
             return team_task
-        except Exception as exception:
+        except AssertionError as exception:
             raise TeamTaskCreateFailed(detail=_(exception.__str__()))
 
     def create_subtask(self, commit=False, **kwargs):
