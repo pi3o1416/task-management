@@ -19,6 +19,7 @@ class TeamTasks(ModelDeleteMixin, ModelUpdateMixin, models.Model):
         verbose_name=_("Team"),
     )
     task = models.OneToOneField(
+        primary_key=True,
         to=Task,
         on_delete=models.CASCADE,
         related_name='task_team',
