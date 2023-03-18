@@ -13,7 +13,6 @@ python manage.py migrate --noinput
 
 # Start server
 echo "Starting server"
-hypercorn tms.wsgi:application --workers 1 --bind 0.0.0.0:8020
 
 #TODO: Due to hypercorn port already in use error caching data commands faile to execute.
 python manage.py cacheuserdata
@@ -22,3 +21,4 @@ python manage.py cachedesignationdata
 python manage.py cacheteamdata
 python manage.py cacheprojectdata
 #python manage.py remove_stale_contenttypes --noinput
+hypercorn tms.wsgi:application --workers 1 --bind 0.0.0.0:8020
