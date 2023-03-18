@@ -2,7 +2,6 @@
 import os
 from operator import __and__
 
-from django.forms import model_to_dict
 from django.db import connection
 from django.db import models
 from django.db import IntegrityError
@@ -17,7 +16,8 @@ from services.querysets import get_model_foreignkey_fields
 from services.querysets import TemplateQuerySet
 from services.mixins import ModelDeleteMixin, ModelUpdateMixin
 from services.exceptions import InvalidRequest
-from .exceptions import TaskCreateFailed, UserTasksCreateFailed, TaskAttachmentCreateFailed, TaskTreeCreateFailed, TaskDeleteRestricted
+from .exceptions import TaskCreateFailed, UserTasksCreateFailed, TaskAttachmentCreateFailed
+from .exceptions import UserTasksDeleteFailed, TaskDeleteRestricted, TaskTreeCreateFailed
 from .validators import validate_task_submission_last_date
 
 
@@ -132,14 +132,7 @@ class Task(ModelUpdateMixin, models.Model):
             raise ValidationError(
                 "Task status should be pending untill approval."
             )
-        #Validate task can not be submitted or completed until all child tasks are completed
-        if self.has_subtask == True and self.status in [self.StatusChoices.SUBMITTED, self.StatusChoices.COMPLETED]:
-            child_tasks = self.child_tasks
-            incomplete_task_status = [self.StatusChoices.PENDING, self.StatusChoices.DUE, self.StatusChoices.SUBMITTED]
-            if child_tasks.filter(status__in=incomplete_task_status).exists():
-                raise ValidationError(
-                    "Task submit or complete is not possible until all child tasks are complete"
-                )
+        #Validate rejected task status can not be anything but pending
 
     def save(self, **kwargs):
         self.clean()
@@ -147,15 +140,14 @@ class Task(ModelUpdateMixin, models.Model):
 
     @classmethod
     def create_factory(cls, created_by, commit=True, **kwargs):
+        #TODO: Move approve permission to signal created by should be given as kwargs
         try:
+            assert isinstance(created_by, User) == True, "Created by should be an user instance"
             assert kwargs.get("title") != None, "Task title is required"
             assert kwargs.get("description") != None, "Task description is required"
             assert kwargs.get("last_date") != None, "Task submission last date is required"
             assert kwargs.get("priority") != None, "Task priority is required"
-            task = cls(**kwargs)
-            if created_by.has_perm("task.can_approve_disapprove_task"):
-                task.approval_status = cls.ApprovalChoices.APPROVED
-            task.created_by = created_by
+            task = cls(created_by=created_by, **kwargs)
             if commit == True:
                 task.save()
             return task
@@ -184,8 +176,10 @@ class Task(ModelUpdateMixin, models.Model):
             detail=_("Task is already rejected")
         )
 
-    def accept_task_submission(self):
-        if self.status == self.StatusChoices.SUBMITTED:
+    def accept_task_submission(self, requested_user = None):
+        self._check_eligibility_for_submission()
+        if self.status == self.StatusChoices.SUBMITTED or \
+                (isinstance(requested_user, User) and requested_user.pk == self.created_by_id):
             return self.update(status=self.StatusChoices.COMPLETED)
         raise InvalidRequest(
             detail=_("Task is not submitted yet")
@@ -206,23 +200,28 @@ class Task(ModelUpdateMixin, models.Model):
         )
 
     def submit_task(self):
+        self._check_eligibility_for_submission()
         if self.status == self.StatusChoices.DUE:
             return self.update(status=self.StatusChoices.SUBMITTED)
         raise InvalidRequest(
             detail=_("Task is not due")
         )
 
-
-    def set_task_owner(self, created_by, commit=True):
-        self.created_by = created_by
-        if commit == True:
-            self.save()
-        return self
-
+    def _check_eligibility_for_submission(self):
+        if self.approval_status != self.ApprovalChoices.APPROVED:
+            raise InvalidRequest(
+                "Unapproved task can not be submitted or completed"
+            )
+        if self.has_subtask == True:
+            child_tasks = self.child_tasks
+            if child_tasks.exclude(status__in=self.StatusChoices.COMPLETED).exists():
+                raise InvalidRequest(
+                    "Task submit or complete is not possible until all child tasks are complete"
+                )
     def delete(self):
         if self.status != self.StatusChoices.PENDING:
             raise TaskDeleteRestricted()
-        return self.delete()
+        return super().delete()
 
     @property
     def child_tasks(self):
@@ -250,7 +249,7 @@ class Task(ModelUpdateMixin, models.Model):
                 parents = [parent[0] for parent in cursor.fetchall()]
             return parents
         except Exception:
-            return [model_to_dict(self).get('created_by')]
+            return self.created_by_id
 
 
 class UsersTasksQuerySet(TemplateQuerySet):
@@ -306,7 +305,7 @@ class UsersTasks(ModelDeleteMixin, ModelUpdateMixin, models.Model):
         if self.task.task_type == Task.TaskType.DEPARTMENT_TASK:
             raise ValidationError("Department task can not be assign to user")
         #Validate task asssignee and assignor department
-        task_owner_pk = model_to_dict(self.task.created_by).get('id')
+        task_owner_pk = self.task.created_by_id
         department_members = DepartmentMember.objects.filter(member__in=[task_owner_pk, self.assigned_to.pk])
         if not department_members.is_members_department_same():
             raise ValidationError("Task assignee and assignor department is not same.")
@@ -337,6 +336,13 @@ class UsersTasks(ModelDeleteMixin, ModelUpdateMixin, models.Model):
             raise UserTasksCreateFailed(
                 detail="user tasks create faield due to invalid table field name"
             )
+
+    def delete(self):
+        if self.task.status != Task.StatusChoices.PENDING:
+            raise UserTasksDeleteFailed(
+                "Task delete failed, already started by user"
+            )
+        return super().delete()
 
 
 def task_attachment_upload_path(instance, filename):
@@ -380,8 +386,8 @@ class TaskAttachments(ModelDeleteMixin, models.Model):
 
     def clean(self):
         #Validate task assignor and assignee can only attach failes
-        task_created_by_pk = model_to_dict(self.task).get('created_by')
-        task_assigned_to_pk = model_to_dict(self.task.task_assigned_to).get('assigned_to')
+        task_created_by_pk = self.task.created_by_id
+        task_assigned_to_pk = self.task.task_assigned_to.assigned_to_id
         if self.attached_by.pk != task_created_by_pk and self.attached_by.pk != task_assigned_to_pk:
             raise ValidationError("Attachment can only be attached by task assignee or assignor")
 
@@ -435,8 +441,8 @@ class TaskTree(models.Model):
         if self.pk != None:
             raise ValidationError("Task tree update prohabited.")
         #Validate task parent and child can not be equal
-        parent_pk = model_to_dict(self, fields=['parent']).get('parent')
-        child_pk = model_to_dict(self, fields=['child']).get('child')
+        parent_pk = self.parent_id
+        child_pk = self.child_id
         if parent_pk == child_pk:
             raise ValidationError("Parent task and child task can not be equal.")
         #Validate parent task cannot be complete or submitted.
