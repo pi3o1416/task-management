@@ -16,6 +16,12 @@ class UserTasksCreateFailed(APIException):
     default_code = 'user_task_create_failed'
 
 
+class UserTasksDeleteFailed(APIException):
+    status_code = status.HTTP_403_FORBIDDEN
+    default_code = 'user_task_delete_failed'
+    default_detail = _("User task delete failed")
+
+
 class TaskAttachmentCreateFailed(APIException):
     status_code = status.HTTP_400_BAD_REQUEST
     default_detail = _("Task attachment create failed")
@@ -32,17 +38,5 @@ class TaskDeleteRestricted(APIException):
     status_code = status.HTTP_403_FORBIDDEN
     default_detail = _("Task can not be deleted once it has already been assigned or started")
     default_code = 'task_delete_restricted'
-
-
-
-
-
-
-
-
-
-
-
-
 
 
