@@ -16,7 +16,7 @@ from .team_serializers import TeamDetailSerializer
 User = get_user_model()
 
 
-class TeamInternalTaskCreateSerializer(serializers.ModelSerializer):
+class TeamTasksCreateAssignSerializer(serializers.ModelSerializer):
     assigned_to = serializers.IntegerField(required=False)
     task = TaskSerializer()
 
@@ -44,19 +44,18 @@ class TeamInternalTaskCreateSerializer(serializers.ModelSerializer):
                 is_assigned=True,
                 **task_data
             )
-            TeamTasks.create_factory(
+            user_task = TeamTasks.create_and_assign_root_task(
+                assigned_to=assigned_to,
                 commit=True,
-                task=task,
                 team=team,
-                internal_task=True
+                task=task
             )
-            user_task = UsersTasks.create_factory(commit=True, assigned_to=assigned_to, task=task)
             return user_task
         except (TaskCreateFailed, UserTasksCreateFailed, TeamTaskCreateFailed) as exception:
             raise TeamInternalTaskCreateFailed(detail=exception.__str__())
 
 
-class TeamTasksCreateAssignSerializer(TaskSerializer):
+class TeamInternalTaskCreateSerializer(TaskSerializer):
     @transaction.atomic
     def create(self, team:Team, created_by):
         try:
@@ -68,29 +67,19 @@ class TeamTasksCreateAssignSerializer(TaskSerializer):
                 task_type=Task.TaskType.TEAM_TASK,
                 **self.validated_data
             )
-            team_task = TeamTasks.create_factory(
-                commit=True,
-                task=task,
-                team=team,
-                internal_task=False
-            )
+            team_task = TeamTasks.create_root_task(commit=True, task=task, team=team)
             return team_task
         except (TaskCreateFailed, TeamTaskCreateFailed) as exception:
             raise TeamTaskCreateFailed(detail=exception.__str__())
 
 
-class TeamTaskAssignSerializer(serializers.ModelSerializer):
+class AssignTaskToTeamSerializer(serializers.ModelSerializer):
     class Meta:
         model = TeamTasks
         fields = ['team']
 
-    def create(self, task):
+    def create(self, task, commit=True):
         assert self.validated_data != None, "Validate serializer before create team task"
-        if task.task_type == Task.TaskType.TEAM_TASK:
-            team_task = TeamTasks.objects.filter(task=task).update(
-                team=self.validated_data.get('team')
-            )
-        #TODO:
 
 
 class TeamTasksSerializer(serializers.ModelSerializer):
