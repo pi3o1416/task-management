@@ -24,6 +24,7 @@ class ProjectTask(models.Model):
         verbose_name=_("Project")
     )
     task = models.ForeignKey(
+        primary_key=True,
         to=Task,
         on_delete=models.CASCADE,
         related_name='task_project',

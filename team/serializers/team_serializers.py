@@ -44,13 +44,13 @@ class TeamDetailSerializer(serializers.ModelSerializer):
         fields = ['pk', 'title', 'description', 'department', 'team_lead']
 
     def get_department(self, team):
-        department_pk = team.department_id
+        department_pk = team['department'] if type(team) is dict else team.department_id
         department = Department.objects.get_object_from_cache(pk=department_pk)
         serializer = DepartmentMinimalSerializer(instance=department)
         return serializer.data
 
     def get_team_lead(self, team):
-        team_lead_pk = team.team_lead_id
+        team_lead_pk = team['team_lead'] if type(team) is dict else team.team_lead_id
         team_lead = User.objects.get_object_from_cache(pk=team_lead_pk)
         serializer = UserMinimalSerializer(instance=team_lead)
         return serializer.data

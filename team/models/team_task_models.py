@@ -8,7 +8,7 @@ from task.models import Task, TaskTree, UsersTasks
 from department.models import DepartmentMember
 from .team_models import Team
 from ..querysets import TeamTasksQuerySet
-from ..exceptions import TeamTaskCreateFailed, TeamTaskDeleteFailed
+from ..exceptions import TeamTaskCreateFailed, TeamTaskDeleteFailed, AssignTaskToTeamFailed
 
 
 class TeamTasks(ModelDeleteMixin, ModelUpdateMixin, models.Model):
@@ -74,9 +74,18 @@ class TeamTasks(ModelDeleteMixin, ModelUpdateMixin, models.Model):
 
     @classmethod
     def assign_task_on_team(cls, team:Team, task:Task, commit=True):
-        if task.TaskType == Task.TaskType.TEAM_TASK:
-            task_team = task.task_team
-            task_team.update(team=team, commit=True)
+        #If task type is department task it can not be assign to team
+        if task.task_type == Task.TaskType.DEPARTMENT_TASK:
+            raise AssignTaskToTeamFailed(message="Department task can not be assigned to a team")
+        #If task already assign to a user reassign to a team is forbidden
+        if UsersTasks.objects.filter(pk=task.pk).exists():
+            raise AssignTaskToTeamFailed(message="Task is already assign to a user")
+        if task.task_type == Task.TaskType.TEAM_TASK:
+            team_task = task.task_team.update(team=team, commit=True)
+            return team_task
+        elif task.task_type == Task.TaskType.PROJECT_TASK:
+            project_task = task.task_project
+            project_task.delete()
         team_task = cls.create_factory(
             commit=True,
             team=team,
@@ -108,6 +117,7 @@ class TeamTasks(ModelDeleteMixin, ModelUpdateMixin, models.Model):
 
     @transaction.atomic
     def create_subtask(self, child_task:Task, commit=True):
+        assert child_task.task_type == Task.TaskType.TEAM_TASK, "Child task should be team task"
         team = self.team
         TaskTree.create_factory(
             commit=commit,

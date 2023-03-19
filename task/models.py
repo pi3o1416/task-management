@@ -284,6 +284,7 @@ class UsersTasks(ModelDeleteMixin, ModelUpdateMixin, models.Model):
         verbose_name=_("User")
     )
     task = models.OneToOneField(
+        primary_key=True,
         to=Task,
         on_delete=models.CASCADE,
         related_name='task_assigned_to',

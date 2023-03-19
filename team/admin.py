@@ -16,5 +16,6 @@ class TeamAdmin(admin.ModelAdmin):
 
 @admin.register(TeamTasks)
 class TeamTasksAdmin(admin.ModelAdmin):
-    list_display = ['pk', 'team', 'task']
+    list_display = [field.name for field in TeamTasks._meta.fields]
+
 

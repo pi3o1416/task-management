@@ -46,6 +46,7 @@ class CanCreateUsersTasks(BasePermission):
 
 
 class IsUserTaskOwner(BasePermission):
+    message = "You are not task owner"
     @is_authenticated
     def has_object_permission(self, request, view, user_task:UsersTasks):
         created_by = model_to_dict(user_task.task, fields=['created_by']).get('created_by')
@@ -55,6 +56,7 @@ class IsUserTaskOwner(BasePermission):
 
 
 class IsTaskOwner(BasePermission):
+    message = "You are not task owner"
     @is_authenticated
     def has_object_permission(self, request, view, task:Task):
         user = request.user
@@ -64,6 +66,7 @@ class IsTaskOwner(BasePermission):
         return False
 
 class IsTaskAssignee(BasePermission):
+    message = "You are not task assignee"
     @is_authenticated
     def has_object_permission(self, request, view, task:Task):
         user = request.user
@@ -75,6 +78,7 @@ class IsTaskAssignee(BasePermission):
 
 
 class IsTaskParents(BasePermission):
+    message = "You are not one of the creator of parent tasks"
     @is_authenticated
     def has_object_permission(self, request, view, task:Task):
         user = request.user
@@ -86,6 +90,7 @@ class IsTaskParents(BasePermission):
 
 
 class IsAttachmentOwner(BasePermission):
+    message = "You are not owner of this attachment"
     @is_authenticated
     def has_object_permission(self, request, view, attachment):
         user = request.user

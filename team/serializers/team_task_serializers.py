@@ -8,6 +8,7 @@ from rest_framework.exceptions import ValidationError
 from task.serializers import TaskSerializer, TaskDetailSerializer
 from task.models import Task, UsersTasks
 from task.exceptions import TaskCreateFailed, UserTasksCreateFailed
+from team.querysets import TeamTasksQuerySet
 from ..models import TeamTasks, Team
 from ..exceptions import TeamTaskCreateFailed, TeamInternalTaskCreateFailed
 from .team_serializers import TeamDetailSerializer
@@ -80,6 +81,9 @@ class AssignTaskToTeamSerializer(serializers.ModelSerializer):
 
     def create(self, task, commit=True):
         assert self.validated_data != None, "Validate serializer before create team task"
+        team = self.validated_data.get('team')
+        team_task = TeamTasks.assign_task_on_team(team=team, task=task, commit=True)
+        return team_task
 
 
 class TeamTasksSerializer(serializers.ModelSerializer):
@@ -101,6 +105,44 @@ class TeamTasksDetailSerializer(serializers.ModelSerializer):
         team = Team.objects.get_object_from_cache(pk=team_pk)
         serializer = TeamDetailSerializer(instance=team)
         return serializer.data
+
+
+class UserMinimalSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = User.CACHED_FIELDS
+
+
+class TeamTasksDetailWithAssignedToUserSerializer(serializers.ModelSerializer):
+    def __init__(self, *args, **kwargs):
+        instance = kwargs.get('instance')
+        user_tasks = UsersTasks.objects.filter(task__pk__in=instance.values('pk')).values('task', 'assigned_to')
+        self.user_tasks = {user_task['task']: user_task['assigned_to'] for user_task in user_tasks}
+        super().__init__(*args, **kwargs)
+
+    task = TaskDetailSerializer()
+    team = serializers.SerializerMethodField()
+    assigned_to = serializers.SerializerMethodField()
+
+    class Meta:
+        model = TeamTasks
+        fields = ['pk', 'team', 'task', 'assigned_to']
+
+    def get_team(self, value):
+        team_pk = value.team_id
+        team = Team.objects.get_object_from_cache(pk=team_pk)
+        serializer = TeamDetailSerializer(instance=team)
+        return serializer.data
+
+    def get_assigned_to(self, value):
+        task = value.task_id
+        if task in self.user_tasks:
+            assigned_to_user_pk = self.user_tasks[task]
+            user = User.objects.get_object_from_cache(pk=assigned_to_user_pk)
+            serializer = UserMinimalSerializer(instance=user)
+            return serializer.data
+        return None
+
 
 
 

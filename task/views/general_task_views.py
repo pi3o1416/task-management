@@ -9,7 +9,7 @@ from services.pagination import CustomPageNumberPagination
 from services.views import TemplateViewSet, TemplateAPIView
 from ..permissions import CanViewAllTasks, IsTaskAssignee, IsTaskOwner, IsTaskParents
 from ..permissions import HasPermissionToApproveTask, CanCreateTask, CanDeleteTask, CanUpdateTask
-from ..permissions import IsAttachmentOwner
+from ..permissions import IsAttachmentOwner, CanManageExistingTask
 from ..serializers import TaskSerializer, TaskAttachmentsSerializer, TaskStatusStatisticsSerializer
 from ..models import Task, TaskAttachments
 

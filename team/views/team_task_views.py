@@ -3,14 +3,16 @@ from rest_framework import status
 from rest_framework.response import Response
 
 from services.pagination import CustomPageNumberPagination
+from services.views import TemplateAPIView, TemplateViewSet
 from task.serializers import UsersTasksDetailSerializer
 from task.permissions import CanViewAllTasks, CanManageExistingTask
 from task.models import Task
-from services.views import TemplateAPIView
 from ..serializers import TeamTasksCreateAssignSerializer, TeamTasksDetailSerializer
 from ..serializers import TeamInternalTaskCreateSerializer, AssignTaskToTeamSerializer
+from ..serializers import TeamTasksDetailWithAssignedToUserSerializer
 from ..models import Team, TeamTasks
 from ..permissions import CanCreateTeamTasks, IsMemberOfTeam, IsTeamAndUserDepartmentSame
+from ..permissions import CanManageTeamTasks
 
 
 class TeamInternalTaskCreate(TemplateAPIView):
@@ -75,13 +77,34 @@ class TeamTasksList(TemplateAPIView, CustomPageNumberPagination):
     serializer_class = TeamTasksDetailSerializer
     permission_classes = [CanViewAllTasks]
 
-    def get(self, request, team_pk):
-        team = self.get_object(pk=team_pk)
-        team_tasks = TeamTasks.objects.select_related('team').filter(team=team)
+    def get(self, request):
+        team_tasks = TeamTasks.objects.select_related('task')
         filtered_team_tasks = team_tasks.filter_from_query_params(request=request)
         page = self.paginate_queryset(queryset=filtered_team_tasks, request=request)
         serializer = self.serializer_class(instance=page, many=True)
         return self.get_paginated_response(data=serializer.data)
+
+
+class TasksOfATeam(TemplateAPIView, CustomPageNumberPagination):
+    """
+    List of all tasks for a team
+    """
+    model = Team
+    serializer_class = TeamTasksDetailSerializer
+    permission_classes = [IsMemberOfTeam, CanManageTeamTasks]
+
+    def get(self, request, team_pk):
+        team = self.get_object(pk=team_pk)
+        team_tasks = team.team_tasks.select_related('task').all()
+        filtered_team_tasks = team_tasks.filter_from_query_params(request=request)
+        page = self.paginate_queryset(queryset=filtered_team_tasks, request=request)
+        serializer = TeamTasksDetailWithAssignedToUserSerializer(instance=page, many=True)
+        self.get_paginated_response(data=serializer.data)
+
+
+
+
+
 
 
 

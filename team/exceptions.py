@@ -1,6 +1,17 @@
 
+from django.utils.translation import gettext_lazy as _
 from rest_framework import status
 from rest_framework.exceptions import APIException
+
+
+class AssignTaskToTeamFailed(APIException):
+    def __init__(self, message, *args, **kwargs):
+        self.default_detail = "{}. {}".format(self.default_detail, message)
+        super().__init__(*args, **kwargs)
+
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_code = 'assign_task_to_team_failed'
+    default_detail = _("Assign task to team failed")
 
 
 class MemberBulkAddFailed(APIException):

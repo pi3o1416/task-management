@@ -27,6 +27,7 @@ class DepartmentTask(ModelUpdateMixin, ModelDeleteMixin, models.Model):
     restricted_fields = ['task', 'pk']
 
     task = models.OneToOneField(
+        primary_key=True,
         to=Task,
         on_delete=models.CASCADE,
         related_name="assigned_to_dept",
