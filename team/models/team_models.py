@@ -67,10 +67,3 @@ class Team(ModelDeleteMixin, ModelUpdateMixin, models.Model):
             raise TeamCreateFailed(detail=_(exception.__str__()))
 
 
-
-
-
-
-
-
-
