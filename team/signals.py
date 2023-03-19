@@ -11,7 +11,6 @@ from . import tasks
 @receiver(signal=post_save, sender=Team)
 def add_team_lead_as_team_member(sender, instance:Team, update_fields, **kwargs):
     if not update_fields or 'team_lead' in update_fields:
-        breakpoint()
         team_lead = instance.team_lead
         instance.members.add(team_lead)
 
