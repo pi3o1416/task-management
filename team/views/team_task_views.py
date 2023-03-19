@@ -8,7 +8,7 @@ from task.permissions import CanViewAllTasks, CanManageExistingTask
 from task.models import Task
 from services.views import TemplateAPIView
 from ..serializers import TeamTasksCreateAssignSerializer, TeamTasksDetailSerializer
-from ..serializers import TeamInternalTaskCreateSerializer, TeamTaskAssignSerializer
+from ..serializers import TeamInternalTaskCreateSerializer, AssignTaskToTeamSerializer
 from ..models import Team, TeamTasks
 from ..permissions import CanCreateTeamTasks, IsMemberOfTeam, IsTeamAndUserDepartmentSame
 
@@ -44,24 +44,27 @@ class TeamTaskCreateAndAssign(TemplateAPIView):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
             team_member = serializer.create(team=team, created_by=request.user)
-            new_serializer = TeamTasksDetailSerializer(instance=team_member)
-            return Response(data=new_serializer.data, status=status.HTTP_201_CREATED)
+            resposne_serializer = TeamTasksDetailSerializer(instance=team_member)
+            return Response(data=resposne_serializer.data, status=status.HTTP_201_CREATED)
         return Response(data={"field_errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class TeamExistingTaskAssign(TemplateAPIView):
+class AssignExistingTaskToTeam(TemplateAPIView):
     """
     Assign an already existing task to team
     """
     model = Task
     permission_classes = [CanManageExistingTask]
-    serializer_class = TeamTaskAssignSerializer
+    serializer_class = AssignTaskToTeamSerializer
 
     def post(self, request, task_pk):
         task = self.get_object(pk=task_pk)
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
             team_task = serializer.create(task=task)
+            response_serializer = TeamTasksDetailSerializer(instance=team_task)
+            return Response(data=response_serializer.data, status=status.HTTP_201_CREATED)
+        return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class TeamTasksList(TemplateAPIView, CustomPageNumberPagination):
