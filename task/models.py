@@ -296,11 +296,20 @@ class UsersTasks(ModelDeleteMixin, ModelUpdateMixin, models.Model):
                        ("can_view_all_users_tasks", _("Can View All Users Tasks")))
 
     def clean(self):
+        #Validate task status should be pending before assignment
+        if self.task.status != Task.StatusChoices.PENDING:
+            raise ValidationError("Task status should be pending before assignment")
         #Validate if task type team task and not an team internal task.
         if self.task.task_type == Task.TaskType.TEAM_TASK:
             internal_task = self.task.task_team.internal_task
             if internal_task == False:
                 raise ValidationError("This is not an internal task")
+            #If task is an internal task task assignee and task assignor should be on same department
+            else:
+                task_assignee = self.task.created_by_id
+                task_assignor = self.assigned_to_id
+                if self.task.task_team.members.filter(pk__in=[task_assignee, task_assignor]).count() != 2:
+                    raise ValidationError("Team task assignee and assignor should be on same team")
         #Validate task type not department task
         if self.task.task_type == Task.TaskType.DEPARTMENT_TASK:
             raise ValidationError("Department task can not be assign to user")
@@ -309,9 +318,6 @@ class UsersTasks(ModelDeleteMixin, ModelUpdateMixin, models.Model):
         department_members = DepartmentMember.objects.filter(member__in=[task_owner_pk, self.assigned_to.pk])
         if not department_members.is_members_department_same():
             raise ValidationError("Task assignee and assignor department is not same.")
-        #Validate task status should be pending before assignment
-        if self.task.status != Task.StatusChoices.PENDING:
-            raise ValidationError("Task status should be pending before assignment")
 
     def save(self, *args, **kwargs):
         self.clean()
@@ -459,7 +465,7 @@ class TaskTree(models.Model):
 
 
     @classmethod
-    def create_factory(cls, commit=False, **kwargs):
+    def create_factory(cls, commit=True, **kwargs):
         try:
             assert kwargs.get("parent") != None, "Parent should not be empty"
             assert kwargs.get("child") != None, "Child should not be empty"
