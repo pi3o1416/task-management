@@ -32,6 +32,18 @@ class TeamTasksQuerySet(TemplateQuerySet):
             filtered_tasks = self.filter_from_query_params(request=request, FieldModel=FieldModel, related_field=field_name)
         return filtered_tasks
 
+    def root_tasks(self):
+        return self.filter(root_task=True)
+
+    def assigned_team_tasks(self):
+        return self.filter(root_task=False, internal_task=False)
+
+
+
+
+
+
+
 
 
 
