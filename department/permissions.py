@@ -10,6 +10,7 @@ User = get_user_model()
 
 
 class IsSameDepartment(BasePermission):
+    message = "Requested user and retrieved user does not belong in same department"
     @is_authenticated
     def has_object_permission(self, request, view, obj:User):
         department_members = DepartmentMember.objects.filter(member__in=[request.user.pk, obj.pk])
@@ -19,6 +20,7 @@ class IsSameDepartment(BasePermission):
 
 
 class IsBelongToDepartment(BasePermission):
+    message = "Requested user does not belong to this department"
     @is_authenticated
     def has_object_permission(self, request, view, department:Department):
         user = request.user

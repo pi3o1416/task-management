@@ -20,6 +20,7 @@ class CanManageDepartmentTask(BasePermission):
 
 
 class IsDepartmentTaskOwner(BasePermission):
+    message = "Your are not department task owner"
     @is_authenticated
     def has_object_permission(self, request, view, obj:DepartmentTask):
         task = obj.task
@@ -29,6 +30,7 @@ class IsDepartmentTaskOwner(BasePermission):
 
 
 class IsBelongToDepartmentTaskDepartment(BasePermission):
+    message = "You do not belong to department task assigned department"
     @is_authenticated
     def has_object_permission(self, request, view, obj:DepartmentTask):
         user = request.user

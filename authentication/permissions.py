@@ -23,6 +23,7 @@ class UserViewSetPermission(BasePermission):
 
 
 class IsAnonymous(BasePermission):
+    message = "Only anonymous user can perform this action"
     def has_permission(self, request:Request, view):
         if request.method in SAFE_METHODS:
             if request.user.is_anonymous:
@@ -31,6 +32,7 @@ class IsAnonymous(BasePermission):
 
 
 class IsOwner(BasePermission):
+    message = "You are not the owner of this account"
     def has_object_permission(self, request, view, obj):
         if request.user == obj:
             return True
