@@ -6,7 +6,7 @@ from . import CONFIG
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['tmsv2-backend.aamarpay.xyz']
+ALLOWED_HOSTS = ['tmsv2-backend.aamarpay.dev']
 
 #CSRF trusted origin
 CSRF_TRUSTED_ORIGINS = ['https://tmsv2-backend.aamarpay.xyz']
