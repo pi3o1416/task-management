@@ -9,7 +9,7 @@ DEBUG = False
 ALLOWED_HOSTS = ['tmsv2-backend.aamarpay.dev']
 
 #CSRF trusted origin
-CSRF_TRUSTED_ORIGINS = ['https://tmsv2-backend.aamarpay.xyz']
+CSRF_TRUSTED_ORIGINS = ['https://tmsv2-backend.aamarpay.dev']
 
 # Email Backend
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -22,7 +22,7 @@ DEFAULT_FROM_EMAIL = CONFIG['DEFAULT_FROM_EMAIL']
 
 
 # Domain
-DOMAIN_URI = "https://tmsv2-backend.aamarpay.xyz"
+DOMAIN_URI = "https://tmsv2-backend.aamarpay.dev"
 
 # Celery Configuration Options
 CELERY_TIMEZONE = "UTC"
@@ -31,13 +31,13 @@ CELERY_TASK_TIME_LIMIT = 30 * 60
 CELERY_RESULT_BACKEND = 'django-db'
 CELERY_CACHE_BACKEND = 'django-cache'
 CELERY_RESULT_EXTENDED = True
-CELERY_BROKER_URL = 'redis://dev1.aamarpay.xyz:6379/'
+CELERY_BROKER_URL = 'redis://dev1.aamarpay.dev:6379/'
 
 
 CACHES = {
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': 'redis://dev1.aamarpay.xyz:6379/1',
+        'LOCATION': 'redis://dev1.aamarpay.dev:6379/1',
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient'
         },
