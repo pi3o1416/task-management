@@ -73,7 +73,6 @@ class GroupAssignSerializer(serializers.Serializer):
 
     def save(self):
         assert self.validated_data != None, "Validate serializer assign group"
-        breakpoint()
         group = self.validated_data.get('group')
         user = self.validated_data.get('user')
         group.user_set.add(user.pk)

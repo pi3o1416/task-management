@@ -85,7 +85,6 @@ class Goal(ModelUpdateMixin, models.Model):
             raise ValidationError("Goal completion should be 0 when review status pending")
         #Validate created by user department and goal department need to be same
         if update_fields == None or 'department' in update_fields:
-            breakpoint()
             member_pk = model_to_dict(self).get('created_by')
             member_department_pk = DepartmentMember.objects.member_department(member_pk=member_pk)
             goal_department_pk = model_to_dict(self).get('department')

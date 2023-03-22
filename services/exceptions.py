@@ -47,7 +47,6 @@ class UpdateProhabitedField(APIException):
 
 class TableEntityDeleteRestricted(APIException):
     def __init__(self, model_name=None, *args, **kwargs):
-        breakpoint()
         if model_name != None:
             self.default_detail = _("{} table entity delete restricted".format(model_name))
         super().__init__(*args, **kwargs)

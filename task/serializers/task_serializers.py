@@ -34,7 +34,6 @@ class TaskStatusStatisticsSerializer(serializers.Serializer):
     @property
     def final_data(self):
         final_data = self.data
-        breakpoint()
         return final_data
 
 
