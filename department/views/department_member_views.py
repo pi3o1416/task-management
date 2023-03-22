@@ -30,7 +30,7 @@ class DepartmentMemberViewSet(TemplateViewSet, CustomPageNumberPagination):
         if serializer.is_valid():
             serializer.save()
             return Response(data=serializer.data, status=status.HTTP_201_CREATED)
-        return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(data={"field_errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
     @extend_schema(
         responses=docs.DepartmentMemberListDoc.responses,
