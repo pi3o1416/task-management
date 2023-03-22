@@ -50,8 +50,8 @@ class MyTokenObtainPairView(TokenObtainPairView):
         if response.data.get('detail'):
             error_detail = response.data.get('detail')
             response.data['detail'] = [error_detail]
-        if response.status_code == 400:
-            response.data = {"field_errors": response.data}
+        if response.status_code == 401:
+            response.status_code = status.HTTP_400_BAD_REQUEST
         return super().finalize_response(request, response, *args, **kwargs)
 
 
