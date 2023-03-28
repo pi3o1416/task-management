@@ -13,7 +13,6 @@ from services.mixins import ModelUpdateMixin, ModelDeleteMixin
 from .validators import validate_aamarpay_email
 from .querysets import CustomUserManager
 from .services import get_absolute_uri, ACTIVE_ACCOUNT_EMAIL_SUBJECT, PASSWORD_RESET_EMIAL_SUBJECT
-from .fields import CustomImageField
 
 
 def user_photo_upload_path(instance, file):
@@ -37,7 +36,7 @@ class CustomUser(ModelUpdateMixin, ModelDeleteMixin, AbstractUser):
         "PATCH": "User patch failed.",
     }
 
-    photo = CustomImageField(
+    photo = models.ImageField(
         verbose_name=_("User photo"),
         upload_to=user_photo_upload_path,
         blank=True,
