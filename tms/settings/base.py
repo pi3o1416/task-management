@@ -34,7 +34,6 @@ INSTALLED_APPS = [
     'drf_spectacular',
     'django_extensions',
     'corsheaders',
-    'guardian',
     'django_unused_media',
     'django_cleanup.apps.CleanupConfig',
     'debug_toolbar',
@@ -153,7 +152,6 @@ AUTH_USER_MODEL = 'authentication.CustomUser'
 
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend', # this is default
-    'guardian.backends.ObjectPermissionBackend',
 )
 
 
