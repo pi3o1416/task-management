@@ -29,7 +29,7 @@ class DesignationViewSet(TemplateViewSet, CustomPageNumberPagination):
         if serializer.is_valid():
             serializer.save()
             return Response(data=serializer.data, status=status.HTTP_201_CREATED)
-        return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(data={"field_errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
     @extend_schema(
         responses=docs.DesignationViewSetListDoc.responses,
@@ -86,7 +86,7 @@ class DesignationViewSet(TemplateViewSet, CustomPageNumberPagination):
         if serializer.is_valid():
             serializer.update()
             return Response(data=serializer.data, status=status.HTTP_202_ACCEPTED)
-        return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(data={"field_errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
     def get_serializer_class(self):
         if self.action in ['retrieve', 'list']:
