@@ -23,7 +23,7 @@ class ProjectTask(models.Model):
         related_name='project_tasks',
         verbose_name=_("Project")
     )
-    task = models.ForeignKey(
+    task = models.OneToOneField(
         primary_key=True,
         to=Task,
         on_delete=models.CASCADE,
