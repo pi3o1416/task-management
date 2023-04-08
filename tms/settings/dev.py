@@ -6,9 +6,15 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['testserver', '127.0.0.1']
 
-#Email Backend
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# Email Backend
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = CONFIG["EMAIL_HOST"]
 EMAIL_HOST_USER = CONFIG['EMAIL_HOST_USER']
+EMAIL_HOST_PASSWORD = CONFIG['EMAIL_HOST_PASSWORD']
+EMAIL_PORT = CONFIG['EMAIL_PORT']
+EMAIL_USE_TLS = CONFIG['EMAIL_USE_TLS']
+DEFAULT_FROM_EMAIL = CONFIG['DEFAULT_FROM_EMAIL']
+
 
 #Domain
 DOMAIN_URI = "http://127.0.0.1:8000"
