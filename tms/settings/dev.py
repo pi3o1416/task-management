@@ -21,7 +21,7 @@ CELERY_TASK_TIME_LIMIT = 30 * 60
 CELERY_RESULT_BACKEND = 'django-db'
 CELERY_CACHE_BACKEND = 'django-cache'
 CELERY_RESULT_EXTENDED = True
-CELERY_BROKER_URL = 'amqp://user:bitnami@tmsv2_rabbitmq:5672/'
+CELERY_BROKER_URL = 'redis://localhost:6379/'
 
 
 
