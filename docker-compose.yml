@@ -1,0 +1,95 @@
+version: '3'
+
+networks:
+  app-tier-tmsv2:
+    driver: bridge
+
+services:
+  tmsv2_postgres_db:
+    image: postgres:14.5
+    container_name: tmsv2_postgres_db
+    restart: always
+    env_file:
+      - .env
+    networks:
+      - app-tier-tmsv2
+    ports:
+      - '5440:5432'
+    volumes:
+      - /home/docker-storage/tmsv2_postgres_db:/var/lib/postgresql/data
+
+  tmsv2_web:
+    container_name: tmsv2_web
+    build:
+      context: .
+      dockerfile: Dockerfile
+    entrypoint: ./entrypoint.sh
+    restart: always
+    env_file:
+      - .env
+    depends_on:
+      - tmsv2_postgres_db
+    links:
+      - tmsv2_postgres_db
+    volumes:
+      - .:/app
+      - /home/docker_data/tmsv2_public/static:/app/public/static
+      - /home/docker_data/tmsv2_media:/app/media
+    ports:
+      - "127.0.0.1:9014:8020"
+    networks:
+      - app-tier-tmsv2
+
+  tmsv2_redis:
+    image: redis:alpine
+    restart: always
+    read_only: false
+    container_name: tmsv2_redis
+    command: redis-server --port 6390 --appendonly yes
+    ports:
+      - "127.0.0.1:6390:6390"
+    networks:
+      - app-tier-tmsv2
+
+  tmsv2_rabbitmq:
+    image: 'bitnami/rabbitmq:latest'
+    container_name: tmsv2_rabbitmq
+    networks:
+      - app-tier-tmsv2
+    ports:
+      - "5672:5672"
+
+  tmsv2_celery:
+    container_name: tmsv2_celery
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    entrypoint: ./celery.sh
+    env_file:
+      - .env
+    depends_on:
+      - tmsv2_redis
+    networks:
+      - app-tier-tmsv2
+    volumes:
+      - .:/app
+      - /home/docker_data/tmsv2_public/static:/app/public/static
+      - /home/docker_data/tmsv2_media:/app/media
+
+  tmsv2_celery_flower:
+    container_name: tmsv2_celery_flower
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    env_file:
+      - .env
+    depends_on:
+      - tmsv2_redis
+      - tmsv2_celery
+    ports:
+      - "5567:5555"
+    command: celery -A tms flower --address=0.0.0.0 --port=5555 --basic_auth=aamarpay:aamarpay@2020
+    networks:
+      - app-tier-tmsv2
