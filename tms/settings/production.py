@@ -1,4 +1,3 @@
-
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
 from .base import *
@@ -25,7 +24,7 @@ CELERY_CACHE_BACKEND = 'django-cache'
 CELERY_RESULT_EXTENDED = True
 CELERY_BROKER_URL = 'redis://tmsv2_redis:6390/'
 
-#Configuration for sentry
+# Configuration for sentry
 sentry_sdk.init(
     dsn="https://a1ff75fa9a95483693c31dea9957c4f3@o1182560.ingest.sentry.io/4504327056850944",
     integrations=[
@@ -39,24 +38,7 @@ sentry_sdk.init(
 
     # If you wish to associate users to errors (assuming you are using
     # django.contrib.auth) you may enable sending PII data.
-    send_default_pii=True
+    send_default_pii=True,
+
+    in_app_exclude=['flower']
 )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
