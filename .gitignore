@@ -14,6 +14,7 @@
 /db.sqlite3
 
 #media/files
-/media/submissions/*
+/media/task-attachments/*
 .env
 dev.env
+.idea
