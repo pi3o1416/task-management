@@ -23,3 +23,23 @@ CELERY_CACHE_BACKEND = 'django-cache'
 CELERY_RESULT_EXTENDED = True
 CELERY_BROKER_URL = 'amqp://user:bitnami@tmsv2_rabbitmq:5672/'
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+>>>>>>> 765005b (Remove sentry support for dev branch.)
+
