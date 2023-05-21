@@ -14,6 +14,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='customuser',
             name='email',
-            field=models.EmailField(max_length=254, unique=True, validators=[authentication.validators.validate_aamarpay_email], verbose_name='email address'),
+            field=models.EmailField(max_length=254, unique=True, validators=[authentication.validators.validate_gmail_email], verbose_name='email address'),
         ),
     ]

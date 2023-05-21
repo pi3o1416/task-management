@@ -77,7 +77,7 @@ class DepartmentMemberTest(TestCase):
             username='test_user',
             first_name='test',
             last_name='user',
-            email='test@aamarpay.com'
+            email='test@gmail.com'
         )
         self.designation = Designations.objects.create(
             department = self.department,

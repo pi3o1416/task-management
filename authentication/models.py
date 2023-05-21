@@ -10,7 +10,7 @@ from django.utils.translation import gettext_lazy as _
 
 from emailservice.emailclient import send_async_email
 from services.mixins import ModelUpdateMixin, ModelDeleteMixin
-from .validators import validate_aamarpay_email
+from .validators import validate_gmail_email
 from .querysets import CustomUserManager
 from .services import get_absolute_uri, ACTIVE_ACCOUNT_EMAIL_SUBJECT, PASSWORD_RESET_EMIAL_SUBJECT
 
@@ -47,7 +47,7 @@ class CustomUser(ModelUpdateMixin, ModelDeleteMixin, AbstractUser):
         blank=False,
         unique=True,
         null=False,
-        validators=[validate_aamarpay_email]
+        validators=[validate_gmail_email]
     )
     first_name = models.CharField(
         _("first name"),

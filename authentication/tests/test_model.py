@@ -12,7 +12,7 @@ class CustomUserModelTest(TestCase):
             username='test_user',
             first_name='test',
             last_name='user',
-            email='test@aamarpay.com'
+            email='test@gmail.com'
         )
 
     def get_user(self):
